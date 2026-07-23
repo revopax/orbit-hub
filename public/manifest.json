@@ -1,0 +1,18 @@
+{
+  "name": "ORBIT Hub",
+  "short_name": "ORBIT",
+  "description": "Marketing Corp · Grupo UPAX",
+  "start_url": "/preview",
+  "display": "standalone",
+  "background_color": "#0F1117",
+  "theme_color": "#8C59FE",
+  "orientation": "portrait-primary",
+  "icons": [
+    {
+      "src": "/logos/orbit-logo.png",
+      "sizes": "1024x1024",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}

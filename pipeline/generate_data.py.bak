@@ -1,0 +1,887 @@
+# ============================================================
+# BRÚJULA COMERCIAL — Generador de datos para el frontend
+# ============================================================
+import os, sys, json, re, math, warnings
+import pandas as pd
+import numpy as np
+from datetime import datetime
+
+warnings.filterwarnings('ignore')
+sys.path.insert(0, os.path.dirname(__file__))
+
+from config import (
+    SHEET_HUBSPOT_ID, SHEET_HUBSPOT_TAB,
+    SHEET_OUTPUT_ID,  SHEET_OUTPUT_TAB,
+    COL_EMPRESA, COL_UDN, COL_FECHA,
+    UDNS_VALIDAS, IGAE_SECTOR_COLS,
+)
+
+SHEET_BUDGET_ID  = "1Xd1CFY4gwxmKV8OHti9a1XjCmO2Q5NtUlGulfgbxtaE"
+SHEET_BUDGET_TAB = "Budget GDD 2026 (Escalonado)"
+
+COL_FECHA_LEAD  = "Fecha Lead / propuesta"
+COL_GENERADO    = "Generado por"
+COL_ESTADO      = "Estado lead / etapa del negocio / resultado de reunión"
+COL_ID          = "ID de registro"
+
+UDN_ID_MAP = {
+    "UIX":              "UIX",
+    "Marketing United": "MU",
+    "Promo Espacio":    "PE",
+    "Zeus":             "ZU",
+    "Neracode":         "NC",
+    "House Of Films":   "HOF",
+    "Research Land":    "RL",
+    "Mexa Creativa":    "MEXA",
+}
+UDN_COLOR = {
+    "UIX": "#8C59FE", "MU": "#DCFF00", "PE": "#FF7600",
+    "ZU":  "#61ACAA", "NC": "#3E31CC", "HOF": "#94A3B8",
+    "RL":  "#770EB7", "MEXA": "#FD00C7",
+}
+MES_ES = {
+    1:"ene",2:"feb",3:"mar",4:"abr",5:"may",6:"jun",
+    7:"jul",8:"ago",9:"sep",10:"oct",11:"nov",12:"dic",
+}
+
+BRUJULA_PATH = os.path.join(os.path.dirname(__file__), '..', 'data', 'df_brujula.parquet')
+
+
+def get_gc():
+    import gspread
+    from google.oauth2.service_account import Credentials
+    scopes = ["https://spreadsheets.google.com/feeds", "https://www.googleapis.com/auth/drive"]
+    sa_json = os.environ.get("SERVICE_ACCOUNT_JSON")
+    if sa_json:
+        creds = Credentials.from_service_account_info(json.loads(sa_json), scopes=scopes)
+    else:
+        creds = Credentials.from_service_account_file(
+            os.path.join(os.path.dirname(__file__), "credentials.json"), scopes=scopes)
+    return gspread.authorize(creds)
+
+
+def leer_sheet(gc, sheet_id, tab):
+    print(f"  📥 {tab} …")
+    ws   = gc.open_by_key(sheet_id).worksheet(tab)
+    data = ws.get_all_values()
+    df   = pd.DataFrame(data[1:], columns=data[0])
+    print(f"     {len(df):,} filas × {len(df.columns)} cols")
+    return df
+
+
+def safe(v):
+    if v is None:
+        return None
+    if isinstance(v, float) and (math.isnan(v) or math.isinf(v)):
+        return None
+    return v
+
+
+def fmt_money(v):
+    if v is None or (isinstance(v, float) and math.isnan(v)):
+        return "$0"
+    v = float(v)
+    if v >= 1_000_000:
+        return f"${v/1_000_000:.1f}M"
+    if v >= 1_000:
+        return f"${v/1_000:.0f}K"
+    return f"${v:.0f}"
+
+
+def accion_from_temp(t):
+    return "llamar" if t == "caliente" else ("prepararse" if t == "templado" else "esperar")
+
+
+def nombre_corto(s):
+    return re.sub(r'^\d[\d\-]*\s+', '', str(s)).strip()
+
+
+def procesar_brujula_output(df):
+    df = df.copy()
+    df.columns = [c.strip() for c in df.columns]
+    df['fecha']       = pd.to_datetime(df['fecha'], errors='coerce')
+    df['yhat']        = pd.to_numeric(df['yhat'], errors='coerce')
+    df['z_score']     = pd.to_numeric(df['z_score'], errors='coerce')
+    df['es_forecast'] = df['es_forecast'].astype(str).str.lower().isin(['true','1','yes'])
+    # Recalcular temperatura con umbrales actuales de config.py
+    from config import Z_CALIENTE, Z_TEMPLADO, Z_TIBIO
+    def _temp(z):
+        if pd.isna(z): return 'frio'
+        if z >= Z_CALIENTE:  return 'caliente'
+        if z >= Z_TEMPLADO:  return 'templado'
+        if z >= Z_TIBIO:     return 'tibio'
+        return 'frio'
+    df['temperatura'] = df['z_score'].apply(_temp)
+    return df[df['fecha'].notna() & df['sector_igae'].notna()].copy()
+
+
+def procesar_hubspot(df, incluir_sin_empresa=False):
+    df = df.copy()
+    df.columns = [c.strip() for c in df.columns]
+    df = df[df[COL_UDN].isin(UDNS_VALIDAS)].copy()
+    if not incluir_sin_empresa:
+        df = df[df[COL_EMPRESA].notna() & (df[COL_EMPRESA] != '')].copy()
+    return df
+
+
+def procesar_budget(df):
+    UDN_NAMES = {
+        'research land':    'RL',  'promo espacio':    'PE',
+        'uix':              'UIX', 'zeus':             'ZU',
+        'mexa creativa':    'MEXA','house of films':   'HOF',
+        'marketing united': 'MU',  'neracode':         'NC',
+    }
+    budget = {uid: {} for uid in UDN_ID_MAP.values()}
+    rows   = [list(r) for _, r in df.iterrows()]
+
+    def parse_num(s):
+        if not s or str(s).strip() in ('', '#DIV/0!', 'Sin Registro'):
+            return None
+        try:
+            return float(re.sub(r'[$,\s%]', '', str(s)).strip())
+        except:
+            return None
+
+    for i, row in enumerate(rows):
+        col_a = str(row[0]).strip().lower() if row else ''
+        uid   = UDN_NAMES.get(col_a)
+        if uid is None:
+            continue
+        for j in range(1, 20):
+            if i + j >= len(rows):
+                break
+            nr      = rows[i + j]
+            metrica = str(nr[0]).strip() if nr else ''
+            if metrica.lower() in UDN_NAMES:
+                break
+            c = parse_num(nr[2] if len(nr) > 2 else '')
+            d = parse_num(nr[3] if len(nr) > 3 else '')
+            if metrica == 'Proyectos Ganados':
+                if c: budget[uid]['meta_proyectos'] = c
+                if d: budget[uid]['real_proyectos']  = d
+            elif metrica == 'Venta EXT':
+                if c: budget[uid]['meta_revenue'] = c
+                if d: budget[uid]['real_ytd']     = d
+            elif metrica == 'Ticket Promedio':
+                if c: budget[uid]['meta_ticket'] = c
+                if d: budget[uid]['real_ticket'] = d
+            elif metrica == 'Lead':
+                if c: budget[uid]['meta_leads']        = c
+                if d: budget[uid]['real_leads_budget']  = d
+
+    print(f"  Budget parseado para: {[k for k,v in budget.items() if v]}")
+    for uid, b in budget.items():
+        if b.get('real_ytd') is not None:
+            print(f"    {uid}: Real YTD=${b['real_ytd']:,.0f} | Meta=${b.get('meta_revenue',0):,.0f} | Leads={b.get('real_leads_budget',0)}")
+    return budget
+
+
+def calcular_timing_comercial(df_hs, uid):
+    """Calcula % de contactos 2026 en momento IGAE activo (caliente o templado)"""
+    try:
+        if not os.path.exists(BRUJULA_PATH):
+            return {'pct_total':0,'caliente':0,'templado':0,'total':0,'badge':'sin datos','color':'amber'}
+
+        df_b = pd.read_parquet('data/df_brujula.parquet')
+        col_udn = 'UDN / Pipeline'
+        udn_name = next((k for k,v in UDN_ID_MAP.items() if v == uid), None)
+        if not udn_name:
+            return {'pct_total':0,'caliente':0,'templado':0,'total':0,'badge':'sin datos','color':'amber'}
+
+        df_u = df_b[df_b[col_udn] == udn_name].copy()
+        df_u['fecha_lead'] = pd.to_datetime(df_u['Fecha Lead / propuesta'], errors='coerce')
+
+        # Histórico 2026 completo
+        anio_actual = datetime.now().year
+        df_2026 = df_u[
+            (df_u['fecha_lead'].dt.year == anio_actual) &
+            (df_u['temperatura'].notna())
+        ]
+
+        total = len(df_2026)
+        if total == 0:
+            return {'pct_total':0,'caliente':0,'templado':0,'total':0,'badge':'sin datos','color':'amber'}
+
+        n_caliente = int((df_2026['temperatura'] == 'caliente').sum())
+        n_templado = int((df_2026['temperatura'] == 'templado').sum())
+        n_total_activo = n_caliente + n_templado
+        pct = round(n_total_activo / total * 100, 1)
+
+        color = 'green' if pct >= 50 else ('amber' if pct >= 30 else 'red')
+        badge = f"{n_total_activo} de {total} contactos"
+
+        return {
+            'pct_total': pct,
+            'caliente': n_caliente,
+            'templado': n_templado,
+            'total': total,
+            'badge': badge,
+            'color': color,
+            'pct_caliente': round(n_caliente/total*100,1) if total > 0 else 0,
+            'pct_templado': round(n_templado/total*100,1) if total > 0 else 0,
+        }
+    except Exception as e:
+        print(f"  Error timing: {e}")
+        return {'pct_total':0,'caliente':0,'templado':0,'total':0,'badge':'sin datos','color':'amber'}
+
+
+
+def generar_kpis_historico(df_hs):
+    """Genera KPIs por mes para filtro de periodo en frontend"""
+    historico = {}
+
+    if not os.path.exists('data/df_brujula.parquet'):
+        return historico
+
+    df_b = pd.read_parquet('data/df_brujula.parquet')
+    df_b['fecha_lead'] = pd.to_datetime(df_b['Fecha Lead / propuesta'], errors='coerce')
+
+    col_etapa = next((c for c in df_hs.columns if 'etapa' in c.lower() or 'estado lead' in c.lower()), None)
+
+    for nombre_udn, uid in UDN_ID_MAP.items():
+        historico[uid] = {}
+
+        # Leads por mes desde df_brujula
+        df_u = df_b[df_b['UDN / Pipeline'] == nombre_udn].copy()
+        df_u['anio'] = df_u['fecha_lead'].dt.year
+        df_u['mes']  = df_u['fecha_lead'].dt.month
+
+        # Agrupar por año-mes
+        for (anio, mes), grp in df_u.groupby(['anio', 'mes']):
+            if pd.isna(anio) or pd.isna(mes):
+                continue
+            anio, mes = int(anio), int(mes)
+            key = f"{anio}-{mes:02d}"
+
+            total = len(grp)
+            con_temp = grp[grp['temperatura'].notna()]
+            n_caliente = int((con_temp['temperatura'] == 'caliente').sum())
+            n_templado = int((con_temp['temperatura'] == 'templado').sum())
+            n_activo   = n_caliente + n_templado
+            total_temp = len(con_temp)
+            pct_timing = round(n_activo / total_temp * 100, 1) if total_temp > 0 else 0
+
+            historico[uid][key] = {
+                'leads': total,
+                'timing_activo': n_activo,
+                'timing_total': total_temp,
+                'pct_timing': pct_timing,
+                'anio': anio,
+                'mes': mes,
+            }
+
+    return historico
+
+def generar_kpis(df_hs, budget):
+    kpis = {}
+
+    # Replicar filtros Looker desde HubSpot Repository
+    # MBR-Opp: Tipo de objeto = negocio
+    # MBR-Ganado: Etapa contains 'ganado' + Fecha Por facturar NOT NULL
+    col_tipo      = next((c for c in df_hs.columns if 'tipo' in c.lower() and 'objeto' in c.lower()), None)
+    col_etapa     = next((c for c in df_hs.columns if 'etapa' in c.lower() or 'estado lead' in c.lower()), None)
+    col_valor_k   = next((c for c in df_hs.columns if c.lower().strip() == 'valor'), None)
+    col_fecha_fac = next((c for c in df_hs.columns if 'facturar' in c.lower()), None)
+
+    hs_kpis = {}
+    for nombre_udn, uid_k in UDN_ID_MAP.items():
+        df_u = df_hs[df_hs[COL_UDN] == nombre_udn].copy()
+        # Para YTD usamos todos los registros — el filtro de negocio se aplica solo a proyectos
+        df_u_negocio = df_u[df_u[col_tipo].astype(str).str.lower().str.contains('negocio', na=False)].copy() if col_tipo else df_u.copy()
+        # Proyectos Ganados = Ganado por facturar OR ya facturados (Fecha facturado no nula)
+        col_fecha_facturado = next((c for c in df_u.columns if c.lower().strip() == 'fecha facturado'), None)
+        
+        # Grupo 1: Ganado por facturar (etapa 5) con Fecha Por facturar no nula en 2026
+        df_g1 = pd.DataFrame()
+        if col_etapa and col_fecha_fac:
+            df_tmp = df_u[df_u[col_etapa].astype(str).str.contains('5. Ganado por facturar', case=False, na=False)]
+            df_tmp = df_tmp[df_tmp[col_fecha_fac].notna()]
+            fac_dt = pd.to_datetime(df_tmp[col_fecha_fac], dayfirst=True, errors='coerce')
+            df_g1  = df_tmp[fac_dt.dt.year == 2026]
+
+        # Grupo 2: Ya facturados (Fecha facturado no nula en 2026)
+        df_g2 = pd.DataFrame()
+        if col_fecha_facturado:
+            df_tmp2 = df_u[df_u[col_fecha_facturado].notna()]
+            fac_dt2 = pd.to_datetime(df_tmp2[col_fecha_facturado], dayfirst=True, errors='coerce')
+            df_g2   = df_tmp2[fac_dt2.dt.year == 2026]
+
+        # Unir ambos grupos sin duplicados
+        # Regla: Fecha facturado en 2026
+        col_fecha_fac2 = next((c for c in df_u.columns if c.strip() == 'Fecha facturado'), None)
+        ytd = 0; n_proy = 0; ticket = 0
+        if col_fecha_fac2 and col_valor_k:
+            df_u['_fecha_fac'] = pd.to_datetime(df_u[col_fecha_fac2], dayfirst=True, errors='coerce')
+            df_u['_valor']     = pd.to_numeric(
+                df_u[col_valor_k].astype(str).str.replace(r'[$,]', '', regex=True),
+                errors='coerce'
+            )
+            df_fac = df_u[df_u['_fecha_fac'].dt.year == 2026]
+            vals   = df_fac['_valor'].dropna()
+            ytd    = float(vals.sum())
+            n_proy = int((vals > 0).sum())
+            ticket = float(vals[vals > 0].mean()) if n_proy > 0 else 0
+        hs_kpis[uid_k] = {'ytd': ytd, 'proy': n_proy, 'ticket': ticket}
+        if ytd > 0:
+            print(f"    HS {nombre_udn}: Real YTD=${ytd:,.0f} | Proyectos={n_proy} | Ticket=${ticket:,.0f}")
+
+    for nombre, uid in UDN_ID_MAP.items():
+        color = UDN_COLOR[uid]
+        b     = budget.get(uid, {})
+        hs    = hs_kpis.get(uid, {})
+        n_leads    = int(b.get('real_leads_budget', 0) or 0)
+        meta_leads = int(b.get('meta_leads', 14000) or 14000)
+        real_ytd    = hs.get('ytd') or b.get('real_ytd')
+        meta_rev    = b.get('meta_revenue')
+        real_proy   = hs.get('proy') or b.get('real_proyectos')
+        meta_proy   = b.get('meta_proyectos')
+        real_ticket = hs.get('ticket') or b.get('real_ticket')
+        meta_ticket = b.get('meta_ticket')
+        pct_rev    = round((real_ytd / meta_rev * 100), 1) if real_ytd and meta_rev else 0
+        color_ytd  = "green" if pct_rev >= 10 else ("amber" if pct_rev >= 5 else "red")
+        pct_proy   = round((real_proy / meta_proy * 100), 1) if real_proy and meta_proy else 0
+        badge_proy = f"{'▲' if pct_proy >= 50 else '▼'} {pct_proy:.0f}% avance"
+        color_proy = "green" if pct_proy >= 80 else ("amber" if pct_proy >= 50 else "red")
+        pct_leads  = round((n_leads / meta_leads * 100), 1) if meta_leads else 0
+        badge_leads = f"{'▲' if pct_leads >= 50 else '▼'} {pct_leads:.0f}% vs meta"
+        color_leads = "green" if pct_leads >= 80 else ("amber" if pct_leads >= 50 else "red")
+        meta_mes    = round(meta_leads / 12)
+        dif_ticket  = (real_ticket or 0) - (meta_ticket or 0)
+        badge_ticket = f"{'▲' if dif_ticket >= 0 else '▼'} {fmt_money(abs(dif_ticket))} vs meta"
+        color_ticket = "green" if dif_ticket >= 0 else ("amber" if dif_ticket > -50000 else "red")
+        pct_barra   = min(round(pct_rev * (12 / max(datetime.now().month, 1))), 100)
+        # Timing Comercial — contactos en momento IGAE activo
+        timing = calcular_timing_comercial(df_hs, uid)
+
+        kpis[uid] = [
+            {"label":"Ingresos del Periodo", "valor":fmt_money(real_ytd) if real_ytd else "$0",       "meta":fmt_money(meta_rev) if meta_rev else "$0",  "badge":f"{pct_rev:.1f}% del año", "badgeColor":color_ytd,   "tipo":"moneda", "acento":color},
+            {"label":"Proyectos ganados",     "valor":int(real_proy) if real_proy else 0,              "meta":int(meta_proy) if meta_proy else 0,          "badge":badge_proy,                "badgeColor":color_proy,  "tipo":"numero", "acento":color},
+            {"label":"Ticket promedio",       "valor":fmt_money(real_ticket) if real_ticket else "$0", "meta":fmt_money(meta_ticket) if meta_ticket else "$0", "badge":badge_ticket,          "badgeColor":color_ticket,"tipo":"moneda", "acento":color},
+            {"label":"Leads acumulados",      "valor":f"{n_leads:,}",                                  "meta":f"{meta_leads:,} · mes: {meta_mes:,}",      "badge":badge_leads,               "badgeColor":color_leads, "tipo":"numero", "acento":color},
+            {"label":"Timing Comercial",      "valor":f"{timing['pct_total']}%",                       "meta":"",                                          "badge":timing['badge'],           "badgeColor":timing['color'], "tipo":"timing", "acento":color,
+             "timingData": timing},
+        ]
+    return kpis
+
+
+def generar_temperatura(df_hs, df_forecast):
+    temp_por_udn = {}
+    if os.path.exists(BRUJULA_PATH):
+        df_b = pd.read_parquet(BRUJULA_PATH)
+        print(f"  ✅ df_brujula: {len(df_b):,} leads con temperatura real")
+        for nombre, uid in UDN_ID_MAP.items():
+            df_u   = df_b[df_b['UDN / Pipeline'] == nombre]
+            counts = df_u['temperatura'].value_counts()
+            temp_por_udn[uid] = {
+                "caliente": int(counts.get('caliente', 0)),
+                "templado": int(counts.get('templado', 0)),
+                "tibio":    int(counts.get('tibio',    0)),
+                "frio":     int(counts.get('frio',     0)),
+            }
+    else:
+        print("  ⚠ df_brujula.parquet no encontrado")
+        fecha_max = df_forecast[~df_forecast['es_forecast']]['fecha'].max()
+        df_temp   = df_forecast[df_forecast['fecha'] == fecha_max][['sector_igae','temperatura']].set_index('sector_igae')
+        for nombre, uid in UDN_ID_MAP.items():
+            n      = len(df_hs[df_hs[COL_UDN] == nombre])
+            counts = df_temp['temperatura'].value_counts(normalize=True)
+            temp_por_udn[uid] = {
+                "caliente": round(n * float(counts.get('caliente', 0.30))),
+                "templado": round(n * float(counts.get('templado', 0.25))),
+                "tibio":    round(n * float(counts.get('tibio',    0.25))),
+                "frio":     round(n * float(counts.get('frio',     0.20))),
+            }
+    return temp_por_udn
+
+
+def generar_industrias(df_hs, df_forecast):
+    """
+    Top 5 industrias por UDN desde df_brujula.parquet.
+    El parquet ya tiene todos los campos: sector_igae, temperatura,
+    Generado por, Estado lead, Fecha Lead.
+    Solo leads con Fecha Lead no nula. Histórico completo 2023-2026.
+    """
+    hoy = pd.Timestamp.now()
+
+    import numpy as _np
+    MESES_CAL = [pd.Timestamp(f'2026-{m:02d}-01') for m in range(4, 13)]
+    df_fut = df_forecast[(df_forecast['es_forecast']) & (df_forecast['fecha'].isin(MESES_CAL))]
+    mes_pico_sector = {}
+    if len(df_fut):
+        for sector, grp in df_fut.groupby('sector_igae'):
+            grp_c = grp[grp['fecha'].isin(MESES_CAL)].drop_duplicates('fecha').set_index('fecha')
+            z_por_mes = {m: grp_c.loc[m, 'z_score'] if m in grp_c.index else float('nan') for m in MESES_CAL}
+            validos = [z for z in z_por_mes.values() if not pd.isna(z)]
+            if not validos:
+                continue
+            p75 = _np.percentile(validos, 75)
+            picos = [m for m, z in z_por_mes.items() if not pd.isna(z) and z >= p75]
+            f = min(picos) if picos else max(z_por_mes, key=lambda m: z_por_mes[m] if not pd.isna(z_por_mes[m]) else -999)
+            mes_pico_sector[sector] = f"{MES_ES[f.month]} {f.year}"
+
+    fecha_max_hist = df_forecast[~df_forecast['es_forecast']]['fecha'].max()
+    df_temp_actual = (
+        df_forecast[df_forecast['fecha'] == fecha_max_hist]
+        [['sector_igae','temperatura']]
+        .drop_duplicates('sector_igae')
+        .set_index('sector_igae')
+    )
+
+    orden_temp = {'caliente':0,'templado':1,'tibio':2,'frio':3}
+    industrias_por_udn = {}
+
+    if not os.path.exists(BRUJULA_PATH):
+        print("  ⚠ df_brujula.parquet no encontrado")
+        for nombre, uid in UDN_ID_MAP.items():
+            industrias_por_udn[uid] = []
+        return industrias_por_udn
+
+    # Parquet ya tiene todos los campos necesarios
+    df_b = pd.read_parquet(BRUJULA_PATH)
+
+    # Filtrar solo leads con Fecha Lead no nula (histórico completo 2023-2026)
+    if COL_FECHA_LEAD in df_b.columns:
+        df_leads = df_b[
+            df_b[COL_FECHA_LEAD].notna() &
+            (df_b[COL_FECHA_LEAD].astype(str).str.strip() != '')
+        ].copy()
+    else:
+        df_leads = df_b.copy()
+
+    print(f"  Leads con Fecha Lead: {len(df_leads):,}")
+
+    for nombre, uid in UDN_ID_MAP.items():
+        df_u = df_leads[df_leads['UDN / Pipeline'] == nombre]
+
+        if len(df_u) == 0:
+            industrias_por_udn[uid] = []
+            continue
+
+        df_u_valid = df_u[df_u['sector_igae'].notna() & (df_u['sector_igae'].astype(str).str.strip() != '')].copy()
+
+        if len(df_u_valid) == 0:
+            industrias_por_udn[uid] = []
+            continue
+
+        top = (
+            df_u_valid.groupby('sector_igae')
+            .size()
+            .reset_index(name='leads')
+            .sort_values('leads', ascending=False)
+            .head(8)
+        )
+
+        industrias = []
+        for _, row in top.iterrows():
+            sector  = row['sector_igae']
+            df_sec  = df_u_valid[df_u_valid['sector_igae'] == sector]
+            n_leads = int(row['leads'])
+
+            # Comparación exacta con los valores reales del parquet
+            if COL_GENERADO in df_sec.columns:
+                gen_col = df_sec[COL_GENERADO].fillna('').astype(str).str.strip()
+                n_mkt   = int((gen_col == 'Marketing').sum())
+                n_com   = int((gen_col == 'Comercial').sum())
+            else:
+                n_mkt, n_com = 0, 0
+
+            if COL_ESTADO in df_sec.columns:
+                est_col    = df_sec[COL_ESTADO].fillna('').astype(str)
+                n_perdidos = int(est_col.str.contains(
+                    'Descalificado|Perdido|No califica|Cerrada perdida',
+                    case=False, na=False
+                ).sum())
+            else:
+                n_perdidos = 0
+
+
+            # Top 3 empresas reales de la base para este sector/UDN
+            top_empresas = []
+            try:
+                empresas_validas = df_sec[COL_EMPRESA].dropna().astype(str)
+                empresas_validas = empresas_validas[~empresas_validas.str.lower().isin(["nan","","none"])]
+                top_empresas = empresas_validas.value_counts().head(3).index.tolist()
+            except Exception:
+                top_empresas = []
+            temp  = str(df_temp_actual.loc[sector, 'temperatura']) if sector in df_temp_actual.index else 'frio'
+            mes_p = mes_pico_sector.get(sector, 'N/D')
+
+            industrias.append({
+                "nombre":         nombre_corto(sector),
+                "temperatura":    temp,
+                "mesPico":        mes_p,
+                "accion":         accion_from_temp(temp),
+                "leads":          n_leads,
+                "leadsMkt":       n_mkt,
+                "leadsComercial": n_com,
+                "leadsPerdidos":  n_perdidos,
+                "ejemplos":       top_empresas,
+            })
+
+        industrias.sort(key=lambda x: orden_temp.get(x['temperatura'], 4))
+        industrias_por_udn[uid] = industrias[:5]
+
+        if industrias:
+            top1 = industrias[0]
+            print(f"  {uid}: {len(df_u):,} leads → {top1['nombre']} ({top1['temperatura']}) "
+                  f"Mkt:{top1['leadsMkt']} Com:{top1['leadsComercial']} Perd:{top1['leadsPerdidos']}")
+
+    return industrias_por_udn
+
+
+def generar_temporalidad(df_forecast, industrias_por_udn):
+    all_fechas = sorted(df_forecast['fecha'].unique())
+    labels     = [f"{MES_ES[f.month].capitalize()}'{str(f.year)[2:]}" for f in all_fechas]
+    temporal   = {}
+
+    for uid, inds in industrias_por_udn.items():
+        if not inds:
+            temporal[uid] = None
+            continue
+
+        sectores_out = []
+        for ind in inds[:3]:
+            mask = df_forecast['sector_igae'].apply(
+                lambda s: ind['nombre'][:12].lower() in s.lower())
+            df_s = df_forecast[mask].drop_duplicates('fecha').set_index('fecha')
+
+            if len(df_s) == 0:
+                continue
+
+            yhat_max = df_s['yhat'].max()
+            if not yhat_max or yhat_max == 0:
+                yhat_max = 1
+
+            historico, forecast, pct_max = [], [], []
+            for f in all_fechas:
+                if f in df_s.index:
+                    row   = df_s.loc[f]
+                    yhat  = safe(float(row['yhat'])) if pd.notna(row.get('yhat')) else None
+                    is_fc = bool(row.get('es_forecast', False))
+                    pct   = round((yhat / yhat_max) * 100, 1) if yhat else None
+                    historico.append(None if is_fc else yhat)
+                    forecast.append(yhat if is_fc else None)
+                    pct_max.append(pct)
+                else:
+                    historico.append(None)
+                    forecast.append(None)
+                    pct_max.append(None)
+
+            sectores_out.append({
+                "nombre":    ind['nombre'],
+                "historico": historico,
+                "forecast":  forecast,
+                "pctMaximo": pct_max,
+            })
+
+        temporal[uid] = {"labels": labels, "sectores": sectores_out} if sectores_out else None
+
+    return temporal
+
+
+def generar_calendario(df_forecast, industrias_por_udn):
+    MESES_CAL = [pd.Timestamp(f'2026-{m:02d}-01') for m in range(4, 13)]
+    NOMBRES   = ['ABR','MAY','JUN','JUL','AGO','SEP','OCT','NOV','DIC']
+
+    def estado_relativo(z_scores_mes):
+        """
+        Ranking relativo: clasifica cada mes vs los otros meses del periodo.
+        Siempre genera variedad independientemente del ciclo macro.
+        Top 25% → pico, 25-50% → prep, 50-75% → ok, bottom 25% → vacio
+        """
+        import numpy as np
+        zs = list(z_scores_mes.values())
+        if not zs or all(pd.isna(z) for z in zs):
+            return {m: 'vacio' for m in z_scores_mes}
+        zs_valid = [z for z in zs if not pd.isna(z)]
+        p75 = np.percentile(zs_valid, 75)
+        p50 = np.percentile(zs_valid, 50)
+        p25 = np.percentile(zs_valid, 25)
+        result = {}
+        for mes, z in z_scores_mes.items():
+            if pd.isna(z):
+                result[mes] = 'vacio'
+            elif z >= p75:
+                result[mes] = 'pico'
+            elif z >= p50:
+                result[mes] = 'prep'
+            elif z >= p25:
+                result[mes] = 'ok'
+            else:
+                result[mes] = 'vacio'
+        return result
+
+    cals = {}
+    for uid, inds in industrias_por_udn.items():
+        if not inds:
+            cals[uid] = None
+            continue
+        filas = []
+        for ind in inds[:6]:
+            mask = df_forecast['sector_igae'].apply(
+                lambda s: ind['nombre'][:12].lower() in s.lower())
+            df_s = df_forecast[mask].drop_duplicates('fecha').set_index('fecha')
+            # Recolectar z_scores por mes
+            z_por_mes = {}
+            for mes in MESES_CAL:
+                if mes in df_s.index:
+                    z_por_mes[mes] = df_s.loc[mes, 'z_score']
+                else:
+                    z_por_mes[mes] = float('nan')
+            # Ranking relativo
+            estados = estado_relativo(z_por_mes)
+            celdas = [estados[mes] for mes in MESES_CAL]
+            filas.append({"industria": ind['nombre'], "celdas": celdas})
+        cals[uid] = {"meses": NOMBRES, "filas": filas}
+    return cals
+
+
+def generar_picos(industrias_por_udn):
+    ACCION_TEXTO = {
+        'caliente': 'Contactar ahora a prospectos identificados',
+        'templado': 'Preparar propuesta y presentar',
+        'tibio':    'Calificar leads y agendar demos',
+        'frio':     'Monitorear señales del sector',
+    }
+    return {
+        uid: [{"industria":i['nombre'],"temperatura":i['temperatura'],"mesPico":i['mesPico'],
+               "accion":ACCION_TEXTO.get(i['temperatura'],'Monitorear'),"leadsEnBase":i['leads']}
+              for i in inds[:5]]
+        for uid, inds in industrias_por_udn.items()
+    }
+
+
+def generar_rescue(df_hs, industrias_por_udn):
+    # Cargar SCIAN_nombre desde df_maestro
+    try:
+        import os
+        df_maestro = pd.read_parquet("data/df_maestro.parquet")[["Nombre de la empresa","SCIAN_nombre"]].drop_duplicates("Nombre de la empresa")
+        scian_map = df_maestro.set_index("Nombre de la empresa")["SCIAN_nombre"].to_dict()
+    except Exception:
+        scian_map = {}
+    SCIAN_IGAE_MAP = {
+        "Manufactura": "Industrias manufactureras",
+        "Manufactura — Alimentos": "Industrias manufactureras",
+        "Manufactura — Metálica y maquinaria": "Industrias manufactureras",
+        "Manufactura — Química y plásticos": "Industrias manufactureras",
+        "Manufactura — Textil y calzado": "Industrias manufactureras",
+        "Servicios profesionales y TI": "Servicios profesionales, científicos y técnicos",
+        "Transportes y logística": "Transportes, correos y almacenamiento",
+        "Servicios de salud": "Servicios de salud y de asistencia social",
+        "Entretenimiento y esparcimiento": "Servicios de esparcimiento culturales y deportivos, y otros servicios recreativos",
+    }
+    scian_map = {k: SCIAN_IGAE_MAP.get(v, v) for k, v in scian_map.items()}
+    # Cargar forecast histórico con percentiles por mes calendario (mismo mes vs años anteriores)
+    try:
+        import numpy as np
+        df_fc = pd.read_parquet("data/df_forecast.parquet")[["fecha","sector_igae","z_score"]]
+        df_fc = df_fc[df_fc["z_score"].notna()].copy()
+        df_fc["sector_clean"] = df_fc["sector_igae"].str.replace(r"^\d+[-\d]*\s+", "", regex=True)
+        df_fc["ym"] = df_fc["fecha"].dt.to_period("M").astype(str)
+        df_fc["mes"] = df_fc["fecha"].dt.month
+        fase_hist = {}
+        for sector, grp in df_fc.groupby("sector_clean"):
+            for mes, grp_mes in grp.groupby("mes"):
+                p75 = np.percentile(grp_mes["z_score"], 75)
+                p50 = np.percentile(grp_mes["z_score"], 50)
+                p25 = np.percentile(grp_mes["z_score"], 25)
+                for _, r in grp_mes.iterrows():
+                    z = r["z_score"]
+                    if z >= p75:   fase = "caliente"
+                    elif z >= p50: fase = "templado"
+                    elif z >= p25: fase = "tibio"
+                    else:          fase = "frio"
+                    fase_hist[(sector, r["ym"])] = fase
+    except Exception:
+        fase_hist = {}
+    estados_perd = ['perd', 'no califica', 'descalif', 'cerrada', 'cancelad', 'lost']
+
+    # Lookup mesPico por nombre de industria
+    mes_pico_lookup = {}
+    for uid_inds in industrias_por_udn.values():
+        for ind in uid_inds:
+            nombre = ind.get('nombre', '')
+            mes = ind.get('mesPico', 'N/D')
+            if nombre and mes != 'N/D':
+                mes_pico_lookup[nombre.lower()[:20]] = mes
+
+    # Detectar columnas dinámicamente
+    cols = df_hs.columns.tolist()
+    col_motivo    = next((c for c in cols if 'motivo' in c.lower()), None)
+    col_fecha_mql = next((c for c in cols if 'fecha' in c.lower() and 'mql' in c.lower()), None)
+    col_valor     = next((c for c in cols if c.lower().strip() == 'valor'), None)
+    col_ind       = next((c for c in cols if 'industria' in c.lower()), None)
+    col_generado  = next((c for c in cols if 'generado' in c.lower()), None)
+    col_fecha_cre = next((c for c in cols if 'creaci' in c.lower() and 'fecha' in c.lower()), None)
+    col_estado    = next((c for c in cols if any(x in c.lower() for x in ['estado lead','etapa','resultado'])), None)
+
+    MES_NUM = {'ene':1,'feb':2,'mar':3,'abr':4,'may':5,'jun':6,
+               'jul':7,'ago':8,'sep':9,'oct':10,'nov':11,'dic':12}
+    hoy = pd.Timestamp.now()
+
+    rescue = {}
+    for nombre_udn, uid in UDN_ID_MAP.items():
+        df_u = df_hs[df_hs[COL_UDN] == nombre_udn].copy()
+
+        if col_estado:
+            mask = df_u[col_estado].astype(str).str.lower().str.contains(
+                '|'.join(estados_perd), na=False)
+            df_perd = df_u[mask]
+        else:
+            df_perd = df_u.head(0)
+
+        rows = []
+        seen = set()
+        for _, row in df_perd.iterrows():
+            empresa = str(row.get(COL_EMPRESA, '') or '').strip()
+            if not empresa or empresa.lower() in ('nan', '') or empresa in seen:
+                continue
+            seen.add(empresa)
+
+            # Industria real del lead
+            ind_raw = ''
+            if col_ind:
+                v = row.get(col_ind, '')
+                ind_raw = str(v).strip() if v and not pd.isna(v) else ''
+            if ind_raw.lower() == 'nan':
+                ind_raw = ''
+
+            # mesPico por industria real
+            mes_pico = 'N/D'
+            key_ind  = ind_raw.lower()[:20]
+            for key, mes in mes_pico_lookup.items():
+                if key and (key in key_ind or key_ind in key):
+                    mes_pico = mes
+                    break
+
+            # Motivo real de descalificación
+            motivo = ''
+            if col_motivo:
+                m = row.get(col_motivo, '')
+                motivo = str(m).strip() if m and not pd.isna(m) else ''
+            if not motivo or motivo == 'nan':
+                motivo = 'Sin registro'
+
+            # Fecha MQL / evaluando
+            fecha_perd = ''
+            if col_fecha_mql:
+                fp = row.get(col_fecha_mql)
+                try:
+                    if fp and not pd.isna(fp):
+                        fecha_perd = pd.Timestamp(fp).strftime('%b %Y')
+                except Exception:
+                    fecha_perd = ''
+
+            # Valor real
+            valor = 0
+            if col_valor:
+                v = row.get(col_valor, 0)
+                try:
+                    valor = int(float(str(v).replace(',', '').replace('$', '') or 0)) if v and not pd.isna(v) else 0
+                except Exception:
+                    valor = 0
+
+            # Acción según distancia al pico
+            accion = 'esperar'
+            if mes_pico != 'N/D':
+                try:
+                    partes = mes_pico.lower().split()
+                    m_num  = MES_NUM.get(partes[0], 0)
+                    yr     = int(partes[1])
+                    diff   = (yr - hoy.year) * 12 + m_num - hoy.month
+                    if diff <= 1:
+                        accion = 'llamar'
+                    elif diff <= 3:
+                        accion = 'prepararse'
+                except Exception:
+                    accion = 'esperar'
+
+            rows.append({
+                "empresa":       empresa,
+                "industria":     scian_map.get(empresa, ind_raw) or 'Sin industria',
+                "motivoPerdida": motivo,
+                "fechaPerdido":  fecha_perd,
+                "valor":         valor,
+                "mesPico":       mes_pico,
+                "generadoPor":   str(row.get(col_generado, "") or "").strip() if col_generado else "",
+                "fechaCreacion": pd.Timestamp(row.get(col_fecha_cre)).strftime("%b %Y") if col_fecha_cre and row.get(col_fecha_cre) and not pd.isna(row.get(col_fecha_cre)) else "",
+                "faseAlContactar": (lambda ym: fase_hist.get((scian_map.get(empresa, ind_raw), ym), "") if ym >= "2026-04" else "")(pd.Timestamp(row.get(col_fecha_cre)).strftime("%Y-%m") if col_fecha_cre and row.get(col_fecha_cre) and not pd.isna(row.get(col_fecha_cre)) else ""),
+                "accion":        accion,
+            })
+
+        rows.sort(key=lambda r: r['valor'], reverse=True)
+        rescue[uid] = rows[:20]
+    return rescue
+
+
+def main():
+    print("\n" + "="*55)
+    print("  BRÚJULA COMERCIAL — Generador de datos JSON")
+    print("="*55 + "\n")
+
+    gc = get_gc()
+
+    print("1. Leyendo fuentes…")
+    df_out_raw = leer_sheet(gc, SHEET_OUTPUT_ID,  SHEET_OUTPUT_TAB)
+    df_hs_raw  = leer_sheet(gc, SHEET_HUBSPOT_ID, SHEET_HUBSPOT_TAB)
+    df_bud_raw = leer_sheet(gc, SHEET_BUDGET_ID,  SHEET_BUDGET_TAB)
+
+    print("\n2. Procesando…")
+    df_forecast = procesar_brujula_output(df_out_raw)
+    df_hs       = procesar_hubspot(df_hs_raw)
+    df_hs_ytd   = procesar_hubspot(df_hs_raw, incluir_sin_empresa=True)
+    budget      = procesar_budget(df_bud_raw)
+
+    print(f"  Forecast: {len(df_forecast):,} filas, {df_forecast['sector_igae'].nunique()} sectores")
+    print(f"  HubSpot:  {len(df_hs):,} registros válidos")
+    print(f"  Parquet:  {'✅ encontrado' if os.path.exists(BRUJULA_PATH) else '⚠ no encontrado'}")
+
+    print("\n3. Generando secciones…")
+    kpis         = generar_kpis(df_hs_ytd, budget)
+    kpis_historico = generar_kpis_historico(df_hs)
+    temperatura  = generar_temperatura(df_hs, df_forecast)
+    industrias   = generar_industrias(df_hs, df_forecast)
+    temporalidad = generar_temporalidad(df_forecast, industrias)
+    calendario   = generar_calendario(df_forecast, industrias)
+    picos        = generar_picos(industrias)
+    rescue       = generar_rescue(df_hs, industrias)
+
+    data = {
+        "meta": {
+            "generado_en":               datetime.utcnow().isoformat() + "Z",
+            "ultima_actualizacion_igae": df_forecast[~df_forecast['es_forecast']]['fecha'].max().strftime('%Y-%m'),
+            "total_leads":               len(df_hs),
+        },
+        "kpis":         kpis,
+        "kpis_historico": kpis_historico,
+        "temperatura":  temperatura,
+        "industrias":   industrias,
+        "temporalidad": temporalidad,
+        "calendario":   calendario,
+        "picos":        picos,
+        "rescue":       rescue,
+    }
+
+    out_dir  = os.path.join(os.path.dirname(__file__), '..', 'public', 'data')
+    os.makedirs(out_dir, exist_ok=True)
+    out_path = os.path.join(out_dir, 'brujula_data.json')
+
+    with open(out_path, 'w', encoding='utf-8') as f:
+        json.dump(data, f, ensure_ascii=False, default=str, indent=2)
+
+    size_kb = os.path.getsize(out_path) / 1024
+    print(f"\n✅ JSON: {out_path} ({size_kb:.1f} KB)")
+
+    sample = kpis.get('MU', [])
+    if sample:
+        print(f"\n  Muestra MU KPIs:")
+        for k in sample:
+            print(f"    {k['label']}: {k['valor']} (meta: {k['meta']})")
+
+    print("\n" + "="*55)
+    print("  ✅ Completado")
+    print("="*55 + "\n")
+
+
+if __name__ == "__main__":
+    main()

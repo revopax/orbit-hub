@@ -1,0 +1,540 @@
+nombre_norm,scian_2,nombre_sector,pais_origen,scian_3
+WALMART,46,Comercio al por menor,MX,462
+WALMART DE MEXICO,46,Comercio al por menor,MX,462
+WALMEX,46,Comercio al por menor,MX,462
+SUPERAMA,46,Comercio al por menor,MX,461
+SAM'S CLUB,46,Comercio al por menor,MX,462
+SAMS CLUB,46,Comercio al por menor,MX,462
+BODEGA AURRERA,46,Comercio al por menor,MX,461
+OXXO,46,Comercio al por menor,MX,461
+FEMSA,46,Comercio al por menor,MX,312
+SEVEN ELEVEN,46,Comercio al por menor,MX,461
+7 ELEVEN,46,Comercio al por menor,MX,461
+CIRCLE K,46,Comercio al por menor,MX,461
+EXTRA,46,Comercio al por menor,MX,461
+SORIANA,46,Comercio al por menor,MX,462
+CHEDRAUI,46,Comercio al por menor,MX,462
+COMERCIAL MEXICANA,46,Comercio al por menor,MX,461
+LA COMER,46,Comercio al por menor,MX,462
+CITY MARKET,46,Comercio al por menor,MX,461
+FRESKO,46,Comercio al por menor,MX,461
+LIVERPOOL,46,Comercio al por menor,MX,462
+PALACIO DE HIERRO,46,Comercio al por menor,MX,462
+EL PALACIO DE HIERRO,46,Comercio al por menor,MX,461
+SEARS,46,Comercio al por menor,MX,462
+SANBORNS,46,Comercio al por menor,MX,461
+COPPEL,46,Comercio al por menor,MX,462
+ELEKTRA,46,Comercio al por menor,MX,462
+FAMSA,46,Comercio al por menor,MX,462
+SUBURBIA,46,Comercio al por menor,MX,463
+FONDO DE CULTURA ECONOMICA,46,Comercio al por menor,MX,461
+GANDHI,46,Comercio al por menor,MX,461
+HOME DEPOT,46,Comercio al por menor,MX,466
+HOMEDEPOT,46,Comercio al por menor,MX,461
+COSTCO,46,Comercio al por menor,MX,462
+IKEA,46,Comercio al por menor,MX,461
+AMAZON,46,Comercio al por menor,US,469
+MERCADO LIBRE,46,Comercio al por menor,AR,461
+MERCADOLIBRE,46,Comercio al por menor,AR,461
+TEMU,46,Comercio al por menor,CN,461
+SHEIN,46,Comercio al por menor,CN,461
+FARMACIAS DEL AHORRO,46,Comercio al por menor,MX,464
+FARMACIA DEL AHORRO,46,Comercio al por menor,MX,464
+FARMACIAS BENAVIDES,46,Comercio al por menor,MX,461
+FARMACIAS GUADALAJARA,46,Comercio al por menor,MX,464
+FARMACIAS SAN PABLO,46,Comercio al por menor,MX,461
+SUPERFARMACIAS,46,Comercio al por menor,MX,461
+APPLE,46,Comercio al por menor,US,334
+BEST BUY,46,Comercio al por menor,US,461
+OFFICE DEPOT,46,Comercio al por menor,US,465
+OFFICEDEPOT,46,Comercio al por menor,US,461
+ZARA,46,Comercio al por menor,ES,461
+PULL BEAR,46,Comercio al por menor,ES,461
+BERSHKA,46,Comercio al por menor,ES,461
+STRADIVARIUS,46,Comercio al por menor,ES,461
+MASSIMO DUTTI,46,Comercio al por menor,ES,461
+H M,46,Comercio al por menor,SE,461
+HM,46,Comercio al por menor,SE,461
+H&M,46,Comercio al por menor,SE,461
+ZARA HOME,46,Comercio al por menor,ES,461
+INDITEX,46,Comercio al por menor,ES,461
+NIKE,46,Comercio al por menor,US,461
+ADIDAS,46,Comercio al por menor,DE,461
+PUMA,46,Comercio al por menor,DE,461
+REEBOK,46,Comercio al por menor,US,461
+UNDER ARMOUR,46,Comercio al por menor,US,461
+DECATHLON,46,Comercio al por menor,FR,461
+PETCO,46,Comercio al por menor,US,469
+PETCO MEXICO,46,Comercio al por menor,US,461
+PEPSI,31,Manufactura,US,312
+PEPSICO,31,Manufactura,US,312
+COCA COLA,31,Manufactura,US,312
+COCACOLA,31,Manufactura,US,311
+ARCA CONTINENTAL,31,Manufactura,MX,312
+FEMSA BEBIDAS,31,Manufactura,MX,311
+BIMBO,31,Manufactura,MX,311
+GRUPO BIMBO,31,Manufactura,MX,311
+MARINELA,31,Manufactura,MX,311
+RICOLINO,31,Manufactura,MX,311
+BARCEL,31,Manufactura,MX,311
+MODELO,31,Manufactura,MX,312
+GRUPO MODELO,31,Manufactura,MX,312
+AB INBEV,31,Manufactura,BE,311
+HEINEKEN,31,Manufactura,NL,312
+CERVEZAS CUAUHTEMOC,31,Manufactura,MX,311
+CUAUHTEMOC MOCTEZUMA,31,Manufactura,MX,312
+NESTLÉ,31,Manufactura,CH,311
+NESTLE,31,Manufactura,CH,311
+SIGMA,31,Manufactura,MX,311
+SIGMA ALIMENTOS,31,Manufactura,MX,311
+LALA,31,Manufactura,MX,311
+ALPURA,31,Manufactura,MX,311
+JUMEX,31,Manufactura,MX,312
+DEL VALLE,31,Manufactura,MX,312
+VITAFUSION,31,Manufactura,MX,311
+SABRITAS,31,Manufactura,MX,311
+FRITO LAY,31,Manufactura,US,311
+PROCTER GAMBLE,31,Manufactura,US,311
+PROCTER & GAMBLE,31,Manufactura,US,325
+P&G,31,Manufactura,US,325
+UNILEVER,31,Manufactura,NL,311
+COLGATE,31,Manufactura,US,325
+KIMBERLY CLARK,31,Manufactura,US,311
+KIMBERLY-CLARK,31,Manufactura,US,311
+SCOTCH BRITE,31,Manufactura,US,311
+RECKITT,31,Manufactura,GB,311
+HENKEL,31,Manufactura,DE,325
+MEAD JOHNSON,31,Manufactura,US,311
+ABBOTT,62,Servicios de salud,US,325
+CEMEX,23,Construcción,MX,327
+HOLCIM,23,Construcción,CH,236
+LAFARGEHOLCIM,23,Construcción,CH,236
+VULCAN MATERIALS,23,Construcción,US,236
+JAVER,23,Construcción,MX,236
+ARA,23,Construcción,MX,236
+CONSORCIO ARA,23,Construcción,MX,236
+URBI,23,Construcción,MX,236
+SARE,23,Construcción,MX,236
+GEO,23,Construcción,MX,236
+GRUPO GEO,23,Construcción,MX,236
+CARSO,23,Construcción,MX,236
+INFRA,23,Construcción,MX,236
+ICA,23,Construcción,MX,237
+PINFRA,48,Transportes y logística,MX,237
+TELEVISA,51,Telecomunicaciones y medios,MX,515
+GRUPO TELEVISA,51,Telecomunicaciones y medios,MX,517
+TV AZTECA,51,Telecomunicaciones y medios,MX,515
+AZTECA,51,Telecomunicaciones y medios,MX,517
+IMAGEN,51,Telecomunicaciones y medios,MX,517
+CANAL 22,51,Telecomunicaciones y medios,MX,517
+MILENIO,51,Telecomunicaciones y medios,MX,517
+EL FINANCIERO,51,Telecomunicaciones y medios,MX,517
+EXCELSIOR,51,Telecomunicaciones y medios,MX,517
+EL UNIVERSAL,51,Telecomunicaciones y medios,MX,517
+REFORMA,51,Telecomunicaciones y medios,MX,517
+PROCESO,51,Telecomunicaciones y medios,MX,517
+NEXTEL,51,Telecomunicaciones y medios,MX,517
+TELCEL,51,Telecomunicaciones y medios,MX,517
+TELMEX,51,Telecomunicaciones y medios,MX,517
+IZZI,51,Telecomunicaciones y medios,MX,517
+TOTALPLAY,51,Telecomunicaciones y medios,MX,517
+MEGACABLE,51,Telecomunicaciones y medios,MX,517
+AXTEL,51,Telecomunicaciones y medios,MX,517
+AT&T,51,Telecomunicaciones y medios,US,517
+ATT,51,Telecomunicaciones y medios,US,517
+MOVISTAR,51,Telecomunicaciones y medios,ES,517
+CLARO,51,Telecomunicaciones y medios,CO,517
+ALTICE,51,Telecomunicaciones y medios,NL,517
+DISNEY,51,Telecomunicaciones y medios,US,512
+NETFLIX,51,Telecomunicaciones y medios,US,516
+HBO,51,Telecomunicaciones y medios,US,517
+PRIME VIDEO,51,Telecomunicaciones y medios,US,517
+AMAZON PRIME,51,Telecomunicaciones y medios,US,517
+SPOTIFY,51,Telecomunicaciones y medios,SE,516
+YOUTUBE,51,Telecomunicaciones y medios,US,516
+GOOGLE,54,Servicios profesionales y TI,US,541
+ALPHABET,54,Servicios profesionales y TI,US,541
+MICROSOFT,54,Servicios profesionales y TI,US,541
+META,51,Telecomunicaciones y medios,US,541
+FACEBOOK,51,Telecomunicaciones y medios,US,517
+INSTAGRAM,51,Telecomunicaciones y medios,US,517
+WHATSAPP,51,Telecomunicaciones y medios,US,517
+TWITTER,51,Telecomunicaciones y medios,US,517
+X CORP,51,Telecomunicaciones y medios,US,517
+TIKTOK,51,Telecomunicaciones y medios,CN,517
+BYTEDANCE,51,Telecomunicaciones y medios,CN,517
+LINKEDIN,54,Servicios profesionales y TI,US,541
+SALESFORCE,54,Servicios profesionales y TI,US,541
+HUBSPOT,54,Servicios profesionales y TI,US,541
+ORACLE,54,Servicios profesionales y TI,US,541
+SAP,54,Servicios profesionales y TI,DE,541
+IBM,54,Servicios profesionales y TI,US,541
+ACCENTURE,54,Servicios profesionales y TI,IE,541
+DELOITTE,54,Servicios profesionales y TI,US,541
+KPMG,54,Servicios profesionales y TI,NL,541
+ERNST YOUNG,54,Servicios profesionales y TI,GB,541
+EY,54,Servicios profesionales y TI,GB,541
+PWC,54,Servicios profesionales y TI,GB,541
+PRICEWATERHOUSECOOPERS,54,Servicios profesionales y TI,GB,541
+MCKINSEY,54,Servicios profesionales y TI,US,541
+BCG,54,Servicios profesionales y TI,US,541
+BAIN,54,Servicios profesionales y TI,US,541
+BOOZ ALLEN,54,Servicios profesionales y TI,US,541
+CAPGEMINI,54,Servicios profesionales y TI,FR,541
+INFOSYS,54,Servicios profesionales y TI,IN,541
+WIPRO,54,Servicios profesionales y TI,IN,541
+TATA CONSULTANCY,54,Servicios profesionales y TI,IN,541
+COGNIZANT,54,Servicios profesionales y TI,US,541
+AMADEUS,54,Servicios profesionales y TI,ES,541
+SOFTTEK,54,Servicios profesionales y TI,MX,541
+NEARSHORE,54,Servicios profesionales y TI,MX,541
+GRISI,32,Manufactura,MX,325
+GENOMMA LAB,32,Manufactura,MX,325
+LIOMONT,32,Manufactura,MX,325
+PFIZER,32,Manufactura,US,325
+JOHNSON,62,Servicios de salud,US,621
+JOHNSON JOHNSON,62,Servicios de salud,US,621
+SANOFI,32,Manufactura,FR,325
+BAYER,32,Manufactura,DE,325
+MERCK,32,Manufactura,DE,325
+ROCHE,62,Servicios de salud,CH,325
+ASTRAZENECA,32,Manufactura,GB,325
+NOVARTIS,32,Manufactura,CH,325
+BRISTOL MYERS,32,Manufactura,US,325
+ELI LILLY,32,Manufactura,US,325
+ABBVIE,32,Manufactura,US,325
+MEDICA,62,Servicios de salud,MX,621
+CHRISTUS MUGUERZA,62,Servicios de salud,MX,622
+STAR MEDICA,62,Servicios de salud,MX,621
+HOSPITAL ANGELES,62,Servicios de salud,MX,621
+ANGELES,62,Servicios de salud,MX,621
+IMSS,62,Servicios de salud,MX,621
+ISSSTE,62,Servicios de salud,MX,621
+SALUD,62,Servicios de salud,MX,621
+GEDEON RICHTER,32,Manufactura,HU,325
+BBVA,52,Servicios financieros y de seguros,ES,522
+BBVA MEXICO,52,Servicios financieros y de seguros,ES,522
+BANCOMER,52,Servicios financieros y de seguros,ES,522
+BANAMEX,52,Servicios financieros y de seguros,MX,522
+CITIBANAMEX,52,Servicios financieros y de seguros,US,522
+CITIBANK,52,Servicios financieros y de seguros,US,522
+CITI,52,Servicios financieros y de seguros,US,522
+SANTANDER,52,Servicios financieros y de seguros,ES,522
+HSBC,52,Servicios financieros y de seguros,GB,522
+SCOTIABANK,52,Servicios financieros y de seguros,CA,522
+BANORTE,52,Servicios financieros y de seguros,MX,522
+INBURSA,52,Servicios financieros y de seguros,MX,522
+COMPARTAMOS,52,Servicios financieros y de seguros,MX,522
+INTERCAM,52,Servicios financieros y de seguros,MX,522
+INVEX,52,Servicios financieros y de seguros,MX,522
+AFIRME,52,Servicios financieros y de seguros,MX,522
+BANREGIO,52,Servicios financieros y de seguros,MX,522
+BANBAJIO,52,Servicios financieros y de seguros,MX,522
+BAJIO,52,Servicios financieros y de seguros,MX,522
+ACTINVER,52,Servicios financieros y de seguros,MX,523
+GBM,52,Servicios financieros y de seguros,MX,522
+MONEXPO,52,Servicios financieros y de seguros,MX,522
+MONEX,52,Servicios financieros y de seguros,MX,522
+JP MORGAN,52,Servicios financieros y de seguros,US,522
+JPMORGAN,52,Servicios financieros y de seguros,US,522
+GOLDMAN SACHS,52,Servicios financieros y de seguros,US,522
+MORGAN STANLEY,52,Servicios financieros y de seguros,US,522
+AMERICAN EXPRESS,52,Servicios financieros y de seguros,US,522
+AMEX,52,Servicios financieros y de seguros,US,522
+MASTERCARD,52,Servicios financieros y de seguros,US,522
+VISA,52,Servicios financieros y de seguros,US,522
+AXA,52,Servicios financieros y de seguros,FR,524
+METLIFE,52,Servicios financieros y de seguros,US,522
+ZURICH,52,Servicios financieros y de seguros,CH,524
+SEGUROS MONTERREY,52,Servicios financieros y de seguros,MX,522
+GNP,52,Servicios financieros y de seguros,MX,524
+MAPFRE,52,Servicios financieros y de seguros,ES,524
+SURA,52,Servicios financieros y de seguros,CO,522
+CLIP,52,Servicios financieros y de seguros,MX,522
+CONEKTA,52,Servicios financieros y de seguros,MX,522
+KUESKI,52,Servicios financieros y de seguros,MX,522
+KONFIO,52,Servicios financieros y de seguros,MX,522
+NUBANK,52,Servicios financieros y de seguros,BR,522
+MERCADOPAGO,52,Servicios financieros y de seguros,AR,522
+PAYPAL,52,Servicios financieros y de seguros,US,522
+STRIPE,52,Servicios financieros y de seguros,US,522
+UBER,48,Transportes y logística,US,484
+CABIFY,48,Transportes y logística,ES,484
+INDRIVER,48,Transportes y logística,US,484
+DIDI,48,Transportes y logística,CN,484
+RAPPI,48,Transportes y logística,CO,484
+CORNERSHOP,48,Transportes y logística,CL,484
+JOKR,48,Transportes y logística,US,484
+FEDEX,48,Transportes y logística,US,492
+UPS,48,Transportes y logística,US,492
+DHL,48,Transportes y logística,DE,492
+ESTAFETA,48,Transportes y logística,MX,492
+REDPACK,48,Transportes y logística,MX,492
+PAQUETEXPRESS,48,Transportes y logística,MX,484
+99 MINUTOS,48,Transportes y logística,MX,484
+TRESGUERRAS,48,Transportes y logística,MX,484
+TRANSPORTES MONTERREY,48,Transportes y logística,MX,484
+AEROMEXICO,48,Transportes y logística,MX,481
+VOLARIS,48,Transportes y logística,MX,481
+VIVA AEROBUS,48,Transportes y logística,MX,481
+INTERJET,48,Transportes y logística,MX,481
+AMERICAN AIRLINES,48,Transportes y logística,US,484
+DELTA,48,Transportes y logística,US,484
+UNITED,48,Transportes y logística,US,484
+FLIXBUS,48,Transportes y logística,DE,484
+ADO,48,Transportes y logística,MX,484
+ETN,48,Transportes y logística,MX,484
+PRIMERA PLUS,48,Transportes y logística,MX,484
+PEMEX,21,Minería y petróleo,MX,211
+PETRÓLEOS MEXICANOS,21,Minería y petróleo,MX,211
+CFE,22,Electricidad y agua,MX,221
+COMISION FEDERAL ELECTRICIDAD,22,Electricidad y agua,MX,221
+ENGIE,22,Electricidad y agua,FR,221
+ACCIONA,22,Electricidad y agua,ES,221
+IBERDROLA,22,Electricidad y agua,ES,221
+ENEL,22,Electricidad y agua,IT,221
+ALPEK,32,Manufactura,MX,325
+VITRO,32,Manufactura,MX,327
+GRUPO VITRO,32,Manufactura,MX,325
+TENARIS,33,Manufactura,AR,336
+HYLSA,33,Manufactura,MX,336
+TERNIUM,33,Manufactura,AR,336
+NEMAK,33,Manufactura,MX,336
+GRUPO NEMAK,33,Manufactura,MX,336
+KALTEX,31,Manufactura,MX,311
+INDUSTRIAS BACHOCO,31,Manufactura,MX,311
+BACHOCO,31,Manufactura,MX,311
+LALA GRUPO,31,Manufactura,MX,311
+GRUMA,31,Manufactura,MX,311
+MASECA,31,Manufactura,MX,311
+MINSA,31,Manufactura,MX,311
+QUAKER,31,Manufactura,US,311
+LA COSTEÑA,31,Manufactura,MX,311
+HERDEZ,31,Manufactura,MX,311
+GRUPO HERDEZ,31,Manufactura,MX,311
+MCCORMICK,31,Manufactura,US,311
+CAMPBELLS,31,Manufactura,US,311
+HEINZ,31,Manufactura,US,311
+KRAFT,31,Manufactura,US,311
+DANONE,31,Manufactura,FR,311
+MEAD JOHNSON NUTRITION,31,Manufactura,US,311
+AEROPUERTOS Y SERVICIOS AUXILIARES,48,Transportes y logística,MX,484
+ASUR,48,Transportes y logística,MX,484
+GAP AEROPUERTOS,48,Transportes y logística,MX,484
+OMA,48,Transportes y logística,MX,484
+HOTELES CAMINO REAL,72,Alojamiento y restaurantes,MX,722
+CAMINO REAL,72,Alojamiento y restaurantes,MX,721
+FIESTA AMERICANA,72,Alojamiento y restaurantes,MX,722
+POSADAS,72,Alojamiento y restaurantes,MX,721
+NH HOTELES,72,Alojamiento y restaurantes,ES,722
+MARRIOTT,72,Alojamiento y restaurantes,US,721
+HILTON,72,Alojamiento y restaurantes,US,721
+HYATT,72,Alojamiento y restaurantes,US,721
+WESTIN,72,Alojamiento y restaurantes,US,722
+SHERATON,72,Alojamiento y restaurantes,US,722
+INTERCONTINENTAL,72,Alojamiento y restaurantes,GB,722
+HOLIDAY INN,72,Alojamiento y restaurantes,US,722
+AIRBNB,72,Alojamiento y restaurantes,US,722
+MCDONALDS,72,Alojamiento y restaurantes,US,722
+MC DONALDS,72,Alojamiento y restaurantes,US,722
+MCDONALD'S,72,Alojamiento y restaurantes,US,722
+BURGER KING,72,Alojamiento y restaurantes,US,722
+WENDY'S,72,Alojamiento y restaurantes,US,722
+WENDYS,72,Alojamiento y restaurantes,US,722
+KFC,72,Alojamiento y restaurantes,US,722
+PIZZA HUT,72,Alojamiento y restaurantes,US,722
+DOMINOS,72,Alojamiento y restaurantes,US,722
+DOMINO'S,72,Alojamiento y restaurantes,US,722
+SUBWAY,72,Alojamiento y restaurantes,US,722
+STARBUCKS,72,Alojamiento y restaurantes,US,722
+VIPS,72,Alojamiento y restaurantes,MX,722
+TOKS,72,Alojamiento y restaurantes,MX,722
+WINGS,72,Alojamiento y restaurantes,MX,722
+WINGSTOP,72,Alojamiento y restaurantes,US,722
+IHOP,72,Alojamiento y restaurantes,US,722
+APPLEBEES,72,Alojamiento y restaurantes,US,722
+APPLEBEE'S,72,Alojamiento y restaurantes,US,722
+CHILIS,72,Alojamiento y restaurantes,US,722
+CHILI'S,72,Alojamiento y restaurantes,US,722
+OINK,72,Alojamiento y restaurantes,MX,722
+OFFICE TOTAL,72,Alojamiento y restaurantes,MX,722
+CINCO DE MAYO,72,Alojamiento y restaurantes,MX,722
+LA NACIONAL,72,Alojamiento y restaurantes,MX,722
+ALSEA,72,Alojamiento y restaurantes,MX,722
+GRUPO ALSEA,72,Alojamiento y restaurantes,MX,722
+UNAM,61,Servicios educativos,MX,611
+UNIVERSIDAD NACIONAL,61,Servicios educativos,MX,611
+TECDEMONTERREY,61,Servicios educativos,MX,611
+TEC DE MONTERREY,61,Servicios educativos,MX,611
+TECNOLOGICO DE MONTERREY,61,Servicios educativos,MX,611
+ITESM,61,Servicios educativos,MX,611
+UVM,61,Servicios educativos,MX,611
+UDLAP,61,Servicios educativos,MX,611
+UAM,61,Servicios educativos,MX,611
+UNIVERSIDAD ANAHUAC,61,Servicios educativos,MX,611
+ANAHUAC,61,Servicios educativos,MX,611
+IBERO,61,Servicios educativos,MX,611
+UNIVERSIDAD IBEROAMERICANA,61,Servicios educativos,MX,611
+UNIVERSIDAD PANAMERICANA,61,Servicios educativos,MX,611
+IPN,61,Servicios educativos,MX,611
+POLITECNICO,61,Servicios educativos,MX,611
+UABC,61,Servicios educativos,MX,611
+UANL,61,Servicios educativos,MX,611
+UDG,61,Servicios educativos,MX,611
+CETYS,61,Servicios educativos,MX,611
+DUOC,61,Servicios educativos,CL,611
+COURSERA,61,Servicios educativos,US,611
+UDEMY,61,Servicios educativos,US,611
+PEARSON,61,Servicios educativos,GB,611
+BRITISH COUNCIL,61,Servicios educativos,GB,611
+HARMON HALL,61,Servicios educativos,MX,611
+BERLITZ,61,Servicios educativos,US,611
+AMIG ASOCIADOS,54,Servicios profesionales y TI,MX,541
+HAVAS,56,Servicios de apoyo a negocios,FR,561
+HAVAS MEDIA,56,Servicios de apoyo a negocios,FR,561
+DENTSU,56,Servicios de apoyo a negocios,JP,561
+WPP,56,Servicios de apoyo a negocios,GB,561
+OGILVY,56,Servicios de apoyo a negocios,US,561
+JWT,56,Servicios de apoyo a negocios,US,561
+YOUNG RUBICAM,56,Servicios de apoyo a negocios,US,561
+GREY,56,Servicios de apoyo a negocios,US,561
+BBDO,56,Servicios de apoyo a negocios,US,561
+DDB,56,Servicios de apoyo a negocios,US,561
+FCB,56,Servicios de apoyo a negocios,US,561
+PUBLICIS,56,Servicios de apoyo a negocios,FR,561
+LEO BURNETT,56,Servicios de apoyo a negocios,US,561
+SAATCHI SAATCHI,56,Servicios de apoyo a negocios,GB,561
+VMLY&R,56,Servicios de apoyo a negocios,US,561
+WUNDERMAN,56,Servicios de apoyo a negocios,US,561
+WAVEMAKER,56,Servicios de apoyo a negocios,GB,561
+MINDSHARE,56,Servicios de apoyo a negocios,GB,561
+MEDIACOM,56,Servicios de apoyo a negocios,GB,561
+ZENITH,56,Servicios de apoyo a negocios,FR,561
+STARCOM,56,Servicios de apoyo a negocios,US,561
+SPARK FOUNDRY,56,Servicios de apoyo a negocios,US,561
+CARAT,56,Servicios de apoyo a negocios,GB,561
+VIZEUM,56,Servicios de apoyo a negocios,GB,561
+OMD,56,Servicios de apoyo a negocios,US,561
+PHD,56,Servicios de apoyo a negocios,US,561
+UNIVERSAL MCCANN,56,Servicios de apoyo a negocios,US,561
+INITIATIVE,56,Servicios de apoyo a negocios,US,561
+LOWE,56,Servicios de apoyo a negocios,US,561
+MULLEN,56,Servicios de apoyo a negocios,US,561
+NEORIS,54,Servicios profesionales y TI,MX,541
+NEARSOFT,54,Servicios profesionales y TI,MX,541
+WIZELINE,54,Servicios profesionales y TI,MX,541
+GLOBANT,54,Servicios profesionales y TI,AR,541
+ENDAVA,54,Servicios profesionales y TI,GB,541
+ENCORA,54,Servicios profesionales y TI,US,541
+EPAM,54,Servicios profesionales y TI,US,541
+THOUGHTWORKS,54,Servicios profesionales y TI,US,541
+NISUM,54,Servicios profesionales y TI,US,541
+GFT,54,Servicios profesionales y TI,DE,541
+AMDOCS,54,Servicios profesionales y TI,US,541
+LUXOFT,54,Servicios profesionales y TI,CH,541
+KLIKA TECH,54,Servicios profesionales y TI,US,541
+TATA,54,Servicios profesionales y TI,IN,541
+GRUPO SALINAS,46,Comercio al por menor,MX,461
+SALINAS PLIEGO,46,Comercio al por menor,MX,461
+GRUPO CARSO,23,Construcción,MX,236
+GRUPO MEXICO,21,Minería y petróleo,MX,211
+GRUPO MODELO,31,Manufactura,MX,312
+GRUPO LALA,31,Manufactura,MX,311
+GRUPO MASECA,31,Manufactura,MX,311
+GRUPO ALFA,31,Manufactura,MX,311
+ALPEK POLYESTER,32,Manufactura,MX,325
+NEMAK ALUMINIO,33,Manufactura,MX,336
+SIGMA PROCESADORA,31,Manufactura,MX,311
+VERSAX,56,Servicios de apoyo a negocios,MX,561
+PARALLEL 42,56,Servicios de apoyo a negocios,MX,561
+AGENCIA VIERNES,56,Servicios de apoyo a negocios,MX,561
+WINK TTL,56,Servicios de apoyo a negocios,MX,561
+DOPPLER,56,Servicios de apoyo a negocios,AR,561
+MAILCHIMP,56,Servicios de apoyo a negocios,US,561
+HOOTSUITE,56,Servicios de apoyo a negocios,CA,561
+SPROUT SOCIAL,56,Servicios de apoyo a negocios,US,561
+HOOTSUITE,56,Servicios de apoyo a negocios,CA,561
+ADROLL,56,Servicios de apoyo a negocios,US,561
+ERGONOMIC,56,Servicios de apoyo a negocios,MX,561
+RIVERLINE,56,Servicios de apoyo a negocios,MX,561
+GS1,56,Servicios de apoyo a negocios,MX,561
+GS1 MEXICO,56,Servicios de apoyo a negocios,MX,561
+TELAS LAFAYETTE,46,Comercio al por menor,MX,461
+BUTTER TOFFEES,31,Manufactura,MX,311
+ELECTROLIT,31,Manufactura,MX,312
+GENOMMA,32,Manufactura,MX,325
+LIVERPOOL TIENDAS,46,Comercio al por menor,MX,461
+BODEGA LIVERPOOL,46,Comercio al por menor,MX,461
+LA COSTENA,31,Manufactura,MX,311
+MADRILENA,46,Comercio al por menor,MX,461
+KPMG MEXICO,54,Servicios profesionales y TI,NL,541
+VEOLIA,22,Electricidad y agua,FR,562
+SUEZ,22,Electricidad y agua,FR,221
+SOLISTICA,48,Transportes y logística,MX,484
+RYDER,48,Transportes y logística,US,484
+PENSKE,48,Transportes y logística,US,484
+LINDE,32,Manufactura,DE,325
+AIR PRODUCTS,32,Manufactura,US,325
+PRAXAIR,32,Manufactura,US,325
+RASSINI,33,Manufactura,MX,336
+METALSA,33,Manufactura,MX,336
+VITRO AUTOMOTRIZ,33,Manufactura,MX,336
+DELPHI,33,Manufactura,US,336
+CONTINENTAL,33,Manufactura,DE,336
+BOSCH,33,Manufactura,DE,336
+DENSO,33,Manufactura,JP,336
+HONDA,33,Manufactura,JP,336
+TOYOTA,33,Manufactura,JP,336
+NISSAN,33,Manufactura,JP,336
+VOLKSWAGEN,33,Manufactura,DE,336
+AUDI,33,Manufactura,DE,336
+BMW,33,Manufactura,DE,336
+MERCEDES BENZ,33,Manufactura,DE,336
+FORD,33,Manufactura,US,336
+GENERAL MOTORS,33,Manufactura,US,336
+GM,33,Manufactura,US,336
+STELLANTIS,33,Manufactura,NL,336
+CHRYSLER,33,Manufactura,US,336
+JEEP,33,Manufactura,US,336
+FIAT,33,Manufactura,IT,336
+PEUGEOT,33,Manufactura,FR,336
+RENAULT,33,Manufactura,FR,336
+KIA,33,Manufactura,KR,336
+HYUNDAI,33,Manufactura,KR,336
+SUBARU,33,Manufactura,JP,336
+MAZDA,33,Manufactura,JP,336
+MITSUBISHI,33,Manufactura,JP,336
+ELECTRIC LAST MILE,33,Manufactura,US,336
+TESLA,33,Manufactura,US,336
+CITI BANAMEX,52,Servicios financieros y de seguros,US,522
+THE ROCKET CODE,54,Servicios profesionales y TI,MX,541
+MAR BEL CORTINAS Y PERSIANAS,46,Comercio al por menor,MX,461
+BANCO POPULAR HN,52,Servicios financieros y seguros,HN,522
+HP,33,Industrias manufactureras,US,334
+3M,32,Industrias manufactureras,US,325
+BOSCH MEXICO,33,Industrias manufactureras,DE,336
+GSK,32,Industrias manufactureras,UK,325
+ABB,33,Industrias manufactureras,CH,335
+HEB MEXICO,46,Comercio al por menor,US,461
+SAMS WEST,46,Comercio al por menor,US,462
+LOREAL,46,Comercio al por menor,FR,465
+CENCOSUD,46,Comercio al por menor,CL,461
+MAKKEN,46,Comercio al por menor,MX,469
+KINESSO,46,Comercio al por menor,US,469
+STORY CARD,46,Comercio al por menor,MX,469
+WARNER BROS DISCOVERY,51,Información en medios masivos,US,512
+VML,54,"Servicios profesionales, científicos y técnicos",US,541
+MEDIA MONKS,54,"Servicios profesionales, científicos y técnicos",NL,541
+PUBLICIS GROUPE,54,"Servicios profesionales, científicos y técnicos",FR,541
+NIQ,54,"Servicios profesionales, científicos y técnicos",US,541
+QUALTRICS,54,"Servicios profesionales, científicos y técnicos",US,541
+LLYC,54,"Servicios profesionales, científicos y técnicos",ES,541
+ZENDESK,54,"Servicios profesionales, científicos y técnicos",US,541
+KOF,31,Industrias manufactureras,MX,312
+BEPENSA SPIRITS,31,Industrias manufactureras,MX,312
+KAVAK,46,Comercio al por menor,MX,468
+APLAZO,52,Servicios financieros y de seguros,MX,522
+HEY BANCO,52,Servicios financieros y de seguros,MX,522
+CHUBB MEXICO,52,Servicios financieros y de seguros,US,524
+TAFER HOTELS,72,Servicios de alojamiento temporal y de preparación de alimentos y bebidas,MX,721
+MEDTRAINER,62,Servicios de salud y de asistencia social,US,621

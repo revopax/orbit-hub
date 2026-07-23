@@ -1,0 +1,93 @@
+'use client';
+import { useState } from 'react';
+
+interface SidebarV2Props {
+  acento: string;
+  moduloActivo: 'comercial' | 'demanda';
+  onModuloChange: (m: 'comercial' | 'demanda') => void;
+}
+
+const MODULOS = [
+  {
+    id: 'comercial' as const,
+    label: 'Inteligencia Comercial',
+    icon: (
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+        <path d="M3 3v18h18" />
+        <path d="M18.7 8l-5.1 5.2-3-3L7 14" />
+      </svg>
+    ),
+  },
+  {
+    id: 'demanda' as const,
+    label: 'Inteligencia de Demanda',
+    icon: (
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+        <circle cx="12" cy="12" r="3" />
+        <path d="M12 2v4M12 18v4M4.9 4.9l2.8 2.8M16.3 16.3l2.8 2.8M2 12h4M18 12h4M4.9 19.1l2.8-2.8M16.3 7.7l2.8-2.8" />
+      </svg>
+    ),
+  },
+];
+
+const EXTERNOS = [
+  { id: 'radar', label: 'Radar de Intención', href: 'https://redes-sociales-upax.vercel.app' },
+  { id: 'agente', label: 'Agente de Prospección', href: 'https://marketing-agent-two-pi.vercel.app' },
+];
+
+export function SidebarV2({ acento, moduloActivo, onModuloChange }: SidebarV2Props) {
+  const [expanded, setExpanded] = useState(false);
+
+  return (
+    <aside
+      onMouseEnter={() => setExpanded(true)}
+      onMouseLeave={() => setExpanded(false)}
+      style={{
+        width: expanded ? 210 : 52,
+        transition: 'width 0.22s ease',
+        flexShrink: 0,
+        display: 'flex',
+        flexDirection: 'column',
+        backgroundColor: 'var(--header-bg)',
+        borderRight: '1px solid var(--border)',
+        overflow: 'hidden',
+        zIndex: 10,
+      }}
+    >
+      <nav style={{ display: 'flex', flexDirection: 'column', gap: 2, padding: '12px 8px' }}>
+        {MODULOS.map((mod) => {
+          const isActivo = moduloActivo === mod.id;
+          return (
+            <div
+              key={mod.id}
+              onClick={() => onModuloChange(mod.id)}
+              style={{
+                display: 'flex', alignItems: 'center', gap: 10,
+                padding: '8px 6px', borderRadius: 8, cursor: 'pointer',
+                color: isActivo ? acento : 'var(--txt-4)',
+                backgroundColor: isActivo ? `${acento}15` : 'transparent',
+                border: isActivo ? `1px solid ${acento}30` : '1px solid transparent',
+                transition: 'all 0.15s', whiteSpace: 'nowrap', minWidth: 0,
+              }}
+            >
+              <span style={{ flexShrink: 0 }}>{mod.icon}</span>
+              <span style={{ fontSize: 12, fontWeight: isActivo ? 600 : 400, opacity: expanded ? 1 : 0, transition: 'opacity 0.15s', overflow: 'hidden' }}>
+                {mod.label}
+              </span>
+            </div>
+          );
+        })}
+      </nav>
+      <div style={{ height: 1, background: 'var(--border)', margin: '8px 12px' }} />
+      <nav style={{ display: 'flex', flexDirection: 'column', gap: 2, padding: '4px 8px' }}>
+        {EXTERNOS.map((ext) => (
+          <a key={ext.id} href={ext.href} target="_blank" rel="noopener noreferrer"
+            style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '8px 6px', borderRadius: 8, color: 'var(--txt-5)', textDecoration: 'none', whiteSpace: 'nowrap', minWidth: 0 }}>
+            <span style={{ flexShrink: 0, fontSize: 14, opacity: 0.6 }}>↗</span>
+            <span style={{ fontSize: 12, opacity: expanded ? 1 : 0, transition: 'opacity 0.15s', overflow: 'hidden' }}>{ext.label}</span>
+          </a>
+        ))}
+      </nav>
+    </aside>
+  );
+}
