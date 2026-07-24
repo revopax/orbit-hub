@@ -1,24 +1,24 @@
 'use client';
 import { useState, useEffect, useRef } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
-import { KPICard } from '../components/KPICard';
-import { IndustriasList } from '../components/IndustriasList';
-import { TemperaturaDonut } from '../components/TemperaturaDonut';
-import { RadarMotivos } from '../components/RadarMotivos';
-import { InsightsUDN } from '../components/InsightsUDN';
-import { TemporalidadChart } from '../components/TemporalidadChart';
-import { CalendarioGrid } from '../components/CalendarioGrid';
-import BloqueDENUE from '../components/BloqueDENUE';
-import { PicosEmpresasTable } from '../components/PicosEmpresasTable';
-import { Watermark } from '../components/Watermark';
-import { useAuth } from '../hooks/useAuth';
+import { KPICard } from './KPICard';
+import { IndustriasList } from './IndustriasList';
+import { TemperaturaDonut } from './TemperaturaDonut';
+import { RadarMotivos } from './RadarMotivos';
+import { InsightsUDN } from './InsightsUDN';
+import { TemporalidadChart } from './TemporalidadChart';
+import { CalendarioGrid } from './CalendarioGrid';
+import BloqueDENUE from './BloqueDENUE';
+import { PicosEmpresasTable } from './PicosEmpresasTable';
+import { Watermark } from '../shared/Watermark';
+import { useAuth } from '../../hooks/useAuth';
 
 import VistaAnalista from './VistaAnalista'
 import {
   mockKPIs, mockIndustrias, mockTemperatura,
   mockTemporalidad, mockCalendario, mockPicos, mockRescue,
-} from '../lib/data';
-import type { UDN, KPI, Industria, TemperaturaData, DataTemporalidad, PicoRow, RescueRow } from '../lib/types';
+} from '../../lib/data';
+import type { UDN, KPI, Industria, TemperaturaData, DataTemporalidad, PicoRow, RescueRow } from '../../lib/types';
 
 interface DashboardProps {
   udnActiva: UDN;

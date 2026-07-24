@@ -1,9 +1,9 @@
 'use client';
 import { useState, useEffect } from 'react';
-import { SidebarV2 } from '../components/SidebarV2';
-import BrujulaComercial from '../components/BrujulaComercial';
-import RedesUPAX from '../components/RedesUPAX';
-import HubSpotAnalytics from '../components/HubSpotAnalytics';
+import { SidebarV2 } from '../components/shared/SidebarV2';
+import BrujulaComercial from '../components/brujula-comercial/BrujulaComercial';
+import RedesUPAX from '../components/redes-sociales/RedesUPAX';
+import HubSpotAnalytics from '../components/hubspot-analytics/HubSpotAnalytics';
 import { useAuth } from '../hooks/useAuth';
 
 export default function PreviewPage() {

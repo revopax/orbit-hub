@@ -1,5 +1,5 @@
 'use client';
-import type { PicoRow } from '../lib/types';
+import type { PicoRow } from '../../../lib/types';
 
 interface Props { picos: PicoRow[]; brandColor: string; }
 

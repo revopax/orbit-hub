@@ -1,5 +1,5 @@
 import type { Metadata } from 'next';
-import { InstallBanner } from './components/InstallBanner';
+import { InstallBanner } from './components/shared/InstallBanner';
 import './globals.css';
 
 export const metadata: Metadata = {

@@ -1,7 +1,7 @@
 'use client';
 import { useState } from 'react';
-import type { KPI } from '../lib/types';
-import { useCountUp } from '../lib/useCountUp';
+import type { KPI } from '../../lib/types';
+import { useCountUp } from '../../lib/useCountUp';
 
 interface KPICardProps {
   kpi: KPI;

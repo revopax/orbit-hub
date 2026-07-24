@@ -1,7 +1,7 @@
 'use client';
 import React from 'react';
 import { useState } from 'react';
-import type { PicoRow, RescueRow, EmpresaPico } from '../lib/types';
+import type { PicoRow, RescueRow, EmpresaPico } from '../../lib/types';
 import { IcpChips } from './IcpChips';
 
 

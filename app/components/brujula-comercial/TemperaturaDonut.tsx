@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
-import type { TemperaturaData, Industria } from '../lib/types';
+import type { TemperaturaData, Industria } from '../../lib/types';
 
 interface TemperaturaDonutProps {
   data: TemperaturaData;

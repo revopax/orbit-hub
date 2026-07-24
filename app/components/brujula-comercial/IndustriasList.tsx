@@ -1,5 +1,5 @@
 'use client';
-import type { Industria } from '../lib/types';
+import type { Industria } from '../../lib/types';
 
 interface Props {
   industrias: Industria[];

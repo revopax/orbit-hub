@@ -3,9 +3,9 @@ import { useState } from 'react';
 import { UDNBar } from './UDNBar';
 import { GraficaCruceSenales } from './GraficaCruceSenales';
 import { ScoreCardsConvergencia } from './ScoreCardsConvergencia';
-import { UDNS } from '../lib/data';
-import { useAuth } from '../hooks/useAuth';
-import type { UDN } from '../lib/types';
+import { UDNS } from '../../lib/data';
+import { useAuth } from '../../hooks/useAuth';
+import type { UDN } from '../../lib/types';
 
 type SubTab = 'comercial' | 'demanda';
 

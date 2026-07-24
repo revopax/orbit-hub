@@ -1,5 +1,5 @@
 'use client';
-import type { UDN } from '../lib/types';
+import type { UDN } from '../../lib/types';
 
 interface Props {
   udns: UDN[];

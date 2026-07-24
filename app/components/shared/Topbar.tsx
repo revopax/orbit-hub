@@ -1,9 +1,9 @@
-import type { UDN } from '../lib/types';
+import type { UDN } from '../../lib/types';
 import { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { UserMenu } from './UserMenu';
 import { ChangelogBell } from './ChangelogBell';
-import { getSupabase } from '../lib/supabase';
+import { getSupabase } from '../../lib/supabase';
 const sbTop = getSupabase();
 
 interface TopbarProps {

@@ -4,7 +4,7 @@ import {
   Chart, LineController, LineElement, PointElement,
   LinearScale, CategoryScale, Tooltip, Legend, Filler,
 } from 'chart.js';
-import { mockSerieTemporal } from '../lib/mockCruceSenales';
+import { mockSerieTemporal } from '../../lib/mockCruceSenales';
 
 Chart.register(LineController, LineElement, PointElement, LinearScale, CategoryScale, Tooltip, Legend, Filler);
 

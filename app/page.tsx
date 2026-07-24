@@ -1,10 +1,10 @@
 'use client';
 export const dynamic = 'force-dynamic';
 import { useState, useEffect } from 'react';
-import { Topbar } from './components/Topbar';
-import { UDNBar } from './components/UDNBar';
-import { Dashboard } from './components/Dashboard';
-import { ModalCambiarPassword } from './components/ModalCambiarPassword';
+import { Topbar } from './components/shared/Topbar';
+import { UDNBar } from './components/brujula-comercial/UDNBar';
+import { Dashboard } from './components/brujula-comercial/Dashboard';
+import { ModalCambiarPassword } from './components/shared/ModalCambiarPassword';
 import { UDNS } from './lib/data';
 import { useAuth } from './hooks/useAuth';
 import type { UDN } from './lib/types';

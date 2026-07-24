@@ -39,8 +39,8 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
-pipeline/credentials.json
+modules/brujula-comercial/pipeline/credentials.json
 data/*.parquet
 __pycache__/
 .env
-pipeline/data/
+modules/brujula-comercial/pipeline/data/

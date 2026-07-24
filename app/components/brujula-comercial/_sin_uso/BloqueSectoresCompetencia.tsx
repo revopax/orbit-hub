@@ -1,6 +1,6 @@
 'use client'
 import { useMemo } from 'react'
-import { UDN_CONFIG, type UDNId } from './UDNSelector'
+import { UDN_CONFIG, type UDNId } from '../UDNSelector'
 
 interface BloqueSectoresCompetenciaProps {
   selectedUDNs: UDNId[]

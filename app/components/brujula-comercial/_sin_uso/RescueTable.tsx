@@ -1,4 +1,4 @@
-import type { RescueRow } from '../lib/types';
+import type { RescueRow } from '../../../lib/types';
 
 interface RescueTableProps {
   rows: RescueRow[];

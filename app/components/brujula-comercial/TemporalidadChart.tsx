@@ -3,7 +3,7 @@ import {
   Chart, LineController, LineElement, PointElement,
   LinearScale, CategoryScale, Tooltip, Filler,
 } from 'chart.js';
-import type { DataTemporalidad } from '../lib/types';
+import type { DataTemporalidad } from '../../lib/types';
 
 Chart.register(LineController, LineElement, PointElement, LinearScale, CategoryScale, Tooltip, Filler);
 

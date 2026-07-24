@@ -1,5 +1,5 @@
 'use client';
-import { mockEmpresasConvergencia } from '../lib/mockCruceSenales';
+import { mockEmpresasConvergencia } from '../../lib/mockCruceSenales';
 
 const ESTADO_CONFIG = {
   convergencia_validada: { color: '#D85A30', label: 'Convergencia validada' },

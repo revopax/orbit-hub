@@ -1,6 +1,6 @@
 'use client';
 import { useState, useEffect, useRef } from 'react';
-import { getSupabase } from '../lib/supabase';
+import { getSupabase } from '../../lib/supabase';
 
 const sb = getSupabase();
 
