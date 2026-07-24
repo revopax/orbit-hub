@@ -44,3 +44,4 @@ data/*.parquet
 __pycache__/
 .env
 modules/brujula-comercial/pipeline/data/
+.github/
