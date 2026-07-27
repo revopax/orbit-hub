@@ -212,11 +212,7 @@ function LoginPageInner() {
       </div>
 
       <div style={{ marginBottom: isMobile ? 12 : 20, animation:'compassPulse 4s ease-in-out infinite' }}>
-        <span style={{
-          fontSize: isMobile ? 52 : 72,
-          lineHeight:1, display:'block',
-          filter:'drop-shadow(0 0 28px rgba(232,0,141,.75)) drop-shadow(0 0 8px rgba(140,89,254,.5))',
-        }}><img src="/images/compass_1f9ed.png" style={{width:"1em",height:"1em",verticalAlign:"middle",display:"inline-block"}} alt="brujula" /></span>
+        <img src="/mkt-blanco.png" alt="Marketing Corp" style={{ height: isMobile ? 44 : 60, width:'auto', display:'block', margin:'0 auto', filter:'drop-shadow(0 0 24px rgba(232,0,141,0.4))' }}/>
       </div>
 
       <h1 style={{
@@ -226,11 +222,11 @@ function LoginPageInner() {
         marginBottom:6,
         fontFamily:"'Inter',-apple-system,sans-serif",
       }}>
-        Brújula{' '}
+ORBIT{' '}
         <span style={{
           background:'linear-gradient(135deg,#E8008D 0%,#FF4EC1 45%,#8C59FE 100%)',
           WebkitBackgroundClip:'text', WebkitTextFillColor:'transparent', backgroundClip:'text',
-        }}>Comercial</span>
+        }}>Hub</span>
       </h1>
 
       <div style={{
@@ -240,14 +236,14 @@ function LoginPageInner() {
       }}/>
 
       <p style={{ fontSize: isMobile ? 13 : 16, fontWeight:700, color:'rgba(255,255,255,.82)', lineHeight:1.4, marginBottom:10 }}>
-        ¿Por qué vendemos cuando vendemos?
+        El sistema que impulsa
       </p>
       <p style={{
         fontSize: isMobile ? 12 : 14, fontWeight:600,
         background:'linear-gradient(135deg,#E8008D,#FF4EC1,#8C59FE)',
         WebkitBackgroundClip:'text', WebkitTextFillColor:'transparent', backgroundClip:'text',
       }}>
-        Experiencia vs. Datos
+        cada decisión de marketing
       </p>
     </div>
   );
@@ -307,17 +303,17 @@ function LoginPageInner() {
         animation: shake ? 'shakeCard .5s ease' : 'none',
       }}>
         <div style={{ display:'flex', alignItems:'center', gap:8, marginBottom:8 }}>
-          <span style={{ fontSize:20 }}><img src="/images/compass_1f9ed.png" style={{width:"1em",height:"1em",verticalAlign:"middle",display:"inline-block"}} alt="brujula" /></span>
+          <img src="/mkt-blanco.png" alt="MC" style={{ height:20, width:'auto' }}/>
           <span style={{ fontSize:15, fontWeight:700, color:'#F1F5F9', fontFamily:"'Inter',-apple-system,sans-serif" }}>
-            Brújula{' '}
-            <span style={{ color:'#E8008D' }}>Comercial</span>
+            ORBIT{' '}
+            <span style={{ color:'#E8008D' }}>Hub</span>
           </span>
         </div>
         <h2 style={{ fontSize:22, fontWeight:800, color:'#F1F5F9', marginBottom:4, fontFamily:"'Inter',-apple-system,sans-serif" }}>
           Iniciar sesión
         </h2>
         <p style={{ fontSize:12, color:'rgba(255,255,255,.35)', marginBottom: revocado ? 16 : 28 }}>
-          Brújula Comercial · UPAX RevOps
+          ORBIT Hub · Marketing Corp
         </p>
 
         {revocado && (

@@ -4,20 +4,19 @@ const nextConfig: NextConfig = {
   typescript: {
     ignoreBuildErrors: true,
   },
-  async headers() {
+  async rewrites() {
     return [
       {
-        source: '/(.*)',
-        headers: [
-          {
-            key: 'X-Frame-Options',
-            value: 'DENY',
-          },
-          {
-            key: 'Content-Security-Policy',
-            value: "frame-ancestors 'none'",
-          },
-        ],
+        source: '/brujula/:path*',
+        destination: 'https://brujula-comercial-upax.vercel.app/:path*',
+      },
+      {
+        source: '/redes/:path*',
+        destination: 'https://redes-sociales-upax.vercel.app/:path*',
+      },
+      {
+        source: '/hubspot/:path*',
+        destination: 'https://hubspot-analytics-upax-zeta.vercel.app/:path*',
       },
     ];
   },
