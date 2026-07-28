@@ -21,8 +21,8 @@ export function OrbitTopbar({ perfil, isDark, onToggleTheme, onLogout }: OrbitTo
   return (
     <header style={{
       height: 56, flexShrink: 0,
-      background: 'var(--header-bg, #030712)',
-      borderBottom: '1px solid var(--border, rgba(255,255,255,0.08))',
+      background: '#14101f',
+      borderBottom: '1px solid rgba(255,255,255,0.09)',
       display: 'flex', alignItems: 'center', justifyContent: 'space-between',
       padding: '0 20px',
     }}>
