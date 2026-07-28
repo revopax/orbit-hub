@@ -57,7 +57,7 @@ function NetworkLogo({ color }: { color: string }) {
   )
 }
 
-export default function RedesUPAX Home() {
+export default function RedesUPAX() {
   const [activeId, setActiveId] = useState('meta-org')
   const tab = TABS.find(t => t.id === activeId)!
   return (
