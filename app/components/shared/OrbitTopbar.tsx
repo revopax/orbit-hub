@@ -10,12 +10,7 @@ export function OrbitTopbar({ onLogout }: { onLogout?: () => void }) {
       padding: '0 20px',
     }}>
       <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-        <div style={{
-          width: 32, height: 32, borderRadius: 8,
-          background: 'linear-gradient(135deg, #dc2626 0%, #7c3aed 60%, #4f46e5 100%)',
-          display: 'flex', alignItems: 'center', justifyContent: 'center',
-          fontSize: 15, fontWeight: 800, color: '#fff', flexShrink: 0,
-        }}>O</div>
+        <img src="/orbit-icon-64.png" alt="ORBIT" style={{ width: 32, height: 32, borderRadius: 8, flexShrink: 0 }} />
         <div style={{
           fontSize: 16, fontWeight: 800, letterSpacing: '-0.02em',
           background: 'linear-gradient(135deg,#ffffff 0%,#c4b5fd 50%,#fca5a5 100%)',
