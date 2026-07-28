@@ -61,7 +61,7 @@ export function SidebarV2({ acento, moduloActivo, onModuloChange }: SidebarV2Pro
         transition: 'width 0.18s ease',
         display: 'flex',
         flexDirection: 'column',
-        backgroundColor: 'rgba(11,17,32,0.85)',
+        backgroundColor: 'var(--surface, #262a3d)',
         backdropFilter: 'blur(6px)',
         WebkitBackdropFilter: 'blur(6px)',
         borderRight: '1px solid rgba(255,255,255,0.08)',
