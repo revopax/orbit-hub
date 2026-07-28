@@ -1,0 +1,24 @@
+{
+  "kpis": {
+    "sesiones": 0,
+    "usuarios": 0,
+    "tasa_rebote": 0,
+    "duracion_promedio": 0
+  },
+  "top_paginas": [],
+  "raw_columns": [
+    "UDN",
+    "date",
+    "sessionDefaultChannelGroup",
+    "sessionSourceMedium",
+    "sessions",
+    "totalUsers",
+    "newUsers",
+    "screenPageViews",
+    "engagedSessions",
+    "averageSessionDuration",
+    "eventCount",
+    "keyEvents",
+    "AuditDate"
+  ]
+}
