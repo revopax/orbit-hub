@@ -4,7 +4,7 @@ export function OrbitTopbar({ onLogout }: { onLogout?: () => void }) {
   return (
     <header style={{
       height: 56, flexShrink: 0,
-      background: '#030712',
+      background: '#07080f',
       borderBottom: '1px solid rgba(255,255,255,0.08)',
       display: 'flex', alignItems: 'center', justifyContent: 'space-between',
       padding: '0 20px',
@@ -12,12 +12,16 @@ export function OrbitTopbar({ onLogout }: { onLogout?: () => void }) {
       <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
         <div style={{
           width: 32, height: 32, borderRadius: 8,
-          background: 'linear-gradient(135deg, #E8008D 0%, #8C59FE 100%)',
+          background: 'linear-gradient(135deg, #dc2626 0%, #7c3aed 60%, #4f46e5 100%)',
           display: 'flex', alignItems: 'center', justifyContent: 'center',
           fontSize: 15, fontWeight: 800, color: '#fff', flexShrink: 0,
         }}>O</div>
-        <div style={{ fontSize: 16, fontWeight: 800, color: '#F1F5F9', letterSpacing: '-0.02em' }}>
-          ORBIT <span style={{ color: '#E8008D' }}>Hub</span>
+        <div style={{
+          fontSize: 16, fontWeight: 800, letterSpacing: '-0.02em',
+          background: 'linear-gradient(135deg,#ffffff 0%,#c4b5fd 50%,#fca5a5 100%)',
+          WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', backgroundClip: 'text',
+        }}>
+          ORBIT Hub
         </div>
       </div>
       {onLogout && (

@@ -7,7 +7,7 @@ interface SidebarV2Props {
   onModuloChange: (m: 'brujula' | 'redes' | 'hubspot') => void;
 }
 
-const BRAND = '#8C59FE';
+const BRAND = '#7c3aed';
 
 const MODULOS = [
   {

@@ -9,9 +9,9 @@ import HubSpotAnalytics from './components/HubSpotAnalytics';
 import { useAuth } from './hooks/useAuth';
 
 const ACENTOS = {
-  brujula: '#E8008D',
-  redes: '#2563EB',
-  hubspot: '#FF7A59',
+  brujula: '#7c3aed',
+  redes: '#7c3aed',
+  hubspot: '#7c3aed',
 };
 
 const MODULOS_CLAROS: Array<'brujula' | 'redes' | 'hubspot'> = ['redes', 'hubspot'];
