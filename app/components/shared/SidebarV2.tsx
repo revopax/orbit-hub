@@ -1,11 +1,13 @@
 'use client';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 
 interface SidebarV2Props {
   acento: string;
   moduloActivo: 'brujula' | 'redes' | 'hubspot';
   onModuloChange: (m: 'brujula' | 'redes' | 'hubspot') => void;
+  nombre?: string;
+  onLogout?: () => void;
 }
 
 const BRAND = '#7c3aed';
@@ -47,12 +49,20 @@ const MODULOS = [
   },
 ];
 
-export function SidebarV2({ acento, moduloActivo, onModuloChange }: SidebarV2Props) {
+export function SidebarV2({ acento, moduloActivo, onModuloChange, nombre, onLogout }: SidebarV2Props) {
   const [expanded, setExpanded] = useState(false);
+  const [isMobile, setIsMobile] = useState(false);
   const router = useRouter();
 
+  useEffect(() => {
+    const check = () => setIsMobile(window.innerWidth < 768);
+    check();
+    window.addEventListener('resize', check);
+    return () => window.removeEventListener('resize', check);
+  }, []);
+
   return (
-    <div style={{ width: 60, flexShrink: 0, height: '100%', position: 'relative' }}>
+    <div style={{ width: isMobile ? (expanded ? 220 : 0) : 60, flexShrink: 0, height: '100%', position: 'relative', transition: 'width 0.18s ease' }}>
     <aside
       onMouseEnter={() => setExpanded(true)}
       onMouseLeave={() => setExpanded(false)}
@@ -153,10 +163,26 @@ export function SidebarV2({ acento, moduloActivo, onModuloChange }: SidebarV2Pro
         <span style={{
           fontSize: 11, color: 'rgba(255,255,255,0.45)', fontWeight: 500,
           whiteSpace: 'nowrap', opacity: expanded ? 1 : 0, transition: 'opacity 0.15s',
+          overflow: 'hidden', textOverflow: 'ellipsis', flex: 1, minWidth: 0,
         }}>
-          Diego Luna
+          {nombre ?? 'Usuario'}
         </span>
       </div>
+      {onLogout && (
+        <button
+          onClick={onLogout}
+          style={{
+            display: 'flex', alignItems: 'center', gap: 10, width: '100%',
+            padding: '10px 16px', background: 'none', border: 'none', cursor: 'pointer',
+            color: '#F87171', fontSize: 12, fontWeight: 600, textAlign: 'left', flexShrink: 0,
+          }}
+          onMouseEnter={(e) => { e.currentTarget.style.backgroundColor = 'rgba(248,113,113,0.08)'; }}
+          onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = 'transparent'; }}
+        >
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" style={{ flexShrink: 0 }}><path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4M16 17l5-5-5-5M21 12H9"/></svg>
+          <span style={{ whiteSpace: 'nowrap', opacity: expanded ? 1 : 0, transition: 'opacity 0.15s' }}>Cerrar sesión</span>
+        </button>
+      )}
     </aside>
     </div>
   );

@@ -50,6 +50,8 @@ export default function Page() {
           acento={ACENTOS[moduloActivo]}
           moduloActivo={moduloActivo}
           onModuloChange={setModuloActivo}
+          nombre={perfil?.nombre}
+          onLogout={logout}
         />
         <div style={{
           flex: 1, height: '100%', overflow: 'auto',
