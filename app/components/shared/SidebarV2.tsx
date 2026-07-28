@@ -1,5 +1,6 @@
 'use client';
 import { useState } from 'react';
+import { useRouter } from 'next/navigation';
 
 interface SidebarV2Props {
   acento: string;
@@ -48,6 +49,7 @@ const MODULOS = [
 
 export function SidebarV2({ acento, moduloActivo, onModuloChange }: SidebarV2Props) {
   const [expanded, setExpanded] = useState(false);
+  const router = useRouter();
 
   return (
     <div style={{ width: 60, flexShrink: 0, height: '100%', position: 'relative' }}>
@@ -80,6 +82,32 @@ export function SidebarV2({ acento, moduloActivo, onModuloChange }: SidebarV2Pro
         <span style={{
           fontSize: 10, fontWeight: 700, color: 'rgba(255,255,255,0.35)',
           textTransform: 'uppercase', letterSpacing: '0.08em', padding: '0 8px 8px',
+          whiteSpace: 'nowrap', opacity: expanded ? 1 : 0, transition: 'opacity 0.15s',
+        }}>
+          Plataforma
+        </span>
+        <div
+          onClick={() => router.push('/iam')}
+          style={{
+            display: 'flex', alignItems: 'center', gap: 10,
+            padding: '9px 10px', borderRadius: 8, cursor: 'pointer',
+            color: 'rgba(255,255,255,0.62)', fontSize: 13, fontWeight: 500,
+            whiteSpace: 'nowrap', minWidth: 0,
+          }}
+          onMouseEnter={(e) => { e.currentTarget.style.backgroundColor = 'rgba(255,255,255,0.05)'; }}
+          onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = 'transparent'; }}
+        >
+          <span style={{ flexShrink: 0, display: 'flex', width: 22, height: 22, alignItems: 'center', justifyContent: 'center' }}>
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87M16 3.13a4 4 0 010 7.75"/></svg>
+          </span>
+          <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', opacity: expanded ? 1 : 0, transition: 'opacity 0.15s' }}>
+            IAM · Gestión de usuarios
+          </span>
+        </div>
+
+        <span style={{
+          fontSize: 10, fontWeight: 700, color: 'rgba(255,255,255,0.35)',
+          textTransform: 'uppercase', letterSpacing: '0.08em', padding: '12px 8px 8px',
           whiteSpace: 'nowrap', opacity: expanded ? 1 : 0, transition: 'opacity 0.15s',
         }}>
           Módulos

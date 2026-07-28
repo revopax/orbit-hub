@@ -1,5 +1,5 @@
 'use client';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { SidebarV2 } from './components/shared/SidebarV2';
 import { OrbitTopbar } from './components/shared/OrbitTopbar';
@@ -20,6 +20,11 @@ export default function Page() {
   const { perfil, loading, logout } = useAuth();
   const router = useRouter();
   const [moduloActivo, setModuloActivo] = useState<'brujula' | 'redes' | 'hubspot'>('brujula');
+  const [isDark, setIsDark] = useState(true);
+
+  useEffect(() => {
+    document.documentElement.setAttribute('data-theme', isDark ? 'dark' : 'light');
+  }, [isDark]);
 
   if (loading) {
     return <div style={{ padding: 40, fontSize: 14, color: '#94a3b8' }}>Cargando...</div>;
@@ -34,7 +39,12 @@ export default function Page() {
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', height: '100vh', overflow: 'hidden' }}>
-      <OrbitTopbar onLogout={logout} />
+      <OrbitTopbar
+        perfil={perfil}
+        isDark={isDark}
+        onToggleTheme={() => setIsDark(d => !d)}
+        onLogout={logout}
+      />
       <div style={{ display: 'flex', flex: 1, overflow: 'hidden' }}>
         <SidebarV2
           acento={ACENTOS[moduloActivo]}
