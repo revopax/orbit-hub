@@ -16,7 +16,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <link rel="manifest" href="/manifest.json?v=2" />
         <link rel="icon" type="image/png" sizes="192x192" href="/orbit-icon-192.png?v=2" />
         <link rel="icon" type="image/png" sizes="512x512" href="/orbit-icon-512.png?v=2" />
-        <link rel="apple-touch-icon" href="/orbit-icon-192.png?v=2" />
+        <link rel="apple-touch-icon" href="/orbit-tile-192.png" />
       </head>
       <body style={{ height: '100vh', overflow: 'hidden', margin: 0 }}>
         <InstallBanner />
