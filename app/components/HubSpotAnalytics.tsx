@@ -382,7 +382,7 @@ async function fetchFunnelTotalesPorEquipo(
   return { marketing: toTeam('Marketing'), comercial: toTeam('Comercial') }
 }
 
-type MetaEtapa = { etapa: string; meta_total: number | null; meta_marketing: number | null; meta_comercial: number | null; meta_money: number | null }
+type MetaEtapa = { etapa: string; meta_total: number | null; meta_marketing: number | null; meta_comercial: number | null; meta_money: number | null; es_prorrateado?: boolean | null }
 
 async function fetchMetasForecast(fechaDesde: string, fechaHasta: string, udn: string): Promise<Record<string, MetaEtapa>> {
   const url = `${SUPABASE_MBR_URL}/rest/v1/rpc/metas_forecast_rango`
@@ -441,9 +441,10 @@ function TeamColumn({ title, color, data, metas, equipo }: { title: string; colo
     }
     return m.meta_total != null ? Number(m.meta_total) : null
   }
+  const prorrateado = metas ? Object.values(metas).some((m) => m.es_prorrateado) : false
   const stages: [string, number, string, string | null, string | null][] = [
-    ['Contactos', data.contactos, '#E8402C', 'Contacto \u2192 Lead', null],
-    ['Leads', data.leads, '#D6272F', 'Lead \u2192 MQL', 'leads'],
+    ['Contactos', data.contactos, '#E8402C', 'Contacto \u2192 Lead', 'leads'],
+    ['Leads', data.leads, '#D6272F', 'Lead \u2192 MQL', null],
     ['MQLs', data.mqls, '#C11740', 'MQL \u2192 SQL', 'mqls'],
     ['SQLs', data.sqls, '#9B1355', 'SQL \u2192 Opp', 'sqls'],
     ['Opps', data.opps, '#7A2A9E', 'Opp \u2192 Cliente', 'opps'],
@@ -506,13 +507,15 @@ function TeamColumn({ title, color, data, metas, equipo }: { title: string; colo
                 display: 'flex', justifyContent: 'space-between', alignItems: 'center',
                 fontSize: 10.5, color: '#94a3b8', padding: '0 0 8px',
               }}>
-                <span>Meta: <span style={{ fontFamily: 'monospace', fontWeight: 700, color: '#64748b' }}>{fmtNum(Math.round(meta))}</span></span>
+                <span>{prorrateado ? 'Meta prorrateada' : 'Meta'}: <span style={{ fontFamily: 'monospace', fontWeight: 700, color: '#64748b' }}>{fmtNum(Math.round(meta))}</span></span>
                 {cumplimiento != null && (
                   <span style={{ fontFamily: 'monospace', fontWeight: 700, color: cumplimiento >= 100 ? '#16a34a' : cumplimiento >= 60 ? '#d97706' : '#dc2626' }}>
-                    {cumplimiento.toFixed(1)}%
+                    Cumpl. {cumplimiento.toFixed(1)}%
                   </span>
                 )}
               </div>
+            ) : (metas && label === 'Leads') ? (
+              <div style={{ fontSize: 10.5, color: '#94a3b8', fontStyle: 'italic', padding: '0 0 8px' }}>Sin meta en forecast</div>
             ) : (!metas && tasaLabel) ? (
               <div style={{
                 display: 'flex', justifyContent: 'space-between', alignItems: 'center',
