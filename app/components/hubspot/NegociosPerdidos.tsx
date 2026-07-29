@@ -106,7 +106,26 @@ function SerieApilada({ titulo, subtitulo, data, dims }: { titulo: string; subti
           <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" />
           <XAxis dataKey="mes" tick={{ fontSize: 11 }} />
           <YAxis tick={{ fontSize: 11 }} />
-          <Tooltip />
+          <Tooltip
+            cursor={{ fill: 'rgba(0,0,0,0.03)' }}
+            content={({ active, payload, label }: any) => {
+              if (!active || !payload || !payload.length) return null
+              return (
+                <div style={{
+                  background: '#fff', border: '1px solid #e2e8f0', borderRadius: 10,
+                  boxShadow: '0 4px 12px rgba(0,0,0,0.08)', padding: '10px 14px', fontSize: 12,
+                }}>
+                  <div style={{ fontWeight: 700, color: '#0f172a', marginBottom: 6 }}>{label}</div>
+                  {payload.slice().reverse().map((p: any) => (
+                    <div key={p.dataKey} style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '2px 0' }}>
+                      <span style={{ width: 9, height: 9, borderRadius: 2, background: p.color, flexShrink: 0 }} />
+                      <span style={{ color: '#0f172a' }}>{p.name}: {p.value}</span>
+                    </div>
+                  ))}
+                </div>
+              )
+            }}
+          />
           <Legend wrapperStyle={{ fontSize: 11 }} />
           {dims.map((d, i) => (
             <Bar key={d} dataKey={d} stackId="a" fill={DIM_COLORS[i % DIM_COLORS.length]}
