@@ -1834,6 +1834,7 @@ function fmtMoneyMX(n: number): string {
 async function fetchPropuestasActivasPorUdn(
   fechaDesde: string | null = null,
   fechaHasta: string | null = null,
+  filtros: FiltrosHome = FILTROS_VACIOS,
 ): Promise<{ udn: string; registros: number; valor: number }[]> {
   const url = `${SUPABASE_MBR_URL}/rest/v1/rpc/propuestas_activas_por_udn`
   const res = await fetch(url, {
@@ -1843,7 +1844,7 @@ async function fetchPropuestasActivasPorUdn(
       Authorization: `Bearer ${SUPABASE_MBR_KEY}`,
       'Content-Type': 'application/json',
     },
-    body: JSON.stringify({ fecha_desde: fechaDesde, fecha_hasta: fechaHasta }),
+    body: JSON.stringify({ fecha_desde: fechaDesde, fecha_hasta: fechaHasta, p_udn: filtros.udn || null, p_origen: filtros.origen || null, p_fuente: filtros.fuente || null }),
   })
   if (!res.ok) throw new Error(`Error RPC propuestas_activas_por_udn: ${res.status}`)
   const rows: { udn: string; registros: number; valor: number }[] = await res.json()
@@ -1853,6 +1854,7 @@ async function fetchPropuestasActivasPorUdn(
 async function fetchPropuestasActivasPorUdnEtapa(
   fechaDesde: string | null = null,
   fechaHasta: string | null = null,
+  filtros: FiltrosHome = FILTROS_VACIOS,
 ): Promise<{ udn: string; etapa: string; registros: number; valor: number }[]> {
   const url = `${SUPABASE_MBR_URL}/rest/v1/rpc/propuestas_activas_por_udn_etapa`
   const res = await fetch(url, {
@@ -1862,7 +1864,7 @@ async function fetchPropuestasActivasPorUdnEtapa(
       Authorization: `Bearer ${SUPABASE_MBR_KEY}`,
       'Content-Type': 'application/json',
     },
-    body: JSON.stringify({ fecha_desde: fechaDesde, fecha_hasta: fechaHasta }),
+    body: JSON.stringify({ fecha_desde: fechaDesde, fecha_hasta: fechaHasta, p_udn: filtros.udn || null, p_origen: filtros.origen || null, p_fuente: filtros.fuente || null }),
   })
   if (!res.ok) throw new Error(`Error RPC propuestas_activas_por_udn_etapa: ${res.status}`)
   const rows: { udn: string; etapa: string; registros: number; valor: number }[] = await res.json()
@@ -1871,7 +1873,7 @@ async function fetchPropuestasActivasPorUdnEtapa(
 
 const ETAPAS_ACTIVAS = ['1. Reunión calificada', '2. Propuesta', '3. Evaluando', '4. Cierre']
 
-function PropuestasActivasPorUdnPanel({ dateFrom, dateTo }: { dateFrom: string; dateTo: string }) {
+function PropuestasActivasPorUdnPanel({ dateFrom, dateTo, filtros }: { dateFrom: string; dateTo: string; filtros: FiltrosHome }) {
   const [chartData, setChartData] = useState<{ udn: string; registros: number; valor: number }[] | null>(null)
   const [tablaData, setTablaData] = useState<{ udn: string; etapa: string; registros: number; valor: number }[] | null>(null)
   const [loading, setLoading] = useState(true)
@@ -1880,13 +1882,13 @@ function PropuestasActivasPorUdnPanel({ dateFrom, dateTo }: { dateFrom: string; 
     let cancelled = false
     setLoading(true)
     Promise.all([
-      fetchPropuestasActivasPorUdn(dateFrom, dateTo),
-      fetchPropuestasActivasPorUdnEtapa(dateFrom, dateTo),
+      fetchPropuestasActivasPorUdn(dateFrom, dateTo, filtros),
+      fetchPropuestasActivasPorUdnEtapa(dateFrom, dateTo, filtros),
     ])
       .then(([chart, tabla]) => { if (!cancelled) { setChartData(chart); setTablaData(tabla); setLoading(false) } })
       .catch(err => { if (!cancelled) { setError(String(err)); setLoading(false) } })
     return () => { cancelled = true }
-  }, [dateFrom, dateTo])
+  }, [dateFrom, dateTo, filtros])
 
   const udnsPresentes = tablaData ? Array.from(new Set(tablaData.map(r => r.udn))) : []
   const matriz: Record<string, Record<string, { registros: number; valor: number }>> = {}
@@ -2071,6 +2073,7 @@ function PropuestasActivasPorUdnPanel({ dateFrom, dateTo }: { dateFrom: string; 
 async function fetchPropuestasGanadasFacturar(
   fechaDesde: string | null = null,
   fechaHasta: string | null = null,
+  filtros: FiltrosHome = FILTROS_VACIOS,
 ): Promise<{ porMes: ContactosPorMes[]; porOrigen: { origen: string; registros: number; valor: number }[] }> {
   const url = `${SUPABASE_MBR_URL}/rest/v1/rpc/propuestas_ganadas_facturar_por_mes_udn`
   const res = await fetch(url, {
@@ -2080,7 +2083,7 @@ async function fetchPropuestasGanadasFacturar(
       Authorization: `Bearer ${SUPABASE_MBR_KEY}`,
       'Content-Type': 'application/json',
     },
-    body: JSON.stringify({ fecha_desde: fechaDesde, fecha_hasta: fechaHasta }),
+    body: JSON.stringify({ fecha_desde: fechaDesde, fecha_hasta: fechaHasta, p_udn: filtros.udn || null, p_origen: filtros.origen || null, p_fuente: filtros.fuente || null }),
   })
   if (!res.ok) throw new Error(`Error RPC propuestas_ganadas_facturar_por_mes_udn: ${res.status}`)
   const rows: { mes: string; udn: string; registros: number }[] = await res.json()
@@ -2109,7 +2112,7 @@ async function fetchPropuestasGanadasFacturar(
       Authorization: `Bearer ${SUPABASE_MBR_KEY}`,
       'Content-Type': 'application/json',
     },
-    body: JSON.stringify({ fecha_desde: fechaDesde, fecha_hasta: fechaHasta }),
+    body: JSON.stringify({ fecha_desde: fechaDesde, fecha_hasta: fechaHasta, p_udn: filtros.udn || null, p_origen: filtros.origen || null, p_fuente: filtros.fuente || null }),
   })
   if (!resOrigen.ok) throw new Error(`Error RPC propuestas_ganadas_facturar_por_origen: ${resOrigen.status}`)
   const porOrigen: { origen: string; registros: number; valor: number }[] = await resOrigen.json()
@@ -2117,18 +2120,18 @@ async function fetchPropuestasGanadasFacturar(
   return { porMes, porOrigen }
 }
 
-function PropuestasGanadasFacturarTimelinePanel({ dateFrom, dateTo }: { dateFrom: string; dateTo: string }) {
+function PropuestasGanadasFacturarTimelinePanel({ dateFrom, dateTo, filtros }: { dateFrom: string; dateTo: string; filtros: FiltrosHome }) {
   const [data, setData] = useState<{ porMes: ContactosPorMes[]; porOrigen: { origen: string; registros: number; valor: number }[] } | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   useEffect(() => {
     let cancelled = false
     setLoading(true)
-    fetchPropuestasGanadasFacturar(dateFrom, dateTo)
+    fetchPropuestasGanadasFacturar(dateFrom, dateTo, filtros)
       .then(result => { if (!cancelled) { setData(result); setLoading(false) } })
       .catch(err => { if (!cancelled) { setError(String(err)); setLoading(false) } })
     return () => { cancelled = true }
-  }, [dateFrom, dateTo])
+  }, [dateFrom, dateTo, filtros])
   const udnsPresentes = data
     ? Array.from(new Set(data.porMes.flatMap(m => Object.keys(m).filter(k => k !== 'mes' && k !== 'total'))))
     : []
@@ -2258,6 +2261,7 @@ function PropuestasGanadasFacturarTimelinePanel({ dateFrom, dateTo }: { dateFrom
 async function fetchPropuestasFacturadas(
   fechaDesde: string | null = null,
   fechaHasta: string | null = null,
+  filtros: FiltrosHome = FILTROS_VACIOS,
 ): Promise<{ porMes: ContactosPorMes[]; porOrigen: { origen: string; registros: number; valor: number }[] }> {
   const url = `${SUPABASE_MBR_URL}/rest/v1/rpc/propuestas_facturadas_por_mes_udn`
   const res = await fetch(url, {
@@ -2267,7 +2271,7 @@ async function fetchPropuestasFacturadas(
       Authorization: `Bearer ${SUPABASE_MBR_KEY}`,
       'Content-Type': 'application/json',
     },
-    body: JSON.stringify({ fecha_desde: fechaDesde, fecha_hasta: fechaHasta }),
+    body: JSON.stringify({ fecha_desde: fechaDesde, fecha_hasta: fechaHasta, p_udn: filtros.udn || null, p_origen: filtros.origen || null, p_fuente: filtros.fuente || null }),
   })
   if (!res.ok) throw new Error(`Error RPC propuestas_facturadas_por_mes_udn: ${res.status}`)
   const rows: { mes: string; udn: string; registros: number }[] = await res.json()
@@ -2296,7 +2300,7 @@ async function fetchPropuestasFacturadas(
       Authorization: `Bearer ${SUPABASE_MBR_KEY}`,
       'Content-Type': 'application/json',
     },
-    body: JSON.stringify({ fecha_desde: fechaDesde, fecha_hasta: fechaHasta }),
+    body: JSON.stringify({ fecha_desde: fechaDesde, fecha_hasta: fechaHasta, p_udn: filtros.udn || null, p_origen: filtros.origen || null, p_fuente: filtros.fuente || null }),
   })
   if (!resOrigen.ok) throw new Error(`Error RPC propuestas_facturadas_por_origen: ${resOrigen.status}`)
   const porOrigen: { origen: string; registros: number; valor: number }[] = await resOrigen.json()
@@ -2304,18 +2308,18 @@ async function fetchPropuestasFacturadas(
   return { porMes, porOrigen }
 }
 
-function PropuestasFacturadasTimelinePanel({ dateFrom, dateTo }: { dateFrom: string; dateTo: string }) {
+function PropuestasFacturadasTimelinePanel({ dateFrom, dateTo, filtros }: { dateFrom: string; dateTo: string; filtros: FiltrosHome }) {
   const [data, setData] = useState<{ porMes: ContactosPorMes[]; porOrigen: { origen: string; registros: number; valor: number }[] } | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   useEffect(() => {
     let cancelled = false
     setLoading(true)
-    fetchPropuestasFacturadas(dateFrom, dateTo)
+    fetchPropuestasFacturadas(dateFrom, dateTo, filtros)
       .then(result => { if (!cancelled) { setData(result); setLoading(false) } })
       .catch(err => { if (!cancelled) { setError(String(err)); setLoading(false) } })
     return () => { cancelled = true }
-  }, [dateFrom, dateTo])
+  }, [dateFrom, dateTo, filtros])
   const udnsPresentes = data
     ? Array.from(new Set(data.porMes.flatMap(m => Object.keys(m).filter(k => k !== 'mes' && k !== 'total'))))
     : []
@@ -2572,11 +2576,11 @@ function HomeFunnel() {
 
         <PropuestasPerdidasTimelinePanel dateFrom={dateFrom} dateTo={dateTo} filtros={filtros} />
 
-        <PropuestasActivasPorUdnPanel dateFrom={dateFrom} dateTo={dateTo} />
+        <PropuestasActivasPorUdnPanel dateFrom={dateFrom} dateTo={dateTo} filtros={filtros} />
 
-        <PropuestasGanadasFacturarTimelinePanel dateFrom={dateFrom} dateTo={dateTo} />
+        <PropuestasGanadasFacturarTimelinePanel dateFrom={dateFrom} dateTo={dateTo} filtros={filtros} />
 
-        <PropuestasFacturadasTimelinePanel dateFrom={dateFrom} dateTo={dateTo} />
+        <PropuestasFacturadasTimelinePanel dateFrom={dateFrom} dateTo={dateTo} filtros={filtros} />
       </div>
     </div>
   )
