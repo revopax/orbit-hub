@@ -38,7 +38,10 @@ export default function Page() {
   const esClaro = MODULOS_CLAROS.includes(moduloActivo);
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', height: '100vh', overflow: 'hidden' }}>
+    <div style={{
+      display: 'flex', flexDirection: 'column', height: '100vh', overflow: 'hidden',
+      background: 'var(--surface, #262a3d)',
+    }}>
       <OrbitTopbar
         perfil={perfil}
         isDark={isDark}
@@ -54,12 +57,18 @@ export default function Page() {
           onLogout={logout}
         />
         <div style={{
-          flex: 1, height: '100%', overflow: 'auto',
-          background: esClaro ? '#f8fafc' : undefined,
+          flex: 1, overflow: 'hidden',
+          margin: '12px 12px 12px 0',
+          borderRadius: 20,
+          background: esClaro ? '#ffffff' : 'var(--bg, #1e2130)',
+          boxShadow: '0 4px 24px rgba(0,0,0,0.25)',
+          display: 'flex', flexDirection: 'column',
         }}>
-          {moduloActivo === 'brujula' && <BrujulaComercial />}
-          {moduloActivo === 'redes' && <RedesUPAX />}
-          {moduloActivo === 'hubspot' && <HubSpotAnalytics />}
+          <div style={{ flex: 1, overflow: 'auto' }}>
+            {moduloActivo === 'brujula' && <BrujulaComercial />}
+            {moduloActivo === 'redes' && <RedesUPAX />}
+            {moduloActivo === 'hubspot' && <HubSpotAnalytics />}
+          </div>
         </div>
       </div>
     </div>

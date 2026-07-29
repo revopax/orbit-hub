@@ -22,9 +22,9 @@ export function OrbitTopbar({ perfil, isDark, onToggleTheme, onLogout }: OrbitTo
     <header style={{
       height: 56, flexShrink: 0,
       background: 'var(--surface, #262a3d)',
-      borderBottom: '1px solid rgba(255,255,255,0.09)',
       display: 'flex', alignItems: 'center', justifyContent: 'space-between',
       padding: '0 20px',
+      position: 'relative', zIndex: 201,
     }}>
       <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
         <img src="/orbit-icon-64.png" alt="ORBIT" style={{ width: 32, height: 32, borderRadius: 8, flexShrink: 0 }} />
