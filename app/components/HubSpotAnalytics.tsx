@@ -423,13 +423,13 @@ function TeamsPanel({ dateFrom, dateTo, filtros }: { dateFrom: string; dateTo: s
       background: '#fff', border: '1px solid #e2e8f0', borderRadius: 12, padding: 20,
       display: 'flex', gap: 10, flex: '1 1 340px', minWidth: 0, fontSize: 9.5, alignSelf: 'stretch',
     }}>
-      <div style={{ flex: '1 1 0', minWidth: 0, overflow: 'hidden', display: 'flex' }}><TeamColumn title="MARKETING" color="#2563eb" data={marketing} metas={metas} equipo="marketing" /></div>
-      <div style={{ flex: '1 1 0', minWidth: 0, overflow: 'hidden', display: 'flex' }}><TeamColumn title="COMERCIAL" color="#dc2626" data={comercial} metas={metas} equipo="comercial" /></div>
+      <div style={{ flex: '1 1 0', minWidth: 0, overflow: 'hidden', display: 'flex' }}><TeamColumn title="MARKETING" color="#2563eb" data={marketing} metas={metas} equipo="marketing" globalData={{ opps: (marketing.opps ?? 0) + (comercial.opps ?? 0), clientes: (marketing.clientes ?? 0) + (comercial.clientes ?? 0) }} /></div>
+      <div style={{ flex: '1 1 0', minWidth: 0, overflow: 'hidden', display: 'flex' }}><TeamColumn title="COMERCIAL" color="#dc2626" data={comercial} metas={metas} equipo="comercial" globalData={{ opps: (marketing.opps ?? 0) + (comercial.opps ?? 0), clientes: (marketing.clientes ?? 0) + (comercial.clientes ?? 0) }} /></div>
     </div>
   )
 }
 
-function TeamColumn({ title, color, data, metas, equipo }: { title: string; color: string; data: typeof DUMMY.marketing; metas: Record<string, MetaEtapa> | null; equipo: 'marketing' | 'comercial' }) {
+function TeamColumn({ title, color, data, metas, equipo, globalData }: { title: string; color: string; data: typeof DUMMY.marketing; metas: Record<string, MetaEtapa> | null; equipo: 'marketing' | 'comercial'; globalData?: { opps: number; clientes: number } }) {
   // Meta por etapa para este equipo: leads/mqls/sqls usan el split; opps/clientes usan meta total (sin split)
   function metaDe(stageKey: string): number | null {
     if (!metas) return null
@@ -484,7 +484,9 @@ function TeamColumn({ title, color, data, metas, equipo }: { title: string; colo
       <div style={{ padding: '10px 18px 4px', flex: 1 }}>
         {stages.map(([label, value, stageColor, tasaLabel, metaKey], i) => {
           const meta = metaKey ? metaDe(metaKey) : null
-          const cumplimiento = meta && meta > 0 ? (value / meta) * 100 : null
+          const esGlobal = metaKey === 'opps' || metaKey === 'clientes'
+          const realCumpl = esGlobal && globalData ? (metaKey === 'opps' ? globalData.opps : globalData.clientes) : value
+          const cumplimiento = meta && meta > 0 ? (realCumpl / meta) * 100 : null
           return (
           <div key={label}>
             <div style={{
@@ -507,10 +509,10 @@ function TeamColumn({ title, color, data, metas, equipo }: { title: string; colo
                 display: 'flex', justifyContent: 'space-between', alignItems: 'center',
                 fontSize: 10.5, color: '#94a3b8', padding: '0 0 8px',
               }}>
-                <span>{prorrateado ? 'Meta prorrateada' : 'Meta'}: <span style={{ fontFamily: 'monospace', fontWeight: 700, color: '#64748b' }}>{fmtNum(Math.round(meta))}</span></span>
+                <span>{prorrateado ? 'Meta prorrateada' : 'Meta'}{esGlobal ? ' (global)' : ''}: <span style={{ fontFamily: 'monospace', fontWeight: 700, color: '#64748b' }}>{fmtNum(Math.round(meta))}</span></span>
                 {cumplimiento != null && (
                   <span style={{ fontFamily: 'monospace', fontWeight: 700, color: cumplimiento >= 100 ? '#16a34a' : cumplimiento >= 60 ? '#d97706' : '#dc2626' }}>
-                    Cumpl. {cumplimiento.toFixed(1)}%
+                    Cumpl.{esGlobal ? ' global' : ''} {cumplimiento.toFixed(1)}%
                   </span>
                 )}
               </div>
