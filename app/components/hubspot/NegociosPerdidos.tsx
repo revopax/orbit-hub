@@ -40,6 +40,24 @@ const cardStyle: React.CSSProperties = {
   background: '#ffffff', border: '1px solid #e2e8f0', borderRadius: 14, padding: 18,
   boxShadow: '0 1px 3px rgba(0,0,0,0.04)',
 }
+type SortCol = 'udn' | 'empresa' | 'fecha_perdido' | 'motivo' | 'valor' | null
+function ThOrdenable({ label, col, sortCol, sortDir, onSort, align }: {
+  label: string; col: SortCol; sortCol: SortCol; sortDir: 'asc' | 'desc'
+  onSort: (col: SortCol) => void; align?: 'left' | 'right'
+}) {
+  const activo = sortCol === col
+  return (
+    <th style={{ ...thStyle, textAlign: align ?? 'left', cursor: 'pointer', userSelect: 'none' }} onClick={() => onSort(col)}>
+      <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4 }}>
+        {label}
+        <span style={{ fontSize: 9, color: activo ? '#0f172a' : '#cbd5e1' }}>
+          {activo ? (sortDir === 'asc' ? '▲' : '▼') : '▲▼'}
+        </span>
+      </span>
+    </th>
+  )
+}
+
 const thStyle: React.CSSProperties = {
   textAlign: 'left', fontSize: 10, fontWeight: 700, color: '#64748b', textTransform: 'uppercase',
   letterSpacing: '0.03em', padding: '5px 8px', borderBottom: '1px solid #e2e8f0', whiteSpace: 'nowrap',
@@ -218,6 +236,12 @@ export default function NegociosPerdidos() {
   const [fMotivo, setFMotivo] = useState('')
   const [pagina, setPagina] = useState(0)
   const PAGE = 20
+  const [sortCol, setSortCol] = useState<SortCol>(null)
+  const [sortDir, setSortDir] = useState<'asc' | 'desc'>('desc')
+  function handleSort(col: SortCol) {
+    if (sortCol === col) setSortDir(d => d === 'asc' ? 'desc' : 'asc')
+    else { setSortCol(col); setSortDir('asc') }
+  }
 
   const [porUdn, setPorUdn] = useState<RowUdn[]>([])
   const [porFuente, setPorFuente] = useState<RowFuente[]>([])
@@ -347,13 +371,22 @@ export default function NegociosPerdidos() {
             <table style={{ width: '100%', borderCollapse: 'collapse' }}>
               <thead>
                 <tr>
-                  <th style={thStyle}>Unidad de negocio</th><th style={thStyle}>Empresa</th><th style={thStyle}>Fecha de pérdida</th>
-                  <th style={thStyle}>Motivo</th><th style={thStyle}>Detalle de perdido</th><th style={thStyle}>Link</th>
-                  <th style={{ ...thStyle, textAlign: 'right' }}>Valor</th>
+                  <ThOrdenable label="Unidad de negocio" col="udn" sortCol={sortCol} sortDir={sortDir} onSort={handleSort} />
+                  <ThOrdenable label="Empresa" col="empresa" sortCol={sortCol} sortDir={sortDir} onSort={handleSort} />
+                  <ThOrdenable label="Fecha de pérdida" col="fecha_perdido" sortCol={sortCol} sortDir={sortDir} onSort={handleSort} />
+                  <ThOrdenable label="Motivo" col="motivo" sortCol={sortCol} sortDir={sortDir} onSort={handleSort} />
+                  <th style={thStyle}>Detalle de perdido</th><th style={thStyle}>Link</th>
+                  <ThOrdenable label="Valor" col="valor" sortCol={sortCol} sortDir={sortDir} onSort={handleSort} align="right" />
                 </tr>
               </thead>
               <tbody>
-                {detalle.map((r, i) => (
+                {[...detalle].sort((a, b) => {
+                  if (!sortCol) return 0
+                  const dir = sortDir === 'asc' ? 1 : -1
+                  const av = a[sortCol], bv = b[sortCol]
+                  if (typeof av === 'number' && typeof bv === 'number') return (av - bv) * dir
+                  return String(av ?? '').localeCompare(String(bv ?? '')) * dir
+                }).map((r, i) => (
                   <tr key={r.hubspot_id + i}>
                     <td style={tdStyle}>{r.udn}</td>
                     <td style={{ ...tdStyle, fontWeight: 600 }}>{r.empresa ?? '-'}</td>
