@@ -71,13 +71,21 @@ const DUMMY = {
   extras: { mqlDescalificados: 875, sqlObjetadas: 18, oppsPerdidas: 385, ganadosPorFacturar: 113, ganadosPorFacturarValor: 63861022, clientesValor: 14055420 },
 }
 
-const FILTROS_PLACEHOLDER: { label: string; opciones: string[] }[] = [
-  { label: 'Unidad de negocio',     opciones: ['Todas'] },
-  { label: 'Generado por',          opciones: ['Todos'] },
-  { label: 'Contacto convertido',   opciones: ['Todos'] },
-  { label: 'Fuente adquisición',    opciones: ['Todas'] },
-  { label: 'Fuente MQL',            opciones: ['Todas'] },
-]
+const UDNS_LIST = ['Upax', 'Promo Espacio', 'Marketing United', 'Research Land', 'Mexa Creativa', 'House Of Films', 'UiX', 'Zeus', 'Neracode']
+const FUENTES_LIST = ['Chatflow', 'Content Nurturing', 'Evento', 'Inbound', 'Paid Media', 'Prospección', 'RRSS', 'RRSS Paid', 'Referido IA', 'Referidos', 'Sin fuente', 'Website']
+type FiltrosHome = {
+  udn: string; origen: string; conversion: string; fuente: string; fuenteConversion: string
+}
+const FILTROS_VACIOS: FiltrosHome = { udn: '', origen: '', conversion: '', fuente: '', fuenteConversion: '' }
+function filtrosParams(f: FiltrosHome) {
+  return {
+    p_udn: f.udn || null,
+    p_origen: f.origen || null,
+    p_conversion: f.conversion || null,
+    p_fuente: f.fuente || null,
+    p_fuente_conversion: f.fuenteConversion || null,
+  }
+}
 
 function toDateStr(d: Date) { return d.toISOString().slice(0, 10) }
 
@@ -156,6 +164,7 @@ type FunnelTotales = {
 async function fetchFunnelTotales(
   fechaDesde: string | null = null,
   fechaHasta: string | null = null,
+  filtros: FiltrosHome = FILTROS_VACIOS,
 ): Promise<FunnelTotales> {
   // Funcion RPC funnel_totales: hace todos los counts/sums directamente en Postgres
   const url = `${SUPABASE_MBR_URL}/rest/v1/rpc/funnel_totales`
@@ -166,7 +175,7 @@ async function fetchFunnelTotales(
       Authorization: `Bearer ${SUPABASE_MBR_KEY}`,
       'Content-Type': 'application/json',
     },
-    body: JSON.stringify({ fecha_desde: fechaDesde, fecha_hasta: fechaHasta }),
+    body: JSON.stringify({ fecha_desde: fechaDesde, fecha_hasta: fechaHasta, ...filtrosParams(filtros) }),
   })
   if (!res.ok) throw new Error(`Error RPC funnel_totales: ${res.status}`)
   const rows: {
@@ -198,15 +207,15 @@ function calcularTasas(t: FunnelTotales) {
   ]
 }
 
-function FunnelPanel({ dateFrom, dateTo }: { dateFrom: string; dateTo: string }) {
+function FunnelPanel({ dateFrom, dateTo, filtros }: { dateFrom: string; dateTo: string; filtros: FiltrosHome }) {
   const [data, setData] = useState<FunnelTotales | null>(null)
   useEffect(() => {
     let cancelled = false
-    fetchFunnelTotales(dateFrom, dateTo)
+    fetchFunnelTotales(dateFrom, dateTo, filtros)
       .then(result => { if (!cancelled) setData(result) })
       .catch(err => { console.error('Error cargando funnel_totales:', err) })
     return () => { cancelled = true }
-  }, [dateFrom, dateTo])
+  }, [dateFrom, dateTo, filtros])
   const total: FunnelTotales = data ?? {
     contactos: DUMMY.total.contactos, leads: DUMMY.total.leads, mqls: DUMMY.total.mqls,
     sqls: DUMMY.total.sqls, opps: DUMMY.total.opps, clientes: DUMMY.total.clientes,
@@ -344,6 +353,7 @@ type TeamTotales = { contactos: number; leads: number; mqls: number; sqls: numbe
 async function fetchFunnelTotalesPorEquipo(
   fechaDesde: string | null = null,
   fechaHasta: string | null = null,
+  filtros: FiltrosHome = FILTROS_VACIOS,
 ): Promise<{ marketing: TeamTotales; comercial: TeamTotales }> {
   const url = `${SUPABASE_MBR_URL}/rest/v1/rpc/funnel_totales_por_equipo`
   const res = await fetch(url, {
@@ -353,7 +363,7 @@ async function fetchFunnelTotalesPorEquipo(
       Authorization: `Bearer ${SUPABASE_MBR_KEY}`,
       'Content-Type': 'application/json',
     },
-    body: JSON.stringify({ fecha_desde: fechaDesde, fecha_hasta: fechaHasta }),
+    body: JSON.stringify({ fecha_desde: fechaDesde, fecha_hasta: fechaHasta, ...filtrosParams(filtros) }),
   })
   if (!res.ok) throw new Error(`Error RPC funnel_totales_por_equipo: ${res.status}`)
   const rows: {
@@ -372,15 +382,15 @@ async function fetchFunnelTotalesPorEquipo(
   return { marketing: toTeam('Marketing'), comercial: toTeam('Comercial') }
 }
 
-function TeamsPanel({ dateFrom, dateTo }: { dateFrom: string; dateTo: string }) {
+function TeamsPanel({ dateFrom, dateTo, filtros }: { dateFrom: string; dateTo: string; filtros: FiltrosHome }) {
   const [data, setData] = useState<{ marketing: TeamTotales; comercial: TeamTotales } | null>(null)
   useEffect(() => {
     let cancelled = false
-    fetchFunnelTotalesPorEquipo(dateFrom, dateTo)
+    fetchFunnelTotalesPorEquipo(dateFrom, dateTo, filtros)
       .then(result => { if (!cancelled) setData(result) })
       .catch(err => { console.error('Error cargando funnel_totales_por_equipo:', err) })
     return () => { cancelled = true }
-  }, [dateFrom, dateTo])
+  }, [dateFrom, dateTo, filtros])
   const marketing = data?.marketing ?? DUMMY.marketing
   const comercial = data?.comercial ?? DUMMY.comercial
   return (
@@ -480,8 +490,9 @@ function TeamColumn({ title, color, data }: { title: string; color: string; data
   )
 }
 
-function FiltrosBar({ dateFrom, dateTo, onDateChange }: {
+function FiltrosBar({ dateFrom, dateTo, onDateChange, filtros, onFiltroChange }: {
   dateFrom: string; dateTo: string; onDateChange: (from: string, to: string, preset: string) => void
+  filtros: FiltrosHome; onFiltroChange: (key: keyof FiltrosHome, value: string) => void
 }) {
   const [activePreset, setActivePreset] = useState('Este año')
   const [tempFrom, setTempFrom] = useState(dateFrom)
@@ -514,14 +525,21 @@ function FiltrosBar({ dateFrom, dateTo, onDateChange }: {
       maxWidth: 1400, margin: '0 auto', width: '100%',
       display: 'flex', gap: 10, flexWrap: 'wrap', alignItems: 'center',
     }}>
-      {FILTROS_PLACEHOLDER.map(f => (
-        <select key={f.label} defaultValue={f.opciones[0]}
+      {([
+        { key: 'udn' as const, label: 'Unidad de negocio', opciones: UDNS_LIST },
+        { key: 'origen' as const, label: 'Generado por', opciones: ['Marketing', 'Comercial'] },
+        { key: 'conversion' as const, label: 'Contacto convertido', opciones: ['Marketing', 'Comercial'] },
+        { key: 'fuente' as const, label: 'Fuente adquisición', opciones: FUENTES_LIST },
+        { key: 'fuenteConversion' as const, label: 'Fuente MQL', opciones: FUENTES_LIST },
+      ]).map(f => (
+        <select key={f.key} value={filtros[f.key]} onChange={e => onFiltroChange(f.key, e.target.value)}
           style={{
             background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: 9,
             color: '#334155', padding: '7px 12px', fontSize: 12.5, cursor: 'pointer',
             fontWeight: 500,
           }}>
-          <option>{f.label}</option>
+          <option value="">{f.label}</option>
+          {f.opciones.map(o => <option key={o} value={o}>{o}</option>)}
         </select>
       ))}
 
@@ -577,6 +595,7 @@ function FiltrosBar({ dateFrom, dateTo, onDateChange }: {
       </div>
 
       <button
+        onClick={() => { (['udn','origen','conversion','fuente','fuenteConversion'] as const).forEach(k => onFiltroChange(k, '')) }}
         style={{
           background: ACCENT, border: 'none', borderRadius: 9, color: '#fff',
           padding: '7px 14px', fontSize: 12.5, cursor: 'pointer', fontWeight: 700,
@@ -2515,20 +2534,24 @@ function TimelinePanel({
 function HomeFunnel() {
   const [dateFrom, setDateFrom] = useState(new Date().getFullYear() + '-01-01')
   const [dateTo, setDateTo] = useState(toDateStr(new Date()))
+  const [filtros, setFiltros] = useState<FiltrosHome>(FILTROS_VACIOS)
 
   function handleDateChange(from, to, _preset) {
     setDateFrom(from)
     setDateTo(to)
   }
+  function handleFiltroChange(key: keyof FiltrosHome, value: string) {
+    setFiltros(prev => ({ ...prev, [key]: value }))
+  }
 
   return (
     <div>
-      <FiltrosBar dateFrom={dateFrom} dateTo={dateTo} onDateChange={handleDateChange} />
+      <FiltrosBar dateFrom={dateFrom} dateTo={dateTo} onDateChange={handleDateChange} filtros={filtros} onFiltroChange={handleFiltroChange} />
       <div style={{ maxWidth: 1400, margin: '0 auto', width: '100%', padding: 20, display: 'flex', flexDirection: 'column', gap: 20 }}>
 
         <div style={{ display: 'flex', gap: 16, alignItems: 'stretch', flexWrap: 'wrap' }}>
-          <FunnelPanel dateFrom={dateFrom} dateTo={dateTo} />
-          <TeamsPanel dateFrom={dateFrom} dateTo={dateTo} />
+          <FunnelPanel dateFrom={dateFrom} dateTo={dateTo} filtros={filtros} />
+          <TeamsPanel dateFrom={dateFrom} dateTo={dateTo} filtros={filtros} />
         </div>
 
         <ContactosTimelinePanel dateFrom={dateFrom} dateTo={dateTo} />
