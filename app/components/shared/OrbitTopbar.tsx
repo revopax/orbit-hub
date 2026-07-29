@@ -27,7 +27,7 @@ export function OrbitTopbar({ perfil, isDark, onToggleTheme, onLogout }: OrbitTo
       padding: '0 20px',
     }}>
       <div style={{ display: 'flex', alignItems: 'center' }}>
-        <img src="/orbit-lockup-light.svg" alt="ORBIT Hub" style={{ height: 32, width: 'auto', display: 'block' }} />
+        <img src="/orbit-lockup-light.svg" alt="ORBIT Hub" style={{ height: 40, width: 'auto', display: 'block' }} />
       </div>
 
       <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
