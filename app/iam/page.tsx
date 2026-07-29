@@ -41,6 +41,9 @@ export default function IAMPage() {
   const [showForm, setShowForm] = useState(false);
   const [showEdit, setShowEdit] = useState(false);
   const [editTarget, setEditTarget] = useState<Usuario|null>(null);
+  const [newPass, setNewPass] = useState('');
+  const [passMsg, setPassMsg] = useState('');
+  const [passLoading, setPassLoading] = useState(false);
   const [form, setForm] = useState({ email:'', password:'', nombre:'', rol:'director', udns:[] as string[], udn_madre:'', nivel_jerarquico:'', reporta_a:null as string|null });
   const [editForm, setEditForm] = useState({ rol:'director', udns:[] as string[], activo:true, udn_madre:'', nivel_jerarquico:'', reporta_a:null as string|null, vistas:[] as string[] });
   const [guardando, setGuardando] = useState(false);
@@ -80,6 +83,19 @@ export default function IAMPage() {
       await cargar();
     } catch(e:any) { setError(e.message); }
     setGuardando(false);
+  }
+
+  async function cambiarPassword() {
+    if (!editTarget || !newPass) return;
+    setPassLoading(true); setPassMsg('');
+    try {
+      const res = await fetch('/api/iam/password', { method:'POST', headers:{'Content-Type':'application/json'},
+        body: JSON.stringify({ id: editTarget.id, password: newPass, editado_por: perfil?.id ?? null }) });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error ?? 'Error al cambiar contraseña');
+      setPassMsg('ok'); setNewPass('');
+    } catch(e:any) { setPassMsg(e.message); }
+    finally { setPassLoading(false); }
   }
 
   async function editar() {
@@ -449,8 +465,22 @@ export default function IAMPage() {
                 ))}
               </div>
             </div>
+            <div style={{ marginBottom:20, paddingTop:14, borderTop:'1px solid var(--border)' }}>
+              <label style={labelStyle}>Restablecer contraseña</label>
+              <div style={{ display:'flex', gap:8 }}>
+                <input type="text" value={newPass} onChange={e => { setNewPass(e.target.value); setPassMsg(''); }}
+                  placeholder="Nueva contraseña (min. 8 caracteres)" autoComplete="off"
+                  style={{ ...inputStyle, flex:1 }} />
+                <button onClick={cambiarPassword} disabled={passLoading || newPass.length < 8}
+                  style={{ padding:'0 14px', borderRadius:8, border:'1px solid var(--border)', background: newPass.length >= 8 ? `${MAGENTA}22` : 'transparent', color: newPass.length >= 8 ? MAGENTA : 'var(--txt-5)', fontSize:12, fontWeight:600, cursor: newPass.length >= 8 ? 'pointer' : 'default', whiteSpace:'nowrap' }}>
+                  {passLoading ? 'Cambiando...' : 'Cambiar'}
+                </button>
+              </div>
+              {passMsg === 'ok' && <p style={{ fontSize:11, color:'#22C55E', marginTop:5 }}>Contraseña actualizada — el usuario ya puede entrar con la nueva.</p>}
+              {passMsg && passMsg !== 'ok' && <p style={{ fontSize:11, color:'#F87171', marginTop:5 }}>{passMsg}</p>}
+            </div>
             <div style={{ display:'flex', gap:10, justifyContent:'flex-end' }}>
-              <button onClick={() => { setShowEdit(false); setError(''); }} style={{ padding:'9px 18px', borderRadius:8, border:'1px solid var(--border)', background:'transparent', color:'var(--txt-3)', fontSize:13, cursor:'pointer' }}>Cancelar</button>
+              <button onClick={() => { setShowEdit(false); setError(''); setNewPass(''); setPassMsg(''); }} style={{ padding:'9px 18px', borderRadius:8, border:'1px solid var(--border)', background:'transparent', color:'var(--txt-3)', fontSize:13, cursor:'pointer' }}>Cancelar</button>
               <button onClick={editar} disabled={guardando} style={{ padding:'9px 18px', borderRadius:8, border:'none', background:`linear-gradient(135deg, ${MAGENTA}, #8C59FE)`, color:'#fff', fontSize:13, fontWeight:600, cursor:'pointer', opacity: guardando ? 0.7 : 1 }}>
                 {guardando ? 'Guardando...' : 'Guardar cambios'}
               </button>
