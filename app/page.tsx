@@ -40,7 +40,7 @@ export default function Page() {
   return (
     <div style={{
       display: 'flex', flexDirection: 'column', height: '100vh', overflow: 'hidden',
-      background: 'var(--surface, #211936)',
+      background: 'var(--surface, #030712)',
     }}>
       <OrbitTopbar
         perfil={perfil}
@@ -52,7 +52,7 @@ export default function Page() {
         height: 4, flexShrink: 0,
         background: 'linear-gradient(135deg, #dc2626 0%, #7c3aed 60%, #4f46e5 100%)',
       }} />
-      <div style={{ display: 'flex', flex: 1, overflow: 'hidden', background: esClaro ? '#ffffff' : 'var(--bg, #1e2130)' }}>
+      <div style={{ display: 'flex', flex: 1, overflow: 'hidden', background: esClaro ? '#ffffff' : 'var(--bg, #0F172A)' }}>
         <SidebarV2
           acento={ACENTOS[moduloActivo]}
           moduloActivo={moduloActivo}
@@ -62,7 +62,7 @@ export default function Page() {
         />
         <div style={{
           flex: 1, overflow: 'auto',
-          background: esClaro ? '#ffffff' : 'var(--bg, #1e2130)',
+          background: esClaro ? '#ffffff' : 'var(--bg, #0F172A)',
         }}>
           {moduloActivo === 'brujula' && <BrujulaComercial />}
           {moduloActivo === 'redes' && <RedesUPAX />}

@@ -3,9 +3,9 @@
 
 /* ══ TEMA OSCURO (default) ══════════════════════════ */
 :root {
-  --bg:            #1e1b2e;
-  --header-bg:     #211936;
-  --surface:       #211936;
+  --bg:            #0F172A;
+  --header-bg:     #030712;
+  --surface:       #030712;
   --nav-bg:        rgba(3,7,18,0.92);
   --card-bg:       rgba(30,41,59,0.65);
   --border:        rgba(255,255,255,0.08);
