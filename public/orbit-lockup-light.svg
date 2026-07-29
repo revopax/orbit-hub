@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 380 84" role="img" aria-label="ORBIT Hub">
+  <defs><linearGradient id="g" x1="4" y1="4" x2="58" y2="58" gradientUnits="userSpaceOnUse"><stop stop-color="#FF3E58"/><stop offset=".47" stop-color="#D92D9B"/><stop offset="1" stop-color="#7047F5"/></linearGradient></defs>
+  <path fill="url(#g)" fill-rule="evenodd" d="M17 9h30l15 15v27L47 66H17L2 51V24zm6 13-8 8v15l8 8h18l8-8V30l-8-8z"/>
+  <path fill="#171824" d="m39 33 12-12 5 5-12 12zM43 43l6-6 5 5-6 6z"/><circle cx="54" cy="22" r="4" fill="#171824"/>
+  <text x="82" y="38" font-family="Arial, Helvetica, sans-serif" font-size="29" font-weight="800" letter-spacing="-1.5" fill="#171824">ORBIT</text>
+  <text x="84" y="59" font-family="Arial, Helvetica, sans-serif" font-size="10" font-weight="700" letter-spacing="3.2" fill="#687089">MARKETING HUB</text>
+</svg>
