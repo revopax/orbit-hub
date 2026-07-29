@@ -1,5 +1,5 @@
 'use client';
-import React, { useState, useMemo, useEffect } from 'react'
+import React, { useState, useMemo, useEffect, useRef } from 'react'
 import { BarChart, Bar, XAxis, YAxis, Tooltip, Legend, ResponsiveContainer, CartesianGrid, LabelList } from 'recharts'
 
 const ACCENT = '#FF6B35'
@@ -120,11 +120,75 @@ function SerieApilada({ titulo, subtitulo, data, dims }: { titulo: string; subti
   )
 }
 
+function toDateStr(d: Date) { return d.toISOString().slice(0, 10) }
+const PRESETS = [
+  { label: 'Últimos 30 días',   fn: () => { const d = new Date(), s = new Date(); s.setDate(s.getDate() - 30); return [toDateStr(s), toDateStr(d)] as [string, string] } },
+  { label: 'Últimos 90 días',   fn: () => { const d = new Date(), s = new Date(); s.setDate(s.getDate() - 90); return [toDateStr(s), toDateStr(d)] as [string, string] } },
+  { label: 'Este año',          fn: () => [`${new Date().getFullYear()}-01-01`, toDateStr(new Date())] as [string, string] },
+  { label: 'Todo el historial', fn: () => ['2025-01-01', toDateStr(new Date())] as [string, string] },
+]
+
+function DatePickerBtn({ dateFrom, dateTo, onDateChange }: { dateFrom: string; dateTo: string; onDateChange: (f: string, t: string, preset: string) => void }) {
+  const [activePreset, setActivePreset] = useState('Este año')
+  const [tempFrom, setTempFrom] = useState(dateFrom)
+  const [tempTo, setTempTo] = useState(dateTo)
+  const [showPicker, setShowPicker] = useState(false)
+  const pickerRef = useRef<HTMLDivElement>(null)
+  useEffect(() => {
+    function onClickOutside(e: MouseEvent) {
+      if (pickerRef.current && !pickerRef.current.contains(e.target as Node)) setShowPicker(false)
+    }
+    document.addEventListener('mousedown', onClickOutside)
+    return () => document.removeEventListener('mousedown', onClickOutside)
+  }, [])
+  function applyPreset(label: string, fn: () => [string, string]) {
+    const [f, t] = fn()
+    onDateChange(f, t, label); setActivePreset(label); setShowPicker(false)
+  }
+  function applyCustom() {
+    onDateChange(tempFrom, tempTo, 'Personalizado'); setActivePreset('Personalizado'); setShowPicker(false)
+  }
+  const periodLabel = activePreset === 'Personalizado' ? `${dateFrom} → ${dateTo}` : activePreset
+  return (
+    <div style={{ position: 'relative' }} ref={pickerRef}>
+      <button onClick={() => setShowPicker(!showPicker)} style={{ ...selStyle, display: 'flex', alignItems: 'center', gap: 8 }}>
+        📅 {periodLabel}
+      </button>
+      {showPicker && (
+        <div style={{ position: 'absolute', left: 0, top: 'calc(100% + 8px)', background: '#fff', borderRadius: 16, boxShadow: '0 8px 40px rgba(0,0,0,0.18)', padding: 20, zIndex: 100, minWidth: 300 }}>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 4, marginBottom: 16 }}>
+            {PRESETS.map(pr => (
+              <button key={pr.label} onClick={() => applyPreset(pr.label, pr.fn)}
+                style={{ padding: '8px 12px', borderRadius: 8, border: 'none', textAlign: 'left', cursor: 'pointer', fontSize: 13, fontWeight: 600,
+                  background: activePreset === pr.label ? `${ACCENT}18` : 'transparent', color: activePreset === pr.label ? ACCENT : '#374151' }}>
+                {pr.label}
+              </button>
+            ))}
+          </div>
+          <div style={{ borderTop: '1px solid #f1f5f9', paddingTop: 14 }}>
+            <div style={{ fontSize: 11, color: '#94a3b8', fontWeight: 600, marginBottom: 10 }}>RANGO PERSONALIZADO</div>
+            <div style={{ display: 'flex', gap: 8, alignItems: 'center', marginBottom: 12 }}>
+              <input type="date" value={tempFrom} onChange={e => setTempFrom(e.target.value)} style={{ flex: 1, padding: '6px 10px', borderRadius: 8, border: '1px solid #e2e8f0', fontSize: 12 }} />
+              <span style={{ color: '#94a3b8', fontSize: 12 }}>→</span>
+              <input type="date" value={tempTo} onChange={e => setTempTo(e.target.value)} style={{ flex: 1, padding: '6px 10px', borderRadius: 8, border: '1px solid #e2e8f0', fontSize: 12 }} />
+            </div>
+            <div style={{ display: 'flex', gap: 8 }}>
+              <button onClick={() => setShowPicker(false)} style={{ flex: 1, padding: 8, borderRadius: 8, border: '1px solid #e2e8f0', background: '#fff', color: '#64748b', fontSize: 12, cursor: 'pointer' }}>Cancelar</button>
+              <button onClick={applyCustom} style={{ flex: 1, padding: 8, borderRadius: 8, border: 'none', background: ACCENT, color: '#fff', fontSize: 12, fontWeight: 700, cursor: 'pointer' }}>Aplicar</button>
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  )
+}
+
 export default function NegociosPerdidos() {
-  const hoy = new Date()
-  const [dateFrom] = useState(`${hoy.getFullYear()}-01-01`)
-  const [dateTo] = useState(`${hoy.getFullYear()}-12-31`)
+  const [dateFrom, setDateFrom] = useState(`${new Date().getFullYear()}-01-01`)
+  const [dateTo, setDateTo] = useState(toDateStr(new Date()))
   const [fUdn, setFUdn] = useState('')
+  const [fOrigen, setFOrigen] = useState('')
+  const [fFuente, setFFuente] = useState('')
   const [fMotivo, setFMotivo] = useState('')
   const [pagina, setPagina] = useState(0)
   const PAGE = 20
@@ -138,12 +202,31 @@ export default function NegociosPerdidos() {
   const [cargando, setCargando] = useState(true)
   const [error, setError] = useState('')
 
+  // Listas de opciones de los selects (independientes de los filtros activos, sin fecha para ver el catalogo completo del año)
+  const [opcUdn, setOpcUdn] = useState<string[]>([])
+  const [opcFuente, setOpcFuente] = useState<string[]>([])
+  const [opcMotivo, setOpcMotivo] = useState<string[]>([])
+  useEffect(() => {
+    const params = { fecha_desde: '2025-01-01', fecha_hasta: toDateStr(new Date()) }
+    Promise.all([
+      rpc<RowUdn[]>('propuestas_perdidas_por_udn', params),
+      rpc<RowFuente[]>('propuestas_perdidas_por_fuente', params),
+      rpc<RowMotivo[]>('propuestas_perdidas_por_motivo', params),
+    ]).then(([u, f, m]) => {
+      setOpcUdn(u.map(r => r.udn).filter(Boolean).sort())
+      setOpcFuente(f.map(r => r.fuente).filter(Boolean).sort())
+      setOpcMotivo(m.map(r => r.motivo).filter(Boolean).sort())
+    }).catch(() => {})
+  }, [])
+
+  const filtros = { p_udn: fUdn || null, p_origen: fOrigen || null, p_fuente: fFuente || null, p_motivo: fMotivo || null }
+
   useEffect(() => {
     let vivo = true
     async function cargar() {
       setCargando(true); setError('')
       try {
-        const params = { fecha_desde: dateFrom, fecha_hasta: dateTo }
+        const params = { fecha_desde: dateFrom, fecha_hasta: dateTo, ...filtros }
         const [udn, fuente, motivo, mesFuente, mesUdn] = await Promise.all([
           rpc<RowUdn[]>('propuestas_perdidas_por_udn', params),
           rpc<RowFuente[]>('propuestas_perdidas_por_fuente', params),
@@ -160,22 +243,26 @@ export default function NegociosPerdidos() {
     }
     cargar()
     return () => { vivo = false }
-  }, [dateFrom, dateTo])
+  }, [dateFrom, dateTo, fUdn, fOrigen, fFuente, fMotivo])
 
   useEffect(() => {
     let vivo = true
-    rpc<RowDetalle[]>('propuestas_perdidas_detalle', { fecha_desde: dateFrom, fecha_hasta: dateTo, lim: PAGE, off: pagina * PAGE })
+    rpc<RowDetalle[]>('propuestas_perdidas_detalle', { fecha_desde: dateFrom, fecha_hasta: dateTo, lim: PAGE, off: pagina * PAGE, ...filtros })
       .then(rows => { if (vivo) setDetalle(rows) })
       .catch(e => { if (vivo) setError(e.message) })
     return () => { vivo = false }
-  }, [dateFrom, dateTo, pagina])
+  }, [dateFrom, dateTo, pagina, fUdn, fOrigen, fFuente, fMotivo])
+
+  useEffect(() => { setPagina(0) }, [fUdn, fOrigen, fFuente, fMotivo, dateFrom, dateTo])
 
   const totalRegistros = detalle[0]?.total_registros ?? 0
   const totalValor = detalle[0]?.total_valor ?? 0
   const totalPaginas = Math.max(1, Math.ceil(totalRegistros / PAGE))
-  const detalleFiltrado = detalle.filter(r =>
-    (!fUdn || r.udn === fUdn) && (!fMotivo || r.motivo === fMotivo)
-  )
+
+  function borrarFiltros() {
+    setFUdn(''); setFOrigen(''); setFFuente(''); setFMotivo('')
+    setDateFrom(`${new Date().getFullYear()}-01-01`); setDateTo(toDateStr(new Date()))
+  }
 
   return (
     <div>
@@ -184,15 +271,24 @@ export default function NegociosPerdidos() {
         <div style={{ maxWidth: 1400, margin: '0 auto', width: '100%', display: 'flex', gap: 10, flexWrap: 'wrap', alignItems: 'center' }}>
           <select style={selStyle} value={fUdn} onChange={e => setFUdn(e.target.value)}>
             <option value="">Unidad de negocio</option>
-            {porUdn.map(u => <option key={u.udn} value={u.udn}>{u.udn}</option>)}
+            {opcUdn.map(u => <option key={u} value={u}>{u}</option>)}
+          </select>
+          <select style={selStyle} value={fOrigen} onChange={e => setFOrigen(e.target.value)}>
+            <option value="">Generado por</option>
+            <option value="Comercial">Comercial</option>
+            <option value="Marketing">Marketing</option>
+          </select>
+          <select style={selStyle} value={fFuente} onChange={e => setFFuente(e.target.value)}>
+            <option value="">Fuente adquisición</option>
+            {opcFuente.map(f => <option key={f} value={f}>{f}</option>)}
           </select>
           <select style={selStyle} value={fMotivo} onChange={e => setFMotivo(e.target.value)}>
             <option value="">Motivo de perdido</option>
-            {porMotivo.map(m => <option key={m.motivo} value={m.motivo}>{m.motivo}</option>)}
+            {opcMotivo.map(m => <option key={m} value={m}>{m}</option>)}
           </select>
-          <div style={{ fontSize: 12, color: '#64748b' }}>Periodo: {dateFrom} → {dateTo}</div>
+          <DatePickerBtn dateFrom={dateFrom} dateTo={dateTo} onDateChange={(f, t) => { setDateFrom(f); setDateTo(t) }} />
           <div style={{ marginLeft: 'auto' }}>
-            <button onClick={() => { setFUdn(''); setFMotivo('') }}
+            <button onClick={borrarFiltros}
               style={{ background: ACCENT, color: '#fff', border: 'none', borderRadius: 9, padding: '8px 14px', fontSize: 12.5, fontWeight: 700, cursor: 'pointer' }}>
               ✕ Borrar filtros
             </button>
@@ -231,7 +327,7 @@ export default function NegociosPerdidos() {
                 </tr>
               </thead>
               <tbody>
-                {detalleFiltrado.map((r, i) => (
+                {detalle.map((r, i) => (
                   <tr key={r.hubspot_id + i}>
                     <td style={tdStyle}>{r.udn}</td>
                     <td style={{ ...tdStyle, fontWeight: 600 }}>{r.empresa ?? '-'}</td>
