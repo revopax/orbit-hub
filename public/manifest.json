@@ -9,13 +9,13 @@
   "orientation": "portrait-primary",
   "icons": [
     {
-      "src": "/orbit-icon-192-macos.png",
+      "src": "/orbit-icon-192-macos.png?v=4",
       "sizes": "192x192",
       "type": "image/png",
       "purpose": "any"
     },
     {
-      "src": "/orbit-icon-512-macos.png",
+      "src": "/orbit-icon-512-macos.png?v=4",
       "sizes": "512x512",
       "type": "image/png",
       "purpose": "any"
