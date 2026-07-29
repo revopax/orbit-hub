@@ -1,5 +1,51 @@
 # Changelog — ORBIT Hub
 
+## [Sin versión] — 29 de julio de 2026 (sesión 2)
+
+### Layout y marca
+- Topbar movido a franja blanca de ancho completo con línea de acento (gradiente de marca) entre el topbar y el sidebar; curva estilo 6sense añadida en la esquina superior del sidebar para eliminar la esquina picuda.
+- Tema oscuro de ORBIT unificado con los tonos de Brújula (`#0F172A` / `#030712`), reemplazando el morado (`#1e1b2e`/`#211936`) que no calzaba con el resto de módulos.
+- Rediseño completo de marca (logo v2): nuevo ícono octagonal generado con ChatGPT, con set completo de assets (app icon 1024 dark/light, maskables Android 192/512, favicon multiresolución, tile Apple touch, íconos UI transparentes 32/64/192/512).
+- Íconos de PWA corregidos tras varias iteraciones: causa raíz identificada como `app/favicon.ico` heredado del template default de Next/Vercel (nunca se había reemplazado) sirviendo como fuente real del ícono en el popup de instalación de Chrome, no un problema de caché como se sospechó inicialmente.
+- Topbar reconstruido con lockup de marca (octágono SVG + texto "ORBIT" / "MARKETING HUB" en HTML) para control fino de tamaño de subtítulo, tras descubrir que el SVG lockup entregado no escalaba bien el texto secundario.
+- Persistencia del módulo activo (sidebar) y de la subtab activa (dentro de HubSpot Analytics) vía `localStorage`, para que recargar la página no regrese siempre a Brújula/Home.
+
+### HubSpot Analytics — migración de esquema Supabase
+- Diagnóstico y corrección de ~20 funciones RPC tras un cambio de esquema en la tabla `mbr` (columnas renombradas: `fecha_mql`→`fecha_calificacion`, `fecha_lead`→`fecha_apertura`, `lead_status`/`etapa`→`estado`, `descalificacion`→`perdido`, `meeting_activity_type`→`subtipo`, `meeting_outcome`→`estado`).
+- Normalización de la inconsistencia `UIX` (mayúsculas, en negocios y reuniones) vs `UiX` (resto de módulos) directamente en la tabla `mbr`, y en las RPCs relevantes.
+- Resuelto timeout intermitente (`500` en `contactos_por_mes_udn`) causado por bloat de la tabla (~10x el tamaño esperado por reescrituras del sync cada 2h sin vacuum): aplicado `VACUUM FULL`, 4 índices nuevos (`idx_mbr_tipo`, `idx_mbr_tipo_fecha_registro`, `idx_mbr_tipo_fecha_calificacion`, `idx_mbr_tipo_fecha_apertura`), y `statement_timeout` extendido a 20s en la función.
+- Identificados y resueltos múltiples casos de RPCs duplicadas (overloads con distinta firma) tras actualizaciones con `CREATE OR REPLACE` que cambiaban el número de parámetros; PostgREST no resolvía cuál usar y devolvía 400/404/500 según el caso.
+- Pendiente para el equipo de datos: normalizar `UIX`→`UiX` directamente en `sync.py`, y agregar `VACUUM ANALYZE` (o cambiar el patrón de reescritura a `TRUNCATE`) al final de cada corrida del sync para que el bloat no regrese cada 2 horas.
+
+### Vista "Negocios perdidos" (HubSpot Analytics)
+- Construida de cero, replicando el reporte de Looker Studio existente: 3 tarjetas (por UDN, por Fuente, por Motivo), 2 series de tiempo apiladas (por Fuente y por UDN) con totales sobre cada barra estilo Home, y tabla de detalle paginada con link directo a HubSpot (`portalId` 24172997).
+- 6 RPCs nuevas/actualizadas con la regla de negocio exacta (`estado in ('Descalificado','7. Perdido') OR (estado='Objetada' AND subtipo='Credenciales')`).
+- 4 filtros (Unidad de negocio, Generado por, Fuente adquisición, Motivo de perdido) conectados server-side a las 6 RPCs, con date picker de presets igual al de Home y botón "Borrar filtros" funcional.
+
+### Filtros server-side del Home (HubSpot Analytics)
+- Los 5 filtros de la barra superior (Unidad de negocio, Generado por, Contacto convertido, Fuente adquisición, Fuente MQL) conectados a los 10 paneles del Home, aplicados solo donde la lógica de HubSpot lo permite (p. ej. "Contacto convertido"/"Fuente MQL" solo afectan las métricas de tipo `contacto`, no SQLs/Opps/Clientes).
+- Trabajo dividido en 3 lotes verificados independientemente: (1) Funnel principal + paneles Marketing/Comercial, (2) las 6 series de tiempo por UDN (Contactos, MQL, MQL descalificados, SQL credenciales, Propuestas creadas, Propuestas perdidas), (3) Propuestas activas/ganadas por facturar/facturadas.
+- ~19 RPCs actualizadas en total con parámetros de filtro opcionales.
+
+### IAM — gestión de usuarios
+- Restablecimiento de contraseña de usuarios agregado al modal de edición, vía nuevo API route server-side (`/api/iam/password`) que usa la Admin API de Supabase (`service_role` key, nunca expuesta al frontend).
+- Sistema de permisos por módulo y vista/tab: columna `permisos` (JSONB) en `perfiles`, con selector en los modales de crear/editar usuario (checkbox de módulo + chips de "Todas" o tabs específicas: Brújula con Director/Operativa/Analista, Redes con sus 6 tabs, HubSpot con sus 4 tabs). Compatible hacia atrás con el campo `vistas` existente.
+- Modales de crear/editar usuario con `maxHeight: 90vh` y scroll interno, corrigiendo que el botón "Crear usuario" quedara fuera de pantalla en zooms altos o pantallas chicas.
+- Pendiente: aplicar los permisos guardados para filtrar el sidebar y las tabs visibles de cada módulo según el usuario autenticado (fase de consumo, aún no implementada — solo existe la captura/almacenamiento del permiso).
+
+### Documentación
+- `README.md` reescrito: pasó de ser una copia literal del README de Brújula Comercial standalone (Motor 1/Motor 2, Prophet, DENUE) a describir ORBIT Hub como plataforma (los 3 módulos, stack, arquitectura de proyectos), con la nota de autoría del modelo Brújula Comercial acotada a su propia sección.
+
+### Colaboración
+- Acceso al repo `orbit-hub` compartido con el equipo de RevOps vía GitHub Collaborators (invitación pendiente de aceptación).
+- Acceso a Supabase pendiente de definir con el Manager para la unificación de bases de datos entre proyectos.
+
+### Pendiente
+- Fase C de permisos: aplicar los permisos de `perfiles.permisos` para ocultar módulos/tabs no autorizados en el sidebar y en cada componente de módulo.
+- Migración de Brújula Comercial 2.0: integrar el módulo completo de Brújula standalone (3 vistas: Director/Operativa/Analista) dentro de ORBIT, renombrando el módulo actual a "Brújula Comercial 2.0" — pausada para atender el fix del esquema de HubSpot Analytics.
+- Fix de bloat/normalización UDN en `sync.py` (ver sección HubSpot Analytics arriba) — pendiente del lado del equipo de datos, no de ORBIT Hub.
+- Definir nombre final de marca (aún sin resolver desde la sesión anterior).
+
 ## [Sin versión] — 28-29 de julio de 2026
 
 ### Arquitectura
