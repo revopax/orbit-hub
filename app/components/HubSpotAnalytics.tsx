@@ -382,8 +382,25 @@ async function fetchFunnelTotalesPorEquipo(
   return { marketing: toTeam('Marketing'), comercial: toTeam('Comercial') }
 }
 
+type MetaEtapa = { etapa: string; meta_total: number | null; meta_marketing: number | null; meta_comercial: number | null; meta_money: number | null }
+
+async function fetchMetasForecast(fechaDesde: string, fechaHasta: string, udn: string): Promise<Record<string, MetaEtapa>> {
+  const url = `${SUPABASE_MBR_URL}/rest/v1/rpc/metas_forecast_rango`
+  const res = await fetch(url, {
+    method: 'POST',
+    headers: { apikey: SUPABASE_MBR_KEY, Authorization: `Bearer ${SUPABASE_MBR_KEY}`, 'Content-Type': 'application/json' },
+    body: JSON.stringify({ fecha_desde: fechaDesde, fecha_hasta: fechaHasta, p_udn: udn }),
+  })
+  if (!res.ok) throw new Error(`Error RPC metas_forecast_rango: ${res.status}`)
+  const rows: MetaEtapa[] = await res.json()
+  const map: Record<string, MetaEtapa> = {}
+  rows.forEach(r => { map[r.etapa] = r })
+  return map
+}
+
 function TeamsPanel({ dateFrom, dateTo, filtros }: { dateFrom: string; dateTo: string; filtros: FiltrosHome }) {
   const [data, setData] = useState<{ marketing: TeamTotales; comercial: TeamTotales } | null>(null)
+  const [metas, setMetas] = useState<Record<string, MetaEtapa> | null>(null)
   useEffect(() => {
     let cancelled = false
     fetchFunnelTotalesPorEquipo(dateFrom, dateTo, filtros)
@@ -391,6 +408,14 @@ function TeamsPanel({ dateFrom, dateTo, filtros }: { dateFrom: string; dateTo: s
       .catch(err => { console.error('Error cargando funnel_totales_por_equipo:', err) })
     return () => { cancelled = true }
   }, [dateFrom, dateTo, filtros])
+  useEffect(() => {
+    let cancelled = false
+    if (!filtros.udn) { setMetas(null); return }
+    fetchMetasForecast(dateFrom, dateTo, filtros.udn)
+      .then(result => { if (!cancelled) setMetas(result) })
+      .catch(err => { console.error('Error cargando metas_forecast:', err); if (!cancelled) setMetas(null) })
+    return () => { cancelled = true }
+  }, [dateFrom, dateTo, filtros.udn])
   const marketing = data?.marketing ?? DUMMY.marketing
   const comercial = data?.comercial ?? DUMMY.comercial
   return (
@@ -398,20 +423,31 @@ function TeamsPanel({ dateFrom, dateTo, filtros }: { dateFrom: string; dateTo: s
       background: '#fff', border: '1px solid #e2e8f0', borderRadius: 12, padding: 20,
       display: 'flex', gap: 10, flex: '1 1 340px', minWidth: 0, fontSize: 9.5, alignSelf: 'stretch',
     }}>
-      <div style={{ flex: '1 1 0', minWidth: 0, overflow: 'hidden', display: 'flex' }}><TeamColumn title="MARKETING" color="#2563eb" data={marketing} /></div>
-      <div style={{ flex: '1 1 0', minWidth: 0, overflow: 'hidden', display: 'flex' }}><TeamColumn title="COMERCIAL" color="#dc2626" data={comercial} /></div>
+      <div style={{ flex: '1 1 0', minWidth: 0, overflow: 'hidden', display: 'flex' }}><TeamColumn title="MARKETING" color="#2563eb" data={marketing} metas={metas} equipo="marketing" /></div>
+      <div style={{ flex: '1 1 0', minWidth: 0, overflow: 'hidden', display: 'flex' }}><TeamColumn title="COMERCIAL" color="#dc2626" data={comercial} metas={metas} equipo="comercial" /></div>
     </div>
   )
 }
 
-function TeamColumn({ title, color, data }: { title: string; color: string; data: typeof DUMMY.marketing }) {
-  const stages: [string, number, string, string | null][] = [
-    ['Contactos', data.contactos, '#E8402C', 'Contacto \u2192 Lead'],
-    ['Leads', data.leads, '#D6272F', 'Lead \u2192 MQL'],
-    ['MQLs', data.mqls, '#C11740', 'MQL \u2192 SQL'],
-    ['SQLs', data.sqls, '#9B1355', 'SQL \u2192 Opp'],
-    ['Opps', data.opps, '#7A2A9E', 'Opp \u2192 Cliente'],
-    ['Clientes', data.clientes, '#3B4FCE', null],
+function TeamColumn({ title, color, data, metas, equipo }: { title: string; color: string; data: typeof DUMMY.marketing; metas: Record<string, MetaEtapa> | null; equipo: 'marketing' | 'comercial' }) {
+  // Meta por etapa para este equipo: leads/mqls/sqls usan el split; opps/clientes usan meta total (sin split)
+  function metaDe(stageKey: string): number | null {
+    if (!metas) return null
+    const m = metas[stageKey]
+    if (!m) return null
+    if (stageKey === 'leads' || stageKey === 'mqls' || stageKey === 'sqls') {
+      const v = equipo === 'marketing' ? m.meta_marketing : m.meta_comercial
+      return v != null ? Number(v) : null
+    }
+    return m.meta_total != null ? Number(m.meta_total) : null
+  }
+  const stages: [string, number, string, string | null, string | null][] = [
+    ['Contactos', data.contactos, '#E8402C', 'Contacto \u2192 Lead', null],
+    ['Leads', data.leads, '#D6272F', 'Lead \u2192 MQL', 'leads'],
+    ['MQLs', data.mqls, '#C11740', 'MQL \u2192 SQL', 'mqls'],
+    ['SQLs', data.sqls, '#9B1355', 'SQL \u2192 Opp', 'sqls'],
+    ['Opps', data.opps, '#7A2A9E', 'Opp \u2192 Cliente', 'opps'],
+    ['Clientes', data.clientes, '#3B4FCE', null, 'clientes'],
   ]
   const base = data.contactos || 1
   const pct = (a: number, b: number) => (b > 0 ? (a / b) * 100 : 0)
@@ -445,7 +481,10 @@ function TeamColumn({ title, color, data }: { title: string; color: string; data
       </div>
 
       <div style={{ padding: '10px 18px 4px', flex: 1 }}>
-        {stages.map(([label, value, stageColor, tasaLabel], i) => (
+        {stages.map(([label, value, stageColor, tasaLabel, metaKey], i) => {
+          const meta = metaKey ? metaDe(metaKey) : null
+          const cumplimiento = meta && meta > 0 ? (value / meta) * 100 : null
+          return (
           <div key={label}>
             <div style={{
               display: 'flex', justifyContent: 'space-between', alignItems: 'baseline',
@@ -456,13 +495,25 @@ function TeamColumn({ title, color, data }: { title: string; color: string; data
                 {fmtNum(value)}
               </span>
             </div>
-            <div style={{ width: '100%', height: 6, borderRadius: 3, background: '#f1f5f9', overflow: 'hidden', marginBottom: tasaLabel ? 4 : 10 }}>
+            <div style={{ width: '100%', height: 6, borderRadius: 3, background: '#f1f5f9', overflow: 'hidden', marginBottom: 4 }}>
               <div style={{
                 width: `${Math.min(100, pct(value, base))}%`, height: '100%',
                 background: stageColor, borderRadius: 3, transition: 'width 0.4s ease',
               }} />
             </div>
-            {tasaLabel && (
+            {metas && meta != null ? (
+              <div style={{
+                display: 'flex', justifyContent: 'space-between', alignItems: 'center',
+                fontSize: 10.5, color: '#94a3b8', padding: '0 0 8px',
+              }}>
+                <span>Meta: <span style={{ fontFamily: 'monospace', fontWeight: 700, color: '#64748b' }}>{fmtNum(Math.round(meta))}</span></span>
+                {cumplimiento != null && (
+                  <span style={{ fontFamily: 'monospace', fontWeight: 700, color: cumplimiento >= 100 ? '#16a34a' : cumplimiento >= 60 ? '#d97706' : '#dc2626' }}>
+                    {cumplimiento.toFixed(1)}%
+                  </span>
+                )}
+              </div>
+            ) : (!metas && tasaLabel) ? (
               <div style={{
                 display: 'flex', justifyContent: 'space-between', alignItems: 'center',
                 fontSize: 10.5, color: '#94a3b8', padding: '0 0 8px',
@@ -470,9 +521,9 @@ function TeamColumn({ title, color, data }: { title: string; color: string; data
                 <span>{tasaLabel}</span>
                 <span style={{ fontFamily: 'monospace', fontWeight: 700, color: '#64748b' }}>{tasaSiguiente(i).toFixed(1)}%</span>
               </div>
-            )}
+            ) : <div style={{ paddingBottom: 6 }} />}
           </div>
-        ))}
+        )})}
       </div>
 
       <div style={{
