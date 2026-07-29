@@ -507,8 +507,11 @@ function FiltrosBar({ dateFrom, dateTo, onDateChange }: {
 
   return (
     <div style={{
+      background: '#fff', borderBottom: '1px solid #e2e8f0', padding: '14px 20px',
+    }}>
+    <div style={{
+      maxWidth: 1400, margin: '0 auto', width: '100%',
       display: 'flex', gap: 10, flexWrap: 'wrap', alignItems: 'center',
-      padding: '14px 20px', background: '#fff', borderBottom: '1px solid #e2e8f0',
     }}>
       {FILTROS_PLACEHOLDER.map(f => (
         <select key={f.label} defaultValue={f.opciones[0]}
@@ -580,6 +583,7 @@ function FiltrosBar({ dateFrom, dateTo, onDateChange }: {
         }}>
         ✕ Borrar filtros
       </button>
+    </div>
     </div>
   )
 }

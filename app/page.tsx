@@ -19,12 +19,22 @@ const MODULOS_CLAROS: Array<'brujula' | 'redes' | 'hubspot'> = ['redes', 'hubspo
 export default function Page() {
   const { perfil, loading, logout } = useAuth();
   const router = useRouter();
-  const [moduloActivo, setModuloActivo] = useState<'brujula' | 'redes' | 'hubspot'>('brujula');
+  const [moduloActivo, setModuloActivo] = useState<'brujula' | 'redes' | 'hubspot'>(() => {
+    if (typeof window !== 'undefined') {
+      const saved = window.localStorage.getItem('orbit-modulo-activo');
+      if (saved === 'brujula' || saved === 'redes' || saved === 'hubspot') return saved;
+    }
+    return 'brujula';
+  });
   const [isDark, setIsDark] = useState(false);
 
   useEffect(() => {
     document.documentElement.setAttribute('data-theme', isDark ? 'dark' : 'light');
   }, [isDark]);
+
+  useEffect(() => {
+    window.localStorage.setItem('orbit-modulo-activo', moduloActivo);
+  }, [moduloActivo]);
 
   if (loading) {
     return <div style={{ padding: 40, fontSize: 14, color: '#94a3b8' }}>Cargando...</div>;
