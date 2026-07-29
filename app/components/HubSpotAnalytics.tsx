@@ -2520,12 +2520,6 @@ function HomeFunnel() {
     <div>
       <FiltrosBar dateFrom={dateFrom} dateTo={dateTo} onDateChange={handleDateChange} />
       <div style={{ padding: 20, display: 'flex', flexDirection: 'column', gap: 20 }}>
-        <div style={{
-          background: '#fff3e8', border: '1px solid #ffddc0', color: '#9a3412',
-          fontSize: 12, padding: '8px 12px', borderRadius: 8,
-        }}>
-          {DUMMY.actualizado}
-        </div>
 
         <div style={{ display: 'flex', gap: 16, alignItems: 'stretch', flexWrap: 'wrap' }}>
           <FunnelPanel dateFrom={dateFrom} dateTo={dateTo} />
@@ -2573,7 +2567,7 @@ export default function HubSpotAnalytics() {
         height: 56, position: 'sticky', top: 0, zIndex: 100,
         boxShadow: '0 1px 4px rgba(0,0,0,0.06)',
       }}>
-        <div style={{ maxWidth: 1400, margin: '0 auto', width: '100%', display: 'flex', alignItems: 'center', gap: 14 }}>
+        <div style={{ maxWidth: 1400, margin: '0 auto', width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 14 }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexShrink: 0 }}>
             <img src="/logos/hubspot-logo.webp" alt="HubSpot" style={{ height: 22, width: 22, objectFit: 'contain' }} />
             <div style={{ display: 'flex', alignItems: 'baseline' }}>
@@ -2582,7 +2576,7 @@ export default function HubSpotAnalytics() {
             </div>
           </div>
           <div style={{ width: 1, height: 24, background: '#e2e8f0', flexShrink: 0 }} />
-          <div style={{ display: 'flex', gap: 4, overflowX: 'auto', flex: 1 }}>
+          <div style={{ display: 'flex', gap: 4, overflowX: 'auto' }}>
             {SUBTABS.map(t => {
               const active = sub === t.id
               return (
