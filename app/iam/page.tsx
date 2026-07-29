@@ -366,7 +366,7 @@ export default function IAMPage() {
       {/* Modal nuevo usuario */}
       {showForm && (
         <div style={{ position:'fixed', inset:0, zIndex:9998, background:'rgba(0,0,0,0.6)', display:'flex', alignItems:'center', justifyContent:'center' }}>
-          <div style={{ background:'var(--card-bg)', border:'1px solid var(--border)', borderRadius:16, padding:28, width:'100%', maxWidth:440, boxShadow:'0 24px 64px rgba(0,0,0,0.5)' }}>
+          <div style={{ background:'var(--card-bg)', border:'1px solid var(--border)', borderRadius:16, padding:28, width:'100%', maxWidth:440, maxHeight:'90vh', overflowY:'auto', boxShadow:'0 24px 64px rgba(0,0,0,0.5)' }}>
             <div style={{ fontSize:16, fontWeight:700, marginBottom:20 }}>Nuevo usuario</div>
             {error && <div style={{ padding:'8px 12px', borderRadius:8, background:'rgba(248,113,113,0.1)', border:'1px solid rgba(248,113,113,0.3)', color:'#F87171', fontSize:12, marginBottom:14 }}>{error}</div>}
             {[
@@ -456,7 +456,7 @@ export default function IAMPage() {
       {/* Modal editar usuario */}
       {showEdit && editTarget && (
         <div style={{ position:'fixed', inset:0, zIndex:9998, background:'rgba(0,0,0,0.6)', display:'flex', alignItems:'center', justifyContent:'center' }}>
-          <div style={{ background:'var(--card-bg)', border:'1px solid var(--border)', borderRadius:16, padding:28, width:'100%', maxWidth:440, boxShadow:'0 24px 64px rgba(0,0,0,0.5)' }}>
+          <div style={{ background:'var(--card-bg)', border:'1px solid var(--border)', borderRadius:16, padding:28, width:'100%', maxWidth:440, maxHeight:'90vh', overflowY:'auto', boxShadow:'0 24px 64px rgba(0,0,0,0.5)' }}>
             <div style={{ fontSize:16, fontWeight:700, marginBottom:4 }}>Editar usuario</div>
             <div style={{ fontSize:12, color:'var(--txt-5)', marginBottom:20 }}>{editTarget.nombre}</div>
             {error && <div style={{ padding:'8px 12px', borderRadius:8, background:'rgba(248,113,113,0.1)', border:'1px solid rgba(248,113,113,0.3)', color:'#F87171', fontSize:12, marginBottom:14 }}>{error}</div>}
