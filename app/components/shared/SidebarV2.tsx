@@ -88,6 +88,13 @@ export function SidebarV2({ acento, moduloActivo, onModuloChange, nombre, onLogo
     >
       <div style={{ height: 10, flexShrink: 0 }} />
 
+      <div style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '0 10px 14px', borderBottom: '1px solid rgba(255,255,255,0.08)', marginBottom: 4 }}>
+        <img src="/orbit-icon-64.png" alt="ORBIT" style={{ width: 26, height: 26, flexShrink: 0 }} />
+        <span style={{ fontSize: 14, fontWeight: 800, color: '#fff', whiteSpace: 'nowrap', opacity: expanded ? 1 : 0, transition: 'opacity 0.15s' }}>
+          ORBIT Hub
+        </span>
+      </div>
+
       <nav style={{ display: 'flex', flexDirection: 'column', gap: 2, padding: '14px 10px' }}>
         <span style={{
           fontSize: 10, fontWeight: 700, color: 'rgba(255,255,255,0.35)',
