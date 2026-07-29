@@ -1,0 +1,5 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 180 180" role="img" aria-label="ORBIT mark">
+  <defs><linearGradient id="g" x1="24" y1="18" x2="174" y2="174" gradientUnits="userSpaceOnUse"><stop stop-color="#FF3E58"/><stop offset=".47" stop-color="#D92D9B"/><stop offset="1" stop-color="#7047F5"/></linearGradient></defs>
+  <path fill="url(#g)" fill-rule="evenodd" d="M47 18h83l42 42v74l-42 42H47L5 134V60zm15 35L40 75v44l22 22h53l22-22V75l-22-22z"/>
+  <path fill="#10111A" d="m109 87 31-31 14 14-31 31zM119 113l15-15 14 14-15 15z"/><circle cx="149" cy="61" r="10" fill="#10111A"/>
+</svg>

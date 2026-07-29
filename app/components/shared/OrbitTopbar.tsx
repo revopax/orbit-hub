@@ -26,8 +26,12 @@ export function OrbitTopbar({ perfil, isDark, onToggleTheme, onLogout }: OrbitTo
       display: 'flex', alignItems: 'center', justifyContent: 'space-between',
       padding: '0 20px',
     }}>
-      <div style={{ display: 'flex', alignItems: 'center' }}>
-        <img src="/orbit-lockup-light.svg" alt="ORBIT Hub" style={{ height: 40, width: 'auto', display: 'block' }} />
+      <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+        <img src="/orbit-mark.svg" alt="ORBIT" style={{ height: 32, width: 32, display: 'block', flexShrink: 0 }} />
+        <div style={{ display: 'flex', flexDirection: 'column', justifyContent: 'center', lineHeight: 1 }}>
+          <span style={{ fontSize: 15, fontWeight: 800, letterSpacing: '-0.01em', color: '#111827' }}>ORBIT</span>
+          <span style={{ fontSize: 8.5, fontWeight: 700, letterSpacing: '0.22em', color: '#64748b', marginTop: 3 }}>MARKETING HUB</span>
+        </div>
       </div>
 
       <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
