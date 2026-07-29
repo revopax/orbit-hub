@@ -618,6 +618,7 @@ type FuenteDetalle = { fuente: string; total: number }
 async function fetchContactosCreadosEnElTiempo(
   fechaDesde: string | null = null,
   fechaHasta: string | null = null,
+  filtros: FiltrosHome = FILTROS_VACIOS,
 ): Promise<{ porMes: ContactosPorMes[]; porEquipo: { equipo: string; contactos: number; fuentes: FuenteDetalle[] }[] }> {
   // Usamos la funcion RPC contactos_por_mes_udn, que hace el GROUP BY directamente en Postgres
   // (mucho mas rapido que traer las ~90K filas crudas y agregar en el navegador).
@@ -629,7 +630,7 @@ async function fetchContactosCreadosEnElTiempo(
       Authorization: `Bearer ${SUPABASE_MBR_KEY}`,
       'Content-Type': 'application/json',
     },
-    body: JSON.stringify({ fecha_desde: fechaDesde, fecha_hasta: fechaHasta }),
+    body: JSON.stringify({ fecha_desde: fechaDesde, fecha_hasta: fechaHasta, ...filtrosParams(filtros) }),
   })
   if (!res.ok) throw new Error(`Error RPC contactos_por_mes_udn: ${res.status}`)
   const rows: { mes: string; udn: string; origen: string; total: number }[] = await res.json()
@@ -665,7 +666,7 @@ async function fetchContactosCreadosEnElTiempo(
       Authorization: `Bearer ${SUPABASE_MBR_KEY}`,
       'Content-Type': 'application/json',
     },
-    body: JSON.stringify({ fecha_desde: fechaDesde, fecha_hasta: fechaHasta }),
+    body: JSON.stringify({ fecha_desde: fechaDesde, fecha_hasta: fechaHasta, ...filtrosParams(filtros) }),
   })
   if (!resFuente.ok) throw new Error(`Error RPC contactos_por_equipo_fuente: ${resFuente.status}`)
   const rowsFuente: { origen: string; fuente: string; total: number }[] = await resFuente.json()
@@ -685,6 +686,7 @@ async function fetchContactosCreadosEnElTiempo(
 async function fetchMqlCreadosEnElTiempo(
   fechaDesde: string | null = null,
   fechaHasta: string | null = null,
+  filtros: FiltrosHome = FILTROS_VACIOS,
 ): Promise<{ porMes: ContactosPorMes[]; porEquipo: { equipo: string; contactos: number; fuentes: FuenteDetalle[] }[] }> {
   const url = `${SUPABASE_MBR_URL}/rest/v1/rpc/mql_por_mes_udn`
   const res = await fetch(url, {
@@ -694,7 +696,7 @@ async function fetchMqlCreadosEnElTiempo(
       Authorization: `Bearer ${SUPABASE_MBR_KEY}`,
       'Content-Type': 'application/json',
     },
-    body: JSON.stringify({ fecha_desde: fechaDesde, fecha_hasta: fechaHasta }),
+    body: JSON.stringify({ fecha_desde: fechaDesde, fecha_hasta: fechaHasta, ...filtrosParams(filtros) }),
   })
   if (!res.ok) throw new Error(`Error RPC mql_por_mes_udn: ${res.status}`)
   const rows: { mes: string; udn: string; origen: string; total: number }[] = await res.json()
@@ -725,7 +727,7 @@ async function fetchMqlCreadosEnElTiempo(
       Authorization: `Bearer ${SUPABASE_MBR_KEY}`,
       'Content-Type': 'application/json',
     },
-    body: JSON.stringify({ fecha_desde: fechaDesde, fecha_hasta: fechaHasta }),
+    body: JSON.stringify({ fecha_desde: fechaDesde, fecha_hasta: fechaHasta, ...filtrosParams(filtros) }),
   })
   if (!resFuente.ok) throw new Error(`Error RPC mql_por_equipo_fuente: ${resFuente.status}`)
   const rowsFuente: { origen: string; fuente: string; total: number }[] = await resFuente.json()
@@ -745,6 +747,7 @@ async function fetchMqlCreadosEnElTiempo(
 async function fetchMqlDescalificadosEnElTiempo(
   fechaDesde: string | null = null,
   fechaHasta: string | null = null,
+  filtros: FiltrosHome = FILTROS_VACIOS,
 ): Promise<{ porMes: ContactosPorMes[]; porMotivo: { motivo: string; total: number }[] }> {
   const url = `${SUPABASE_MBR_URL}/rest/v1/rpc/mql_descalificados_por_mes_udn`
   const res = await fetch(url, {
@@ -754,7 +757,7 @@ async function fetchMqlDescalificadosEnElTiempo(
       Authorization: `Bearer ${SUPABASE_MBR_KEY}`,
       'Content-Type': 'application/json',
     },
-    body: JSON.stringify({ fecha_desde: fechaDesde, fecha_hasta: fechaHasta }),
+    body: JSON.stringify({ fecha_desde: fechaDesde, fecha_hasta: fechaHasta, ...filtrosParams(filtros) }),
   })
   if (!res.ok) throw new Error(`Error RPC mql_descalificados_por_mes_udn: ${res.status}`)
   const rows: { mes: string; udn: string; total: number }[] = await res.json()
@@ -783,7 +786,7 @@ async function fetchMqlDescalificadosEnElTiempo(
       Authorization: `Bearer ${SUPABASE_MBR_KEY}`,
       'Content-Type': 'application/json',
     },
-    body: JSON.stringify({ fecha_desde: fechaDesde, fecha_hasta: fechaHasta }),
+    body: JSON.stringify({ fecha_desde: fechaDesde, fecha_hasta: fechaHasta, ...filtrosParams(filtros) }),
   })
   if (!resMotivo.ok) throw new Error(`Error RPC mql_descalificados_por_motivo: ${resMotivo.status}`)
   const porMotivo: { motivo: string; total: number }[] = await resMotivo.json()
@@ -791,18 +794,18 @@ async function fetchMqlDescalificadosEnElTiempo(
   return { porMes, porMotivo }
 }
 
-function MqlDescalificadosPanel({ dateFrom, dateTo }: { dateFrom: string; dateTo: string }) {
+function MqlDescalificadosPanel({ dateFrom, dateTo, filtros }: { dateFrom: string; dateTo: string; filtros: FiltrosHome }) {
   const [data, setData] = useState<{ porMes: ContactosPorMes[]; porMotivo: { motivo: string; total: number }[] } | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   useEffect(() => {
     let cancelled = false
     setLoading(true)
-    fetchMqlDescalificadosEnElTiempo(dateFrom, dateTo)
+    fetchMqlDescalificadosEnElTiempo(dateFrom, dateTo, filtros)
       .then(result => { if (!cancelled) { setData(result); setLoading(false) } })
       .catch(err => { if (!cancelled) { setError(String(err)); setLoading(false) } })
     return () => { cancelled = true }
-  }, [dateFrom, dateTo])
+  }, [dateFrom, dateTo, filtros])
   const udnsPresentes = data
     ? Array.from(new Set(data.porMes.flatMap(m => Object.keys(m).filter(k => k !== 'mes' && k !== 'total'))))
     : []
@@ -926,7 +929,7 @@ function MqlDescalificadosPanel({ dateFrom, dateTo }: { dateFrom: string; dateTo
   )
 }
 
-function MqlTimelinePanel({ dateFrom, dateTo }: { dateFrom: string; dateTo: string }) {
+function MqlTimelinePanel({ dateFrom, dateTo, filtros }: { dateFrom: string; dateTo: string; filtros: FiltrosHome }) {
   const [data, setData] = useState<{ porMes: ContactosPorMes[]; porEquipo: { equipo: string; contactos: number; fuentes: FuenteDetalle[] }[] } | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
@@ -934,11 +937,11 @@ function MqlTimelinePanel({ dateFrom, dateTo }: { dateFrom: string; dateTo: stri
   useEffect(() => {
     let cancelled = false
     setLoading(true)
-    fetchMqlCreadosEnElTiempo(dateFrom, dateTo)
+    fetchMqlCreadosEnElTiempo(dateFrom, dateTo, filtros)
       .then(result => { if (!cancelled) { setData(result); setLoading(false) } })
       .catch(err => { if (!cancelled) { setError(String(err)); setLoading(false) } })
     return () => { cancelled = true }
-  }, [dateFrom, dateTo])
+  }, [dateFrom, dateTo, filtros])
   const udnsPresentes = data
     ? Array.from(new Set(data.porMes.flatMap(m => Object.keys(m).filter(k => k !== 'mes' && k !== 'total'))))
     : []
@@ -1091,7 +1094,7 @@ function MqlTimelinePanel({ dateFrom, dateTo }: { dateFrom: string; dateTo: stri
   )
 }
 
-function ContactosTimelinePanel({ dateFrom, dateTo }: { dateFrom: string; dateTo: string }) {
+function ContactosTimelinePanel({ dateFrom, dateTo, filtros }: { dateFrom: string; dateTo: string; filtros: FiltrosHome }) {
   const [data, setData] = useState<{ porMes: ContactosPorMes[]; porEquipo: { equipo: string; contactos: number; fuentes: FuenteDetalle[] }[] } | null>(null)
   const [equipoExpandido, setEquipoExpandido] = useState<string | null>(null)
   const [loading, setLoading] = useState(true)
@@ -1100,11 +1103,11 @@ function ContactosTimelinePanel({ dateFrom, dateTo }: { dateFrom: string; dateTo
   useEffect(() => {
     let cancelled = false
     setLoading(true)
-    fetchContactosCreadosEnElTiempo(dateFrom, dateTo)
+    fetchContactosCreadosEnElTiempo(dateFrom, dateTo, filtros)
       .then(result => { if (!cancelled) { setData(result); setLoading(false) } })
       .catch(err => { if (!cancelled) { setError(String(err)); setLoading(false) } })
     return () => { cancelled = true }
-  }, [dateFrom, dateTo])
+  }, [dateFrom, dateTo, filtros])
 
   // UDNs presentes en los datos (para las barras apiladas del grafico)
   const udnsPresentes = data
@@ -1267,6 +1270,7 @@ type TimelineTeamRow = { label: string; value: number; money?: string }
 async function fetchSqlCredencialesCalificadas(
   fechaDesde: string | null = null,
   fechaHasta: string | null = null,
+  filtros: FiltrosHome = FILTROS_VACIOS,
 ): Promise<{ porMes: ContactosPorMes[]; porOrigen: { origen: string; total: number }[] }> {
   const url = `${SUPABASE_MBR_URL}/rest/v1/rpc/sql_credenciales_completadas_por_mes_udn`
   const res = await fetch(url, {
@@ -1276,7 +1280,7 @@ async function fetchSqlCredencialesCalificadas(
       Authorization: `Bearer ${SUPABASE_MBR_KEY}`,
       'Content-Type': 'application/json',
     },
-    body: JSON.stringify({ fecha_desde: fechaDesde, fecha_hasta: fechaHasta }),
+    body: JSON.stringify({ fecha_desde: fechaDesde, fecha_hasta: fechaHasta, p_udn: filtros.udn || null, p_origen: filtros.origen || null, p_fuente: filtros.fuente || null }),
   })
   if (!res.ok) throw new Error(`Error RPC sql_credenciales_completadas_por_mes_udn: ${res.status}`)
   const rows: { mes: string; udn: string; registros: number }[] = await res.json()
@@ -1305,7 +1309,7 @@ async function fetchSqlCredencialesCalificadas(
       Authorization: `Bearer ${SUPABASE_MBR_KEY}`,
       'Content-Type': 'application/json',
     },
-    body: JSON.stringify({ fecha_desde: fechaDesde, fecha_hasta: fechaHasta }),
+    body: JSON.stringify({ fecha_desde: fechaDesde, fecha_hasta: fechaHasta, p_udn: filtros.udn || null, p_origen: filtros.origen || null, p_fuente: filtros.fuente || null }),
   })
   if (!resOrigen.ok) throw new Error(`Error RPC sql_credenciales_completadas_por_origen: ${resOrigen.status}`)
   const rowsOrigen: { origen: string; registros: number }[] = await resOrigen.json()
@@ -1314,18 +1318,18 @@ async function fetchSqlCredencialesCalificadas(
   return { porMes, porOrigen }
 }
 
-function SqlCredencialesTimelinePanel({ dateFrom, dateTo }: { dateFrom: string; dateTo: string }) {
+function SqlCredencialesTimelinePanel({ dateFrom, dateTo, filtros }: { dateFrom: string; dateTo: string; filtros: FiltrosHome }) {
   const [data, setData] = useState<{ porMes: ContactosPorMes[]; porOrigen: { origen: string; total: number }[] } | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   useEffect(() => {
     let cancelled = false
     setLoading(true)
-    fetchSqlCredencialesCalificadas(dateFrom, dateTo)
+    fetchSqlCredencialesCalificadas(dateFrom, dateTo, filtros)
       .then(result => { if (!cancelled) { setData(result); setLoading(false) } })
       .catch(err => { if (!cancelled) { setError(String(err)); setLoading(false) } })
     return () => { cancelled = true }
-  }, [dateFrom, dateTo])
+  }, [dateFrom, dateTo, filtros])
   const udnsPresentes = data
     ? Array.from(new Set(data.porMes.flatMap(m => Object.keys(m).filter(k => k !== 'mes' && k !== 'total'))))
     : []
@@ -1452,6 +1456,7 @@ function SqlCredencialesTimelinePanel({ dateFrom, dateTo }: { dateFrom: string; 
 async function fetchPropuestasCreadas(
   fechaDesde: string | null = null,
   fechaHasta: string | null = null,
+  filtros: FiltrosHome = FILTROS_VACIOS,
 ): Promise<{ porMes: ContactosPorMes[]; porOrigen: { origen: string; total: number }[] }> {
   const url = `${SUPABASE_MBR_URL}/rest/v1/rpc/propuestas_creadas_por_mes_udn`
   const res = await fetch(url, {
@@ -1461,7 +1466,7 @@ async function fetchPropuestasCreadas(
       Authorization: `Bearer ${SUPABASE_MBR_KEY}`,
       'Content-Type': 'application/json',
     },
-    body: JSON.stringify({ fecha_desde: fechaDesde, fecha_hasta: fechaHasta }),
+    body: JSON.stringify({ fecha_desde: fechaDesde, fecha_hasta: fechaHasta, p_udn: filtros.udn || null, p_origen: filtros.origen || null, p_fuente: filtros.fuente || null }),
   })
   if (!res.ok) throw new Error(`Error RPC propuestas_creadas_por_mes_udn: ${res.status}`)
   const rows: { mes: string; udn: string; registros: number }[] = await res.json()
@@ -1490,7 +1495,7 @@ async function fetchPropuestasCreadas(
       Authorization: `Bearer ${SUPABASE_MBR_KEY}`,
       'Content-Type': 'application/json',
     },
-    body: JSON.stringify({ fecha_desde: fechaDesde, fecha_hasta: fechaHasta }),
+    body: JSON.stringify({ fecha_desde: fechaDesde, fecha_hasta: fechaHasta, p_udn: filtros.udn || null, p_origen: filtros.origen || null, p_fuente: filtros.fuente || null }),
   })
   if (!resOrigen.ok) throw new Error(`Error RPC propuestas_creadas_por_origen: ${resOrigen.status}`)
   const rowsOrigen: { origen: string; registros: number }[] = await resOrigen.json()
@@ -1499,18 +1504,18 @@ async function fetchPropuestasCreadas(
   return { porMes, porOrigen }
 }
 
-function PropuestasCreadasTimelinePanel({ dateFrom, dateTo }: { dateFrom: string; dateTo: string }) {
+function PropuestasCreadasTimelinePanel({ dateFrom, dateTo, filtros }: { dateFrom: string; dateTo: string; filtros: FiltrosHome }) {
   const [data, setData] = useState<{ porMes: ContactosPorMes[]; porOrigen: { origen: string; total: number }[] } | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   useEffect(() => {
     let cancelled = false
     setLoading(true)
-    fetchPropuestasCreadas(dateFrom, dateTo)
+    fetchPropuestasCreadas(dateFrom, dateTo, filtros)
       .then(result => { if (!cancelled) { setData(result); setLoading(false) } })
       .catch(err => { if (!cancelled) { setError(String(err)); setLoading(false) } })
     return () => { cancelled = true }
-  }, [dateFrom, dateTo])
+  }, [dateFrom, dateTo, filtros])
   const udnsPresentes = data
     ? Array.from(new Set(data.porMes.flatMap(m => Object.keys(m).filter(k => k !== 'mes' && k !== 'total'))))
     : []
@@ -1637,6 +1642,7 @@ function PropuestasCreadasTimelinePanel({ dateFrom, dateTo }: { dateFrom: string
 async function fetchPropuestasPerdidas(
   fechaDesde: string | null = null,
   fechaHasta: string | null = null,
+  filtros: FiltrosHome = FILTROS_VACIOS,
 ): Promise<{ porMes: ContactosPorMes[]; porOrigen: { origen: string; total: number }[] }> {
   const url = `${SUPABASE_MBR_URL}/rest/v1/rpc/propuestas_perdidas_por_mes_udn`
   const res = await fetch(url, {
@@ -1646,7 +1652,7 @@ async function fetchPropuestasPerdidas(
       Authorization: `Bearer ${SUPABASE_MBR_KEY}`,
       'Content-Type': 'application/json',
     },
-    body: JSON.stringify({ fecha_desde: fechaDesde, fecha_hasta: fechaHasta }),
+    body: JSON.stringify({ fecha_desde: fechaDesde, fecha_hasta: fechaHasta, p_udn: filtros.udn || null, p_origen: filtros.origen || null, p_fuente: filtros.fuente || null }),
   })
   if (!res.ok) throw new Error(`Error RPC propuestas_perdidas_por_mes_udn: ${res.status}`)
   const rows: { mes: string; udn: string; registros: number }[] = await res.json()
@@ -1675,7 +1681,7 @@ async function fetchPropuestasPerdidas(
       Authorization: `Bearer ${SUPABASE_MBR_KEY}`,
       'Content-Type': 'application/json',
     },
-    body: JSON.stringify({ fecha_desde: fechaDesde, fecha_hasta: fechaHasta }),
+    body: JSON.stringify({ fecha_desde: fechaDesde, fecha_hasta: fechaHasta, p_udn: filtros.udn || null, p_origen: filtros.origen || null, p_fuente: filtros.fuente || null }),
   })
   if (!resOrigen.ok) throw new Error(`Error RPC propuestas_perdidas_por_origen: ${resOrigen.status}`)
   const rowsOrigen: { origen: string; registros: number }[] = await resOrigen.json()
@@ -1684,18 +1690,18 @@ async function fetchPropuestasPerdidas(
   return { porMes, porOrigen }
 }
 
-function PropuestasPerdidasTimelinePanel({ dateFrom, dateTo }: { dateFrom: string; dateTo: string }) {
+function PropuestasPerdidasTimelinePanel({ dateFrom, dateTo, filtros }: { dateFrom: string; dateTo: string; filtros: FiltrosHome }) {
   const [data, setData] = useState<{ porMes: ContactosPorMes[]; porOrigen: { origen: string; total: number }[] } | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   useEffect(() => {
     let cancelled = false
     setLoading(true)
-    fetchPropuestasPerdidas(dateFrom, dateTo)
+    fetchPropuestasPerdidas(dateFrom, dateTo, filtros)
       .then(result => { if (!cancelled) { setData(result); setLoading(false) } })
       .catch(err => { if (!cancelled) { setError(String(err)); setLoading(false) } })
     return () => { cancelled = true }
-  }, [dateFrom, dateTo])
+  }, [dateFrom, dateTo, filtros])
   const udnsPresentes = data
     ? Array.from(new Set(data.porMes.flatMap(m => Object.keys(m).filter(k => k !== 'mes' && k !== 'total'))))
     : []
@@ -2554,17 +2560,17 @@ function HomeFunnel() {
           <TeamsPanel dateFrom={dateFrom} dateTo={dateTo} filtros={filtros} />
         </div>
 
-        <ContactosTimelinePanel dateFrom={dateFrom} dateTo={dateTo} />
+        <ContactosTimelinePanel dateFrom={dateFrom} dateTo={dateTo} filtros={filtros} />
 
-        <MqlTimelinePanel dateFrom={dateFrom} dateTo={dateTo} />
+        <MqlTimelinePanel dateFrom={dateFrom} dateTo={dateTo} filtros={filtros} />
 
-        <MqlDescalificadosPanel dateFrom={dateFrom} dateTo={dateTo} />
+        <MqlDescalificadosPanel dateFrom={dateFrom} dateTo={dateTo} filtros={filtros} />
 
-        <SqlCredencialesTimelinePanel dateFrom={dateFrom} dateTo={dateTo} />
+        <SqlCredencialesTimelinePanel dateFrom={dateFrom} dateTo={dateTo} filtros={filtros} />
 
-        <PropuestasCreadasTimelinePanel dateFrom={dateFrom} dateTo={dateTo} />
+        <PropuestasCreadasTimelinePanel dateFrom={dateFrom} dateTo={dateTo} filtros={filtros} />
 
-        <PropuestasPerdidasTimelinePanel dateFrom={dateFrom} dateTo={dateTo} />
+        <PropuestasPerdidasTimelinePanel dateFrom={dateFrom} dateTo={dateTo} filtros={filtros} />
 
         <PropuestasActivasPorUdnPanel dateFrom={dateFrom} dateTo={dateTo} />
 
