@@ -41,11 +41,11 @@ const cardStyle: React.CSSProperties = {
   boxShadow: '0 1px 3px rgba(0,0,0,0.04)',
 }
 const thStyle: React.CSSProperties = {
-  textAlign: 'left', fontSize: 11, fontWeight: 700, color: '#64748b', textTransform: 'uppercase',
-  letterSpacing: '0.04em', padding: '8px 10px', borderBottom: '1px solid #e2e8f0', whiteSpace: 'nowrap',
+  textAlign: 'left', fontSize: 10, fontWeight: 700, color: '#64748b', textTransform: 'uppercase',
+  letterSpacing: '0.03em', padding: '5px 8px', borderBottom: '1px solid #e2e8f0', whiteSpace: 'nowrap',
 }
 const tdStyle: React.CSSProperties = {
-  fontSize: 12.5, color: '#1e293b', padding: '8px 10px', borderBottom: '1px solid #f1f5f9', verticalAlign: 'top',
+  fontSize: 11.5, color: '#1e293b', padding: '5px 8px', borderBottom: '1px solid #f1f5f9', verticalAlign: 'top',
 }
 const selStyle: React.CSSProperties = {
   background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: 9,
@@ -76,7 +76,7 @@ function pivot<T extends { mes: string; registros: number }>(rows: T[], dimKey: 
 }
 
 function Tarjeta({ titulo, children }: { titulo: string; children: React.ReactNode }) {
-  return <div style={cardStyle}><div style={{ fontSize: 14, fontWeight: 700, color: '#0f172a', marginBottom: 10 }}>{titulo}</div>{children}</div>
+  return <div style={{ ...cardStyle, padding: 14 }}><div style={{ fontSize: 13, fontWeight: 700, color: '#0f172a', marginBottom: 8 }}>{titulo}</div>{children}</div>
 }
 
 function TablaSimple({ rows, dimLabel, dimKey }: { rows: { registros: number }[]; dimLabel: string; dimKey: string }) {
@@ -101,6 +101,14 @@ function SerieApilada({ titulo, subtitulo, data, dims }: { titulo: string; subti
     <div style={cardStyle}>
       <div style={{ fontSize: 14, fontWeight: 700, color: '#0f172a' }}>{titulo}</div>
       <div style={{ fontSize: 11.5, color: '#64748b', marginBottom: 12 }}>{subtitulo}</div>
+      <div style={{ display: 'flex', flexWrap: 'wrap', gap: 14, fontSize: 11, marginBottom: 12 }}>
+        {dims.map((d, i) => (
+          <div key={d} style={{ display: 'flex', alignItems: 'center', gap: 5 }}>
+            <span style={{ width: 9, height: 9, borderRadius: '50%', background: DIM_COLORS[i % DIM_COLORS.length], display: 'inline-block', flexShrink: 0 }} />
+            <span style={{ color: '#475569' }}>{d}</span>
+          </div>
+        ))}
+      </div>
       <ResponsiveContainer width="100%" height={300}>
         <BarChart data={data} margin={{ top: 24 }}>
           <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" />
@@ -126,7 +134,6 @@ function SerieApilada({ titulo, subtitulo, data, dims }: { titulo: string; subti
               )
             }}
           />
-          <Legend wrapperStyle={{ fontSize: 11 }} />
           {dims.map((d, i) => (
             <Bar key={d} dataKey={d} stackId="a" fill={DIM_COLORS[i % DIM_COLORS.length]}
               radius={i === dims.length - 1 ? [6, 6, 0, 0] : [0, 0, 0, 0]}>
