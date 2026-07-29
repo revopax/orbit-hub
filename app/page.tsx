@@ -39,31 +39,32 @@ export default function Page() {
 
   return (
     <div style={{
-      display: 'flex', height: '100vh', overflow: 'hidden',
-      background: 'var(--surface, #262a3d)',
+      display: 'flex', flexDirection: 'column', height: '100vh', overflow: 'hidden',
+      background: 'var(--surface, #211936)',
     }}>
-      <SidebarV2
-        acento={ACENTOS[moduloActivo]}
-        moduloActivo={moduloActivo}
-        onModuloChange={setModuloActivo}
-        nombre={perfil?.nombre}
+      <div style={{
+        height: 4, flexShrink: 0,
+        background: 'linear-gradient(135deg, #dc2626 0%, #7c3aed 60%, #4f46e5 100%)',
+      }} />
+      <OrbitTopbar
+        perfil={perfil}
+        isDark={isDark}
+        onToggleTheme={() => setIsDark(d => !d)}
         onLogout={logout}
       />
-      <div style={{
-        flex: 1, overflow: 'hidden',
-        margin: '12px 12px 12px 0',
-        borderRadius: 20,
-        background: esClaro ? '#ffffff' : 'var(--bg, #1e2130)',
-        boxShadow: '0 4px 24px rgba(0,0,0,0.25)',
-        display: 'flex', flexDirection: 'column',
-      }}>
-        <OrbitTopbar
-          perfil={perfil}
-          isDark={isDark}
-          onToggleTheme={() => setIsDark(d => !d)}
+      <div style={{ display: 'flex', flex: 1, overflow: 'hidden' }}>
+        <SidebarV2
+          acento={ACENTOS[moduloActivo]}
+          moduloActivo={moduloActivo}
+          onModuloChange={setModuloActivo}
+          nombre={perfil?.nombre}
           onLogout={logout}
         />
-        <div style={{ flex: 1, overflow: 'auto' }}>
+        <div style={{
+          flex: 1, overflow: 'auto',
+          borderTopLeftRadius: 20,
+          background: esClaro ? '#ffffff' : 'var(--bg, #1e2130)',
+        }}>
           {moduloActivo === 'brujula' && <BrujulaComercial />}
           {moduloActivo === 'redes' && <RedesUPAX />}
           {moduloActivo === 'hubspot' && <HubSpotAnalytics />}
