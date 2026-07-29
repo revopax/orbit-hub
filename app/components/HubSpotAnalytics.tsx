@@ -1,5 +1,6 @@
 'use client'
 import React, { useState, useRef, useEffect } from 'react'
+import NegociosPerdidos from './hubspot/NegociosPerdidos'
 import { BarChart, Bar, LineChart, Line, XAxis, YAxis, Tooltip, Legend, ResponsiveContainer, CartesianGrid, LabelList } from 'recharts'
 
 
@@ -2602,7 +2603,7 @@ export default function HubSpotAnalytics() {
 
       {sub === 'home'     && <HomeFunnel />}
       {sub === 'mbr'      && <Placeholder label="MBR (Monthly Business Review)" />}
-      {sub === 'perdidos' && <Placeholder label="Negocios perdidos" />}
+      {sub === 'perdidos' && <NegociosPerdidos />}
       {sub === 'email'    && <Placeholder label="Email marketing" />}
     </div>
   )
