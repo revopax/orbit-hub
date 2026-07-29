@@ -75,7 +75,7 @@ export function SidebarV2({ acento, moduloActivo, onModuloChange, nombre, onLogo
         backdropFilter: 'blur(6px)',
         WebkitBackdropFilter: 'blur(6px)',
         borderRight: '1px solid rgba(255,255,255,0.08)',
-        borderTopRightRadius: 0,
+        borderTopRightRadius: 20,
         borderBottomRightRadius: 20,
         height: 'calc(100vh - 56px)',
         overflow: 'visible',

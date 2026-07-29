@@ -42,17 +42,17 @@ export default function Page() {
       display: 'flex', flexDirection: 'column', height: '100vh', overflow: 'hidden',
       background: 'var(--surface, #211936)',
     }}>
-      <div style={{
-        height: 4, flexShrink: 0,
-        background: 'linear-gradient(135deg, #dc2626 0%, #7c3aed 60%, #4f46e5 100%)',
-      }} />
       <OrbitTopbar
         perfil={perfil}
         isDark={isDark}
         onToggleTheme={() => setIsDark(d => !d)}
         onLogout={logout}
       />
-      <div style={{ display: 'flex', flex: 1, overflow: 'hidden' }}>
+      <div style={{
+        height: 4, flexShrink: 0,
+        background: 'linear-gradient(135deg, #dc2626 0%, #7c3aed 60%, #4f46e5 100%)',
+      }} />
+      <div style={{ display: 'flex', flex: 1, overflow: 'hidden', background: esClaro ? '#ffffff' : 'var(--bg, #1e2130)' }}>
         <SidebarV2
           acento={ACENTOS[moduloActivo]}
           moduloActivo={moduloActivo}
@@ -62,7 +62,6 @@ export default function Page() {
         />
         <div style={{
           flex: 1, overflow: 'auto',
-          borderTopLeftRadius: 20,
           background: esClaro ? '#ffffff' : 'var(--bg, #1e2130)',
         }}>
           {moduloActivo === 'brujula' && <BrujulaComercial />}
