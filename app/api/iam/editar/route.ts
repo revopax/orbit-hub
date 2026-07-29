@@ -8,7 +8,7 @@ const supabaseAdmin = createClient(
 
 export async function POST(req: Request) {
   try {
-    const { id, rol, udns, activo, editado_por, udn_madre, nivel_jerarquico, reporta_a, vistas } = await req.json();
+    const { id, rol, udns, activo, editado_por, udn_madre, nivel_jerarquico, reporta_a, vistas, permisos } = await req.json();
     if (!id) return NextResponse.json({ error: 'ID requerido' }, { status: 400 });
     const udn = rol === 'admin' ? null : (udns ?? []).join(',');
     const { error } = await supabaseAdmin.from('perfiles').update({
@@ -17,6 +17,7 @@ export async function POST(req: Request) {
       nivel_jerarquico: nivel_jerarquico ?? null,
       reporta_a: reporta_a ?? null,
       vistas: (vistas ?? []).join(',') || null,
+      permisos: permisos ?? null,
       editado_por: editado_por ?? null,
       updated_at: new Date().toISOString()
     }).eq('id', id);

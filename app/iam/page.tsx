@@ -23,6 +23,65 @@ const NIVEL_LIST = [
 ];
 const MAGENTA = '#E8008D';
 
+type Permisos = Record<string, 'all' | string[]>;
+
+const MODULOS_PERMISOS: { id: string; label: string; tabs: { val: string; label: string }[] }[] = [
+  { id: 'brujula', label: 'Brújula Comercial', tabs: [
+    { val: 'director', label: 'Director' }, { val: 'operativa', label: 'Operativa' }, { val: 'analista', label: 'Analista' },
+  ]},
+  { id: 'redes', label: 'Redes UPAX', tabs: [
+    { val: 'meta-org', label: 'META Orgánico' }, { val: 'meta-ads', label: 'META Ads' }, { val: 'google-ads', label: 'Google Ads' },
+    { val: 'ga4', label: 'GA4' }, { val: 'linkedin-org', label: 'LinkedIn Orgánico' }, { val: 'linkedin-ads', label: 'LinkedIn Ads' },
+  ]},
+  { id: 'hubspot', label: 'HubSpot Analytics', tabs: [
+    { val: 'home', label: 'Home' }, { val: 'mbr', label: 'MBR' }, { val: 'perdidos', label: 'Negocios perdidos' }, { val: 'email', label: 'Email marketing' },
+  ]},
+];
+
+function PermisosSelector({ value, onChange }: { value: Permisos; onChange: (p: Permisos) => void }) {
+  const C = '#E8008D';
+  const chip = (sel: boolean): React.CSSProperties => ({
+    padding: '4px 10px', borderRadius: 7, border: `1px solid ${sel ? C : 'var(--border)'}`,
+    background: sel ? `${C}22` : 'transparent', color: sel ? C : 'var(--txt-4)',
+    fontSize: 11.5, fontWeight: 600, cursor: 'pointer',
+  });
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+      {MODULOS_PERMISOS.map(m => {
+        const val = value[m.id];
+        const activo = val !== undefined;
+        const esAll = val === 'all';
+        const tabsSel = Array.isArray(val) ? val : [];
+        return (
+          <div key={m.id} style={{ border: '1px solid var(--border)', borderRadius: 10, padding: '9px 11px' }}>
+            <label style={{ display: 'flex', alignItems: 'center', gap: 8, cursor: 'pointer', fontSize: 12.5, fontWeight: 700 }}>
+              <input type="checkbox" checked={activo} onChange={() => {
+                const next = { ...value };
+                if (activo) delete next[m.id]; else next[m.id] = 'all';
+                onChange(next);
+              }} style={{ accentColor: C, cursor: 'pointer' }} />
+              {m.label}
+            </label>
+            {activo && (
+              <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, marginTop: 8 }}>
+                <button type="button" onClick={() => onChange({ ...value, [m.id]: 'all' })} style={chip(esAll)}>Todas</button>
+                {m.tabs.map(t => {
+                  const sel = !esAll && tabsSel.includes(t.val);
+                  return <button type="button" key={t.val} onClick={() => {
+                    let tabs = esAll ? [] : [...tabsSel];
+                    tabs = sel ? tabs.filter(x => x !== t.val) : [...tabs, t.val];
+                    onChange({ ...value, [m.id]: tabs.length ? tabs : 'all' });
+                  }} style={chip(sel)}>{t.label}</button>;
+                })}
+              </div>
+            )}
+          </div>
+        );
+      })}
+    </div>
+  );
+}
+
 interface Usuario {
   id: string; nombre: string; rol: string; udn: string|null; email?: string|null;
   activo: boolean; created_at: string; updated_at?: string;
@@ -31,6 +90,7 @@ interface Usuario {
   creado_por?: string; editado_por?: string;
   udn_madre?: string|null; reporta_a?: string|null; nivel_jerarquico?: string|null;
   vistas?: string|null;
+  permisos?: Permisos | null;
 }
 
 export default function IAMPage() {
@@ -44,8 +104,8 @@ export default function IAMPage() {
   const [newPass, setNewPass] = useState('');
   const [passMsg, setPassMsg] = useState('');
   const [passLoading, setPassLoading] = useState(false);
-  const [form, setForm] = useState({ email:'', password:'', nombre:'', rol:'director', udns:[] as string[], udn_madre:'', nivel_jerarquico:'', reporta_a:null as string|null });
-  const [editForm, setEditForm] = useState({ rol:'director', udns:[] as string[], activo:true, udn_madre:'', nivel_jerarquico:'', reporta_a:null as string|null, vistas:[] as string[] });
+  const [form, setForm] = useState({ email:'', password:'', nombre:'', rol:'director', udns:[] as string[], udn_madre:'', nivel_jerarquico:'', reporta_a:null as string|null, permisos:{} as Permisos });
+  const [editForm, setEditForm] = useState({ rol:'director', udns:[] as string[], activo:true, udn_madre:'', nivel_jerarquico:'', reporta_a:null as string|null, vistas:[] as string[], permisos:{} as Permisos });
   const [guardando, setGuardando] = useState(false);
   const [showPass, setShowPass] = useState(false);
   const [error, setError] = useState('');
@@ -79,7 +139,7 @@ export default function IAMPage() {
       const data = await res.json();
       if (!res.ok) throw new Error(data.error ?? 'Error al crear');
       setShowForm(false);
-      setForm({ email:'', password:'', nombre:'', rol:'director', udns:[], udn_madre:'', nivel_jerarquico:'', reporta_a:null });
+      setForm({ email:'', password:'', nombre:'', rol:'director', udns:[], udn_madre:'', nivel_jerarquico:'', reporta_a:null, permisos:{} });
       await cargar();
     } catch(e:any) { setError(e.message); }
     setGuardando(false);
@@ -130,6 +190,7 @@ export default function IAMPage() {
   function abrirEditar(u: Usuario) {
     setEditTarget(u);
     setEditForm({
+      permisos: (u.permisos && typeof u.permisos === 'object') ? u.permisos : (u.vistas ? { brujula: u.vistas.split(',').map(s=>s.trim()) as string[] } : {}),
       rol: u.rol,
       udns: u.udn ? u.udn.split(',').map(s=>s.trim()) : [],
       activo: u.activo ?? true,
@@ -378,6 +439,10 @@ export default function IAMPage() {
                 ))}
               </select>
             </div>
+            <div style={{ marginBottom:14 }}>
+              <label style={labelStyle}>Módulos y vistas habilitadas</label>
+              <PermisosSelector value={form.permisos} onChange={p => setForm(f => ({ ...f, permisos: p }))} />
+            </div>
             <div style={{ display:'flex', gap:10, justifyContent:'flex-end' }}>
               <button onClick={() => { setShowForm(false); setError(''); }} style={{ padding:'9px 18px', borderRadius:8, border:'1px solid var(--border)', background:'transparent', color:'var(--txt-3)', fontSize:13, cursor:'pointer' }}>Cancelar</button>
               <button onClick={crear} disabled={guardando} style={{ padding:'9px 18px', borderRadius:8, border:'none', background:`linear-gradient(135deg, ${MAGENTA}, #8C59FE)`, color:'#fff', fontSize:13, fontWeight:600, cursor:'pointer', opacity: guardando ? 0.7 : 1 }}>
@@ -434,15 +499,9 @@ export default function IAMPage() {
               </div>
             </div>
             <div style={{ marginBottom:14 }}>
-              <label style={labelStyle}>Vistas habilitadas</label>
-              <div style={{ display:'flex', flexWrap:'wrap', gap:6 }}>
-                {[{val:'director', label:'Director'},{val:'operativa', label:'Operativa'},{val:'analista', label:'Analista'}].map(v => {
-                  const sel = editForm.vistas.includes(v.val);
-                  return <button key={v.val} onClick={() => setEditForm(p => ({ ...p, vistas: sel ? p.vistas.filter(x=>x!==v.val) : [...p.vistas, v.val] }))}
-                    style={{ padding:'5px 11px', borderRadius:7, border:`1px solid ${sel ? MAGENTA : 'var(--border)'}`, background: sel ? `${MAGENTA}22` : 'transparent', color: sel ? MAGENTA : 'var(--txt-4)', fontSize:12, fontWeight:600, cursor:'pointer' }}>{v.label}</button>;
-                })}
-              </div>
-              <p style={{ fontSize:10, color:'var(--txt-5)', marginTop:4 }}>Si no seleccionas ninguna, se usará el comportamiento por defecto según el rol.</p>
+              <label style={labelStyle}>Módulos y vistas habilitadas</label>
+              <PermisosSelector value={editForm.permisos} onChange={p => setEditForm(f => ({ ...f, permisos: p, vistas: Array.isArray(p.brujula) ? p.brujula : (p.brujula === 'all' ? ['director','operativa','analista'] : []) }))} />
+              <p style={{ fontSize:10, color:'var(--txt-5)', marginTop:4 }}>Sin módulos seleccionados se usará el comportamiento por defecto según el rol.</p>
             </div>
             <div style={{ marginBottom:14 }}>
               <label style={labelStyle}>Reporta a</label>
