@@ -265,6 +265,14 @@ function FunnelPanel({ dateFrom, dateTo, filtros }: { dateFrom: string; dateTo: 
       background: '#fff', border: '1px solid #e2e8f0', borderRadius: 12, padding: 20,
       display: 'flex', flexDirection: 'column', gap: 16, flex: '2 1 620px', minWidth: 0,
     }}>
+    <div>
+      <div style={{ fontSize: 10.5, fontWeight: 700, color: '#94a3b8', letterSpacing: '0.08em', textTransform: 'uppercase', marginBottom: 2 }}>
+        Funnel de conversion
+      </div>
+      <div style={{ fontSize: 17, fontWeight: 700, color: '#0f172a' }}>
+        Adquisicion y avance comercial
+      </div>
+    </div>
     <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1fr) minmax(150px, 0.5fr) minmax(140px, 0.38fr)', gap: 12, alignItems: 'center', width: '100%' }}>
       <div style={{
         position: 'relative', width: '100%', maxWidth: 600, flexShrink: 1, minWidth: 0,
@@ -375,8 +383,12 @@ function FunnelPanel({ dateFrom, dateTo, filtros }: { dateFrom: string; dateTo: 
         </div>
         <ScoreCardKPI label="Proyectos ganados" value={fmtNum(total.clientesFacturadosRango)} pct={pctProyectos} metaLabel={metaClientesCount != null ? fmtNum(Math.round(metaClientesCount)) : null} />
       </div>
-      <div style={{ fontSize: 10.5, color: '#94a3b8', marginTop: -4 }}>
-        El funnel cuenta clientes por fecha de creacion del registro. Estas 3 scorecards cuentan dinero y proyectos por fecha de facturacion, para reflejar cuando el ingreso realmente entro en el periodo.
+      <div style={{
+        background: '#fffbeb', border: '1px solid #fde68a', borderRadius: 8,
+        padding: '10px 14px', fontSize: 11, color: '#92400e', lineHeight: 1.5,
+      }}>
+        <div>* El funnel (Contactos a Clientes) cuenta los registros por fecha de creacion, para no romper la logica de conversion entre etapas.</div>
+        <div style={{ marginTop: 4 }}>* Las scorecards Clientes ($), Ganados por facturar ($) y Proyectos ganados cuentan por fecha de facturacion, para reflejar cuando el ingreso realmente entro en el periodo.</div>
       </div>
     </div>
   )
