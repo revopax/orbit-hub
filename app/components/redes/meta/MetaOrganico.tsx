@@ -20,10 +20,23 @@ interface SortState { col: string; dir: SortDir }
 async function fetchSB(table: string, params: Record<string,string> = {}) {
   if (!SUPABASE_KEY) return []
   const q = new URLSearchParams({ select:'*', ...params })
-  const r = await fetch(`${SUPABASE_URL}/rest/v1/${table}?${q}`, {
-    headers:{ apikey:SUPABASE_KEY, Authorization:`Bearer ${SUPABASE_KEY}` }
-  })
-  return r.ok ? r.json() : []
+  const PAGE = 1000
+  let all: any[] = []
+  let from = 0
+  while (true) {
+    const r = await fetch(`${SUPABASE_URL}/rest/v1/${table}?${q}`, {
+      headers:{
+        apikey:SUPABASE_KEY, Authorization:`Bearer ${SUPABASE_KEY}`,
+        Range: `${from}-${from+PAGE-1}`, Prefer: 'count=exact',
+      }
+    })
+    if (!r.ok) break
+    const chunk = await r.json()
+    all = all.concat(chunk)
+    if (chunk.length < PAGE) break
+    from += PAGE
+  }
+  return all
 }
 
 const UDNS  = ['Todas','House Of Films','Mexa Creativa','Marketing United','UiX','Promo Espacio','Neracode','UPAX','ResearchLand','Zeus','Cecilia Fallabrino']
@@ -340,12 +353,18 @@ export default function MetaOrganico({ accent, secondary }:Props) {
               })}
               <text x={PL+W/2} y={H+PB+32} textAnchor='middle' fill='#94a3b8' fontSize='10'>Mes</text>
               {intPorMes.map((d,i)=>{
-                const x=intPorMes.length>1?PL+(i/(intPorMes.length-1))*W:PL+W/2
+                const slot = intPorMes.length>1 ? W/intPorMes.length : W
+                const x = PL + slot*i + slot/2
+                const bw = Math.min(28, slot*0.32)
+                const hInt = d.int/maxInt*H
+                const hN   = d.n/maxN*H
                 return<g key={i} style={{cursor:'pointer'}}
-                  onMouseEnter={()=>setTooltip2({mes:d.mes,v1:d.int,l1:'Interacciones',v2:d.n,l2:'Posts',x,y:PB+H-(d.int/maxInt)*H})}
+                  onMouseEnter={()=>setTooltip2({mes:d.mes,v1:d.int,l1:'Interacciones',v2:d.n,l2:'Posts',x,y:PB+H-hInt})}
                   onMouseLeave={()=>setTooltip2(null)}>
-                  <rect x={x-17} y={PB+H-d.int/maxInt*H} width={16} height={d.int/maxInt*H} rx='4' fill={accent} fillOpacity='0.9'/>
-                  <rect x={x+1}  y={PB+H-d.n/maxN*H}     width={16} height={d.n/maxN*H}     rx='4' fill={secondary} fillOpacity='0.85'/>
+                  <rect x={x-bw-1} y={PB+H-hInt} width={bw} height={hInt} rx='4' fill={accent} fillOpacity='0.9'/>
+                  <text x={x-bw/2-1} y={PB+H-hInt-6} textAnchor='middle' fill='#334155' fontSize='10' fontWeight='700'>{fmtK(d.int)}</text>
+                  <rect x={x+1}  y={PB+H-hN}     width={bw} height={hN}     rx='4' fill={secondary} fillOpacity='0.85'/>
+                  <text x={x+bw/2+1} y={PB+H-hN-6} textAnchor='middle' fill='#334155' fontSize='10' fontWeight='700'>{d.n}</text>
                   <text x={x} y={PB+H+18} textAnchor='middle' fill='#94a3b8' fontSize='10'>{d.mes}</text>
                 </g>
               })}
