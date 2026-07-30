@@ -4,7 +4,7 @@ sys.path.insert(0, os.path.dirname(os.path.dirname(__file__)))
 
 SUPABASE_URL = os.environ.get("SUPABASE_URL", "https://szxdvdbdyuxtvyvxbder.supabase.co")
 SUPABASE_KEY = os.environ.get("SUPABASE_ANON_KEY", "")
-SUPABASE_SERVICE_KEY = os.environ.get("SUPABASE_SERVICE_ROLE_KEY", "")
+SUPABASE_SERVICE_KEY = os.environ.get("SUPABASE_SERVICE_ROLE_KEY", "").strip()
 STORAGE_BUCKET = "meta-organico-media"
 
 def guardar_imagen_permanente(url_original, post_id):
