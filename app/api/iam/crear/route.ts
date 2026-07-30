@@ -18,7 +18,11 @@ export async function POST(req: Request) {
       udn_madre: udn_madre || null, nivel_jerarquico: nivel_jerarquico || null, reporta_a: reporta_a || null, squad: squad || null,
       creado_por: creado_por ?? null, permisos: permisos ?? null, updated_at: new Date().toISOString()
     });
-    if (perfilError) return NextResponse.json({ error: perfilError.message }, { status: 400 });
+    if (perfilError) {
+      // Rollback: si el perfil no se pudo crear, no dejar un usuario huerfano en Auth
+      await supabaseAdmin.auth.admin.deleteUser(authData.user.id);
+      return NextResponse.json({ error: perfilError.message }, { status: 400 });
+    }
     return NextResponse.json({ ok: true });
   } catch (e: any) {
     return NextResponse.json({ error: e.message }, { status: 500 });
