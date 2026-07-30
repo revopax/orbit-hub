@@ -284,29 +284,33 @@ export default function MetaOrganico({ accent, secondary }:Props) {
             <span style={{display:'flex',alignItems:'center',gap:5,color:'#64748b'}}><span style={{width:14,height:2,background:accent,display:'inline-block',borderRadius:2}}/>Alcance</span>
             <span style={{display:'flex',alignItems:'center',gap:5,color:'#64748b'}}><span style={{width:14,height:2,background:secondary,display:'inline-block',borderRadius:2,opacity:0.7}}/>Impresiones</span>
           </div>
-          {alcPorMes.length>1?(
+          {alcPorMes.length>1?(() => {
+            const HL = H*1.7
+            return (
             <div style={{position:'relative'}}>
-              <svg viewBox={`0 0 ${W+PL} ${H+PB+20}`} style={{width:'100%',height:190,overflow:'visible'}}>
+              <svg viewBox={`0 0 ${W+PL} ${HL+PB+20}`} style={{width:'100%',height:260,overflow:'visible'}}>
                 {/* Y axis label */}
-                <text x='10' y={(H+PB)/2} transform={`rotate(-90,10,${(H+PB)/2})`} textAnchor='middle' fill='#94a3b8' fontSize='10'>Personas</text>
+                <text x='10' y={(HL+PB)/2} transform={`rotate(-90,10,${(HL+PB)/2})`} textAnchor='middle' fill='#94a3b8' fontSize='10'>Personas</text>
                 {/* Y axis ticks */}
                 {yTicks(Math.max(maxAlc,maxImp)).map((v,i)=>{
-                  const y=PB+H-(v/Math.max(maxAlc,maxImp))*H
+                  const y=PB+HL-(v/Math.max(maxAlc,maxImp))*HL
                   return<g key={i}>
                     <line x1={PL} y1={y} x2={PL+W} y2={y} stroke='#f1f5f9' strokeWidth='1'/>
                     <text x={PL-4} y={y+4} textAnchor='end' fill='#94a3b8' fontSize='10'>{fmtK(v)}</text>
                   </g>
                 })}
                 {/* X axis label */}
-                <text x={PL+W/2} y={H+PB+32} textAnchor='middle' fill='#94a3b8' fontSize='10'>Mes</text>
+                <text x={PL+W/2} y={HL+PB+32} textAnchor='middle' fill='#94a3b8' fontSize='10'>Mes</text>
                 {(() => {
-                  const pA=alcPorMes.map((d,i)=>[PL+(i/(alcPorMes.length-1))*W, PB+H-(d.alc/Math.max(maxAlc,1))*H] as [number,number])
-                  const pI=alcPorMes.map((d,i)=>[PL+(i/(alcPorMes.length-1))*W, PB+H-(d.imp/Math.max(maxImp,1))*H] as [number,number])
+                  const pA=alcPorMes.map((d,i)=>[PL+(i/(alcPorMes.length-1))*W, PB+HL-(d.alc/Math.max(maxAlc,1))*HL] as [number,number])
+                  const pI=alcPorMes.map((d,i)=>[PL+(i/(alcPorMes.length-1))*W, PB+HL-(d.imp/Math.max(maxImp,1))*HL] as [number,number])
+                  // Relleno de la BRECHA entre Alcance e Impresiones (no del area hasta el piso)
+                  const gapPoints = `${pA.map(p=>p.join(',')).join(' ')} ${pI.slice().reverse().map(p=>p.join(',')).join(' ')}`
                   return<>
-                    <polygon points={`${pA.map(p=>p.join(',')).join(' ')} ${PL+W},${PB+H} ${PL},${PB+H}`} fill={`${accent}18`}/>
+                    <polygon points={gapPoints} fill={`${secondary}22`}/>
                     <polyline points={pA.map(p=>p.join(',')).join(' ')} fill='none' stroke={accent} strokeWidth='2.5' strokeLinejoin='round'/>
                     <polyline points={pI.map(p=>p.join(',')).join(' ')} fill='none' stroke={secondary} strokeWidth='2' strokeDasharray='6,4' strokeLinejoin='round'/>
-                    {alcPorMes.map((d,i)=><text key={i} x={pA[i][0]} y={PB+H+18} textAnchor='middle' fill='#94a3b8' fontSize='10'>{d.mes}</text>)}
+                    {alcPorMes.map((d,i)=><text key={i} x={pA[i][0]} y={HL+PB+18} textAnchor='middle' fill='#94a3b8' fontSize='10'>{d.mes}</text>)}
                     {pA.map(([x,y],i)=>(
                       <g key={i}>
                         <circle cx={x} cy={y} r='6' fill={accent} stroke='white' strokeWidth='2' style={{cursor:'pointer'}}
@@ -331,7 +335,8 @@ export default function MetaOrganico({ accent, secondary }:Props) {
                 </div>
               )}
             </div>
-          ):<div style={{height:190,display:'flex',alignItems:'center',justifyContent:'center',color:'#94a3b8'}}>Sin datos</div>}
+            )
+          })():<div style={{height:190,display:'flex',alignItems:'center',justifyContent:'center',color:'#94a3b8'}}>Sin datos</div>}
         </div>
 
         {/* Interacciones vs Posts — con tooltips + ejes */}
