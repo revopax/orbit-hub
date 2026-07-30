@@ -1,6 +1,6 @@
 {
-  "updated_at": "2026-07-30T23:22:38Z",
-  "duration_s": 29.9,
+  "updated_at": "2026-07-30T23:37:07Z",
+  "duration_s": 34.0,
   "status": {
     "meta_organico": "ERROR: Invalid header value b'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InN6eGR2ZGJkeXV4dHZ5dnhiZGVyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzcyNDAwODUsImV4cCI6MjA5MjgxNjA4NX0.uiplnYCA9lJy-o18r2x1-9bRTFjTZiBNJ-01QiCepTg\\n'",
     "google_ads": "OK",
