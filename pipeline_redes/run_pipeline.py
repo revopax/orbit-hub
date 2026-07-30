@@ -3,7 +3,7 @@ import sys, os, json, traceback
 from datetime import datetime
 sys.path.insert(0, os.path.dirname(__file__))
 
-from extractors import meta_organico, google_ads, ga4, linkedin
+from extractors import meta_organico  # google_ads, ga4, linkedin en pausa hasta abordar sus pestanas
 from config import OUTPUT_DIR
 
 def save(name: str, data: dict):
@@ -15,9 +15,9 @@ def save(name: str, data: dict):
 
 EXTRACTORS = [
     ('meta_organico',     meta_organico.extract),
-    ('google_ads',        google_ads.extract),
-    ('ga4',               ga4.extract),
-    ('linkedin_organico', linkedin.extract),
+    # ('google_ads',        google_ads.extract),      # en pausa
+    # ('ga4',               ga4.extract),              # en pausa
+    # ('linkedin_organico', linkedin.extract),         # en pausa
 ]
 
 if __name__ == '__main__':
