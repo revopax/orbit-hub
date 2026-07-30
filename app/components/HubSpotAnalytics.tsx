@@ -159,6 +159,8 @@ type FunnelTotales = {
   sqlObjetadas: number
   oppsPerdidas: number
   ganadosPorFacturarCount: number
+  clientesFacturadosRango: number
+  clientesValorFacturadoRango: number
 }
 
 async function fetchFunnelTotales(
@@ -182,10 +184,12 @@ async function fetchFunnelTotales(
     contactos: number; leads: number; mqls: number; sqls: number; opps: number; clientes: number
     clientes_valor: number; ganado_por_facturar_valor: number
     mql_descalificados: number; sql_objetadas: number; opps_perdidas: number; ganados_por_facturar_count: number
+    clientes_facturados_rango: number; clientes_valor_facturado_rango: number
   }[] = await res.json()
   const row = rows[0] || {
     contactos: 0, leads: 0, mqls: 0, sqls: 0, opps: 0, clientes: 0, clientes_valor: 0, ganado_por_facturar_valor: 0,
     mql_descalificados: 0, sql_objetadas: 0, opps_perdidas: 0, ganados_por_facturar_count: 0,
+    clientes_facturados_rango: 0, clientes_valor_facturado_rango: 0,
   }
   return {
     contactos: row.contactos, leads: row.leads, mqls: row.mqls, sqls: row.sqls,
@@ -193,6 +197,7 @@ async function fetchFunnelTotales(
     clientesValor: row.clientes_valor, ganadosPorFacturarValor: row.ganado_por_facturar_valor,
     mqlDescalificados: row.mql_descalificados, sqlObjetadas: row.sql_objetadas,
     oppsPerdidas: row.opps_perdidas, ganadosPorFacturarCount: row.ganados_por_facturar_count,
+    clientesFacturadosRango: row.clientes_facturados_rango, clientesValorFacturadoRango: row.clientes_valor_facturado_rango,
   }
 }
 
@@ -238,6 +243,7 @@ function FunnelPanel({ dateFrom, dateTo, filtros }: { dateFrom: string; dateTo: 
     clientesValor: DUMMY.extras.clientesValor, ganadosPorFacturarValor: DUMMY.extras.ganadosPorFacturarValor,
     mqlDescalificados: DUMMY.extras.mqlDescalificados, sqlObjetadas: DUMMY.extras.sqlObjetadas,
     oppsPerdidas: DUMMY.extras.oppsPerdidas, ganadosPorFacturarCount: DUMMY.extras.ganadosPorFacturar,
+    clientesFacturadosRango: 0, clientesValorFacturadoRango: DUMMY.extras.clientesValor,
   }
   const tasas = data ? calcularTasas(data) : DUMMY.tasas
   const [metas, setMetas] = useState<Record<string, MetaEtapa> | null>(null)
@@ -252,8 +258,8 @@ function FunnelPanel({ dateFrom, dateTo, filtros }: { dateFrom: string; dateTo: 
   }, [filtros.udn])
   const metaClientesMoney = metas?.clientes?.meta_money ?? null
   const metaClientesCount = metas?.clientes?.meta_total ?? null
-  const pctIngresos = metaClientesMoney && metaClientesMoney > 0 ? (total.clientesValor / metaClientesMoney) * 100 : null
-  const pctProyectos = metaClientesCount && metaClientesCount > 0 ? (total.clientes / metaClientesCount) * 100 : null
+  const pctIngresos = metaClientesMoney && metaClientesMoney > 0 ? (total.clientesValorFacturadoRango / metaClientesMoney) * 100 : null
+  const pctProyectos = metaClientesCount && metaClientesCount > 0 ? (total.clientesFacturadosRango / metaClientesCount) * 100 : null
   return (
     <div style={{
       background: '#fff', border: '1px solid #e2e8f0', borderRadius: 12, padding: 20,
@@ -362,12 +368,15 @@ function FunnelPanel({ dateFrom, dateTo, filtros }: { dateFrom: string; dateTo: 
     </div>
 
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))', gap: 12 }}>
-        <ScoreCardKPI label="Clientes ($)" value={fmtMoney(total.clientesValor)} pct={pctIngresos} metaLabel={metaClientesMoney != null ? fmtMoney(metaClientesMoney) : null} />
+        <ScoreCardKPI label="Clientes ($)" value={fmtMoney(total.clientesValorFacturadoRango)} pct={pctIngresos} metaLabel={metaClientesMoney != null ? fmtMoney(metaClientesMoney) : null} />
         <div style={{ background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: 10, padding: '12px 16px' }}>
           <div style={{ fontSize: 10, fontWeight: 700, color: '#94a3b8', letterSpacing: '0.06em', textTransform: 'uppercase', marginBottom: 4 }}>Ganados por facturar ($)</div>
           <div style={{ fontWeight: 800, fontFamily: 'monospace', fontSize: 20, color: '#0f172a' }}>{fmtMoney(total.ganadosPorFacturarValor)}</div>
         </div>
-        <ScoreCardKPI label="Proyectos ganados" value={fmtNum(total.clientes)} pct={pctProyectos} metaLabel={metaClientesCount != null ? fmtNum(Math.round(metaClientesCount)) : null} />
+        <ScoreCardKPI label="Proyectos ganados" value={fmtNum(total.clientesFacturadosRango)} pct={pctProyectos} metaLabel={metaClientesCount != null ? fmtNum(Math.round(metaClientesCount)) : null} />
+      </div>
+      <div style={{ fontSize: 10.5, color: '#94a3b8', marginTop: -4 }}>
+        El funnel cuenta clientes por fecha de creacion del registro. Estas 3 scorecards cuentan dinero y proyectos por fecha de facturacion, para reflejar cuando el ingreso realmente entro en el periodo.
       </div>
     </div>
   )
