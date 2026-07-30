@@ -34,7 +34,7 @@ const MODULOS = [
   },
 ];
 
-export function SidebarV2({ acento, moduloActivo, onModuloChange, nombre, onLogout }: SidebarV2Props) {
+export function SidebarV2({ acento, moduloActivo, onModuloChange, nombre, onLogout, permisos }: SidebarV2Props) {
   const [expanded, setExpanded] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
   const router = useRouter();
@@ -107,7 +107,10 @@ export function SidebarV2({ acento, moduloActivo, onModuloChange, nombre, onLogo
         }}>
           Módulos
         </span>
-        {MODULOS.map((mod) => {
+        {MODULOS.filter((mod) => {
+          if (!permisos || Object.keys(permisos).length === 0) return true
+          return permisos[mod.id] !== undefined
+        }).map((mod) => {
           const isActivo = moduloActivo === mod.id;
           return (
             <div
