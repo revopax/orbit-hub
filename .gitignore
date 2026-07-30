@@ -44,4 +44,6 @@ data/*.parquet
 __pycache__/
 .env
 modules/brujula-comercial/pipeline/data/
-.github/
+pipeline_redes/*.json
+pipeline_redes/service_account.json
+pipeline_redes/meta_page_tokens*.json

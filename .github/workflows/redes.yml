@@ -1,0 +1,43 @@
+name: Redes UPAX — Pipeline
+
+on:
+  schedule:
+    - cron: '0 */6 * * *'
+  workflow_dispatch:
+
+jobs:
+  run-pipeline:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+
+      - name: Setup Python 3.11
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+          cache: 'pip'
+          cache-dependency-path: pipeline_redes/requirements.txt
+
+      - name: Install dependencies
+        run: pip install -r pipeline_redes/requirements.txt
+
+      - name: Run pipeline
+        env:
+          SUPABASE_URL: https://szxdvdbdyuxtvyvxbder.supabase.co
+          SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_ANON_KEY }}
+          META_PAGE_TOKENS: ${{ secrets.META_PAGE_TOKENS }}
+          GOOGLE_SERVICE_ACCOUNT_JSON: ${{ secrets.GOOGLE_SERVICE_ACCOUNT_JSON }}
+        run: |
+          cd pipeline_redes
+          python run_pipeline.py
+
+      - name: Commit datos actualizados
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add public/data/*.json
+          git diff --staged --quiet || git commit -m "chore: actualizar datos de Redes UPAX [skip ci]"
+          git push
