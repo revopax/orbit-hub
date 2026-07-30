@@ -105,7 +105,7 @@ export default function IAMPage() {
   const [newPass, setNewPass] = useState('');
   const [passMsg, setPassMsg] = useState('');
   const [passLoading, setPassLoading] = useState(false);
-  const [form, setForm] = useState({ email:'', password:'', nombre:'', rol:'director', udns:[] as string[], udn_madre:'', nivel_jerarquico:'', reporta_a:null as string|null, permisos:{} as Permisos });
+  const [form, setForm] = useState({ email:'', password:'', nombre:'', rol:'director', udns:[] as string[], udn_madre:'', nivel_jerarquico:'', reporta_a:null as string|null, squad:'', permisos:{} as Permisos });
   const [editForm, setEditForm] = useState({ rol:'director', udns:[] as string[], activo:true, udn_madre:'', nivel_jerarquico:'', reporta_a:null as string|null, vistas:[] as string[], permisos:{} as Permisos });
   const [guardando, setGuardando] = useState(false);
   const [showPass, setShowPass] = useState(false);
@@ -140,7 +140,7 @@ export default function IAMPage() {
       const data = await res.json();
       if (!res.ok) throw new Error(data.error ?? 'Error al crear');
       setShowForm(false);
-      setForm({ email:'', password:'', nombre:'', rol:'director', udns:[], udn_madre:'', nivel_jerarquico:'', reporta_a:null, permisos:{} });
+      setForm({ email:'', password:'', nombre:'', rol:'director', udns:[], udn_madre:'', nivel_jerarquico:'', reporta_a:null, squad:'', permisos:{} });
       await cargar();
     } catch(e:any) { setError(e.message); }
     setGuardando(false);
@@ -394,12 +394,17 @@ export default function IAMPage() {
               </div>
             </div>
             <div style={{ marginBottom:14 }}>
+              <label style={labelStyle}>Módulos y vistas habilitadas</label>
+              <PermisosSelector value={form.permisos} onChange={p => setForm(f => ({ ...f, permisos: p }))} />
+            </div>
+            {Object.keys(form.permisos).length > 0 && (<>
+            <div style={{ marginBottom:14 }}>
               <label style={labelStyle}>Rol</label>
               <select value={form.rol} onChange={e => setForm(p => ({ ...p, rol: e.target.value }))} style={inputStyle}>
                 {ROLES.map(r => <option key={r} value={r}>{ROL_LABEL[r]}</option>)}
               </select>
             </div>
-            {form.rol !== 'admin' && (
+            {form.permisos.brujula !== undefined && form.rol !== 'admin' && (
               <div style={{ marginBottom:20 }}>
                 <label style={labelStyle}>UDNs asignadas</label>
                 <div style={{ display:'flex', flexWrap:'wrap', gap:6 }}>
@@ -411,16 +416,18 @@ export default function IAMPage() {
                 </div>
               </div>
             )}
-            <div style={{ marginBottom:14 }}>
-              <label style={labelStyle}>UDN madre</label>
-              <div style={{ display:'flex', flexWrap:'wrap', gap:6 }}>
-                {UDN_MADRE_LIST.map(u => {
-                  const sel = form.udn_madre === u;
-                  return <button key={u} onClick={() => setForm(p => ({ ...p, udn_madre: u }))}
-                    style={{ padding:'5px 11px', borderRadius:7, border:`1px solid ${sel ? MAGENTA : 'var(--border)'}`, background: sel ? `${MAGENTA}22` : 'transparent', color: sel ? MAGENTA : 'var(--txt-4)', fontSize:12, fontWeight:600, cursor:'pointer' }}>{u}</button>;
-                })}
+            {form.permisos.brujula !== undefined && (
+              <div style={{ marginBottom:14 }}>
+                <label style={labelStyle}>UDN madre</label>
+                <div style={{ display:'flex', flexWrap:'wrap', gap:6 }}>
+                  {UDN_MADRE_LIST.map(u => {
+                    const sel = form.udn_madre === u;
+                    return <button key={u} onClick={() => setForm(p => ({ ...p, udn_madre: u }))}
+                      style={{ padding:'5px 11px', borderRadius:7, border:`1px solid ${sel ? MAGENTA : 'var(--border)'}`, background: sel ? `${MAGENTA}22` : 'transparent', color: sel ? MAGENTA : 'var(--txt-4)', fontSize:12, fontWeight:600, cursor:'pointer' }}>{u}</button>;
+                  })}
+                </div>
               </div>
-            </div>
+            )}
             <div style={{ marginBottom:14 }}>
               <label style={labelStyle}>Nivel jerárquico</label>
               <div style={{ display:'flex', flexWrap:'wrap', gap:6 }}>
@@ -431,6 +438,18 @@ export default function IAMPage() {
                 })}
               </div>
             </div>
+            {(form.permisos.redes !== undefined || form.permisos.hubspot !== undefined) && (
+              <div style={{ marginBottom:14 }}>
+                <label style={labelStyle}>Squad</label>
+                <div style={{ display:'flex', flexWrap:'wrap', gap:6 }}>
+                  {SQUADS_LIST.map(sq => {
+                    const sel = form.squad === sq;
+                    return <button key={sq} onClick={() => setForm(p => ({ ...p, squad: sq }))}
+                      style={{ padding:'5px 11px', borderRadius:7, border:`1px solid ${sel ? MAGENTA : 'var(--border)'}`, background: sel ? `${MAGENTA}22` : 'transparent', color: sel ? MAGENTA : 'var(--txt-4)', fontSize:12, fontWeight:600, cursor:'pointer' }}>{sq}</button>;
+                  })}
+                </div>
+              </div>
+            )}
             <div style={{ marginBottom:20 }}>
               <label style={labelStyle}>Reporta a</label>
               <select value={form.reporta_a ?? ''} onChange={e => setForm(p => ({ ...p, reporta_a: e.target.value || null }))} style={inputStyle}>
@@ -440,10 +459,7 @@ export default function IAMPage() {
                 ))}
               </select>
             </div>
-            <div style={{ marginBottom:14 }}>
-              <label style={labelStyle}>Módulos y vistas habilitadas</label>
-              <PermisosSelector value={form.permisos} onChange={p => setForm(f => ({ ...f, permisos: p }))} />
-            </div>
+            </>)}
             <div style={{ display:'flex', gap:10, justifyContent:'flex-end' }}>
               <button onClick={() => { setShowForm(false); setError(''); }} style={{ padding:'9px 18px', borderRadius:8, border:'1px solid var(--border)', background:'transparent', color:'var(--txt-3)', fontSize:13, cursor:'pointer' }}>Cancelar</button>
               <button onClick={crear} disabled={guardando} style={{ padding:'9px 18px', borderRadius:8, border:'none', background:`linear-gradient(135deg, ${MAGENTA}, #8C59FE)`, color:'#fff', fontSize:13, fontWeight:600, cursor:'pointer', opacity: guardando ? 0.7 : 1 }}>
