@@ -52,7 +52,16 @@ export function UserMenu({ nombre, rol, udn, acento, onLogout, isMobile }: UserM
     ? nombre.split(' ').map((n: string) => n[0]).join('').slice(0, 2).toUpperCase()
     : '??';
 
-  const rolLabel = rol === 'admin' ? 'Administrador' : rol === 'director' ? 'Director' : rol === 'comercial' ? 'Comercial' : rol === 'sdr' ? 'SDR' : 'Operativo';
+  const ROL_LABEL_MAP: Record<string,string> = {
+    admin:'Administrador', director:'Director', comercial:'Comercial', sdr:'SDR', operativo:'Operativo', marketing:'Marketing',
+    director_portafolio_ecosistema:'Director de Portafolio y Ecosistema', pr:'PR', sr_crossmedia_designer:'Sr. Crossmedia Designer',
+    productor_marketing:'Productor de Marketing', marketing_comercial:'Marketing Comercial',
+    director_campanas_360:'Director de Campañas 360', sr_web_designer:'Sr. Web Designer', sr_web_developer:'Sr. Web Developer',
+    director_performance_conversion:'Director de Performance y Conversión', paid_media_manager:'Paid Media Manager', social_media_manager:'Social Media Manager',
+    director_outbound_pipeline:'Director de Outbound y Pipeline',
+    director_revops:'Director de RevOps', bi_specialist:'BI Specialist', crm_specialist:'CRM Specialist',
+  };
+  const rolLabel = (rol && ROL_LABEL_MAP[rol]) || 'Operativo';
 
   const menuItemStyle = {
     width: '100%', padding: '10px 16px',

@@ -10,8 +10,23 @@ const sb = createClient(
   'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InN6eGR2ZGJkeXV4dHZ5dnhiZGVyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzcyNDAwODUsImV4cCI6MjA5MjgxNjA4NX0.uiplnYCA9lJy-o18r2x1-9bRTFjTZiBNJ-01QiCepTg'
 );
 
-const ROLES = ['admin','director','comercial','sdr','marketing'];
-const ROL_LABEL: Record<string,string> = { admin:'Admin', director:'Director', comercial:'Comercial', sdr:'SDR', operativo:'Operativo', marketing:'Marketing' };
+const ROLES = [
+  'admin','director','comercial','sdr','marketing',
+  'director_portafolio_ecosistema','pr','sr_crossmedia_designer','productor_marketing','marketing_comercial',
+  'director_campanas_360','sr_web_designer','sr_web_developer',
+  'director_performance_conversion','paid_media_manager','social_media_manager',
+  'director_outbound_pipeline',
+  'director_revops','bi_specialist','crm_specialist',
+];
+const ROL_LABEL: Record<string,string> = {
+  admin:'Admin', director:'Director', comercial:'Comercial', sdr:'SDR', operativo:'Operativo', marketing:'Marketing',
+  director_portafolio_ecosistema:'Director de Portafolio y Ecosistema', pr:'PR', sr_crossmedia_designer:'Sr. Crossmedia Designer',
+  productor_marketing:'Productor de Marketing', marketing_comercial:'Marketing Comercial',
+  director_campanas_360:'Director de Campañas 360', sr_web_designer:'Sr. Web Designer', sr_web_developer:'Sr. Web Developer',
+  director_performance_conversion:'Director de Performance y Conversión', paid_media_manager:'Paid Media Manager', social_media_manager:'Social Media Manager',
+  director_outbound_pipeline:'Director de Outbound y Pipeline',
+  director_revops:'Director de RevOps', bi_specialist:'BI Specialist', crm_specialist:'CRM Specialist',
+};
 const UDNS_LIST = ['UIX','MU','PE','ZU','NC','HOF','RL','MEXA'];
 const UDN_MADRE_LIST = ['UIX','MU','PE','ZU','NC','HOF','RL','MEXA','MKT'];
 const SQUADS_LIST = ['Portafolio y Ecosistema','Web y Contenidos','Performance y Conversión','Outbound y Pipeline','RevOps'];
