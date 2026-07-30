@@ -73,7 +73,7 @@ export default function MetaOrganico({ accent, secondary }:Props) {
   const [tempTo,   setTempTo]   = useState(dateTo)
   const [tooltip1, setTooltip1] = useState<Tooltip|null>(null)
   const [tooltip2, setTooltip2] = useState<Tooltip|null>(null)
-  const [sort,     setSort]     = useState<SortState>({ col:'er', dir:'desc' })
+  const [sort,     setSort]     = useState<SortState>({ col:'alcance', dir:'desc' })
   const pickerRef = useRef<HTMLDivElement>(null)
 
   useEffect(()=>{
@@ -420,9 +420,9 @@ export default function MetaOrganico({ accent, secondary }:Props) {
                     {label:'Tipo',        col:''},
                     {label:'Fuente',      col:''},
                     {label:'Alcance',     col:'alcance'},
-                    {label:'Reacciones',  col:'reacciones'},
+                    {label:'Reacciones / Me gusta',  col:'reacciones'},
                     {label:'Coment.',     col:'comentarios'},
-                    {label:'Compart.',    col:'compartidos'},
+                    {label:'Compart. / Guardado',    col:'compartidos'},
                     {label:'Interacciones',col:'interacciones'},
                     {label:'ER %',        col:'er'},
                   ].map(h=>(
@@ -486,9 +486,9 @@ export default function MetaOrganico({ accent, secondary }:Props) {
                     </td>
                     <td style={{padding:'10px 12px'}}><span style={{display:'flex',alignItems:'center',gap:4,color:'#64748b',fontSize:12}}>{p.fuente==='Instagram'?'📷':'👍'} {p.fuente}</span></td>
                     <td style={{padding:'10px 12px',fontWeight:600,color:'#0f172a',background:sort.col==='alcance'?`${accent}05`:'transparent'}}>{p.alcance.toLocaleString()}</td>
-                    <td style={{padding:'10px 12px',color:'#0f172a',background:sort.col==='reacciones'?`${accent}05`:'transparent'}}>{p.reacciones.toLocaleString()}</td>
+                    <td title={p.fuente==='Facebook' ? 'Reacciones (Me gusta, Me encanta, etc.)' : 'Me gusta'} style={{padding:'10px 12px',color:'#0f172a',background:sort.col==='reacciones'?`${accent}05`:'transparent'}}>{p.reacciones.toLocaleString()}</td>
                     <td style={{padding:'10px 12px',color:'#0f172a',background:sort.col==='comentarios'?`${accent}05`:'transparent'}}>{p.comentarios.toLocaleString()}</td>
-                    <td style={{padding:'10px 12px',color:'#0f172a',background:sort.col==='compartidos'?`${accent}05`:'transparent'}}>{p.compartidos.toLocaleString()}</td>
+                    <td title={p.fuente==='Facebook' ? 'Compartidos' : 'Guardados (Instagram no expone shares por post)'} style={{padding:'10px 12px',color:'#0f172a',background:sort.col==='compartidos'?`${accent}05`:'transparent'}}>{p.compartidos.toLocaleString()}</td>
                     <td style={{padding:'10px 12px',fontWeight:600,color:'#0f172a',background:sort.col==='interacciones'?`${accent}05`:'transparent'}}>{p.interacciones.toLocaleString()}</td>
                     <td style={{padding:'10px 12px',background:sort.col==='er'?`${accent}05`:'transparent'}}>
                       <span style={{fontWeight:700,fontSize:13,color:p.er>=5?'#059669':p.er>=2?'#d97706':'#ef4444'}}>{p.er.toFixed(2)}%</span>
