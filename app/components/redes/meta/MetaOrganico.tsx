@@ -343,8 +343,8 @@ export default function MetaOrganico({ accent, secondary }:Props) {
                   fontSize:12,pointerEvents:'none',whiteSpace:'nowrap',zIndex:50,
                   boxShadow:'0 4px 16px rgba(0,0,0,0.3)'}}>
                   <div style={{fontWeight:700,marginBottom:4}}>{tooltip1.mes}</div>
-                  <div style={{display:'flex',alignItems:'center',gap:6}}><span style={{width:8,height:8,borderRadius:'50%',background:accent,display:'inline-block'}}/>  {tooltip1.l1}: <b>{tooltip1.v1.toLocaleString()}</b></div>
                   <div style={{display:'flex',alignItems:'center',gap:6}}><span style={{width:8,height:8,borderRadius:'50%',background:secondary,display:'inline-block'}}/> {tooltip1.l2}: <b>{tooltip1.v2.toLocaleString()}</b></div>
+                  <div style={{display:'flex',alignItems:'center',gap:6}}><span style={{width:8,height:8,borderRadius:'50%',background:accent,display:'inline-block'}}/>  {tooltip1.l1}: <b>{tooltip1.v1.toLocaleString()}</b></div>
                 </div>
               )}
             </div>
