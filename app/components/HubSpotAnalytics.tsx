@@ -243,11 +243,13 @@ function FunnelPanel({ dateFrom, dateTo, filtros }: { dateFrom: string; dateTo: 
   const [metas, setMetas] = useState<Record<string, MetaEtapa> | null>(null)
   useEffect(() => {
     let cancelled = false
-    fetchMetasForecast(dateFrom, dateTo, filtros.udn ?? null)
+    // Para las scorecards ejecutivas (Clientes $, Proyectos ganados) usamos siempre la meta ANUAL
+    // completa sin prorratear, independiente del rango de fechas que el usuario este filtrando.
+    fetchMetasForecast('2026-01-01', '2026-12-31', filtros.udn ?? null)
       .then(result => { if (!cancelled) setMetas(result) })
       .catch(err => { console.error('Error cargando metas_forecast en FunnelPanel:', err) })
     return () => { cancelled = true }
-  }, [dateFrom, dateTo, filtros.udn])
+  }, [filtros.udn])
   const metaClientesMoney = metas?.clientes?.meta_money ?? null
   const metaClientesCount = metas?.clientes?.meta_total ?? null
   const pctIngresos = metaClientesMoney && metaClientesMoney > 0 ? (total.clientesValor / metaClientesMoney) * 100 : null
