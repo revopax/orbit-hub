@@ -8,6 +8,7 @@ interface SidebarV2Props {
   onModuloChange: (m: 'brujula' | 'redes' | 'hubspot') => void;
   nombre?: string;
   onLogout?: () => void;
+  permisos?: Record<string, 'all' | string[]> | null;
 }
 
 const BRAND = '#7038D8';
@@ -125,9 +126,7 @@ export function SidebarV2({ acento, moduloActivo, onModuloChange, nombre, onLogo
               onMouseLeave={(e) => { if (!isActivo) e.currentTarget.style.backgroundColor = 'transparent'; }}
             >
               <span style={{ flexShrink: 0, display: 'flex', width: 22, height: 22 }}>
-                {mod.iconImg
-                  ? <img src={isActivo && mod.iconImgActivo ? mod.iconImgActivo : mod.iconImg} alt="" style={{ width: 22, height: 22, objectFit: 'contain', borderRadius: 4 }} />
-                  : mod.icon}
+                <img src={isActivo && mod.iconImgActivo ? mod.iconImgActivo : mod.iconImg} alt="" style={{ width: 22, height: 22, objectFit: 'contain', borderRadius: 4 }} />
               </span>
               <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', opacity: expanded ? 1 : 0, transition: 'opacity 0.15s' }}>
                 {mod.label}

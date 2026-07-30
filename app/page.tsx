@@ -69,6 +69,7 @@ export default function Page() {
           onModuloChange={setModuloActivo}
           nombre={perfil?.nombre}
           onLogout={logout}
+          permisos={perfil?.permisos}
         />
         <div style={{
           flex: 1, overflow: 'auto',

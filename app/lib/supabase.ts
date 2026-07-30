@@ -6,6 +6,7 @@ export type Perfil = {
   rol: 'admin' | 'director' | 'operativo'
   udn: string | null
   password_changed?: boolean
+  permisos?: Record<string, 'all' | string[]> | null
 }
 
 let _client: ReturnType<typeof createBrowserClient> | null = null
