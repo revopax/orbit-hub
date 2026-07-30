@@ -207,6 +207,22 @@ function calcularTasas(t: FunnelTotales) {
   ]
 }
 
+function ScoreCardKPI({ label, value, pct, metaLabel }: { label: string; value: string; pct: number | null; metaLabel: string | null }) {
+  const badgeColor = pct == null ? null : pct >= 100 ? '#16a34a' : pct >= 60 ? '#d97706' : '#dc2626'
+  const arrow = pct != null && pct >= 100 ? '\u25b2' : '\u25bc'
+  return (
+    <div style={{ background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: 10, padding: '12px 16px' }}>
+      <div style={{ fontSize: 10, fontWeight: 700, color: '#94a3b8', letterSpacing: '0.06em', textTransform: 'uppercase', marginBottom: 4 }}>{label}</div>
+      <div style={{ fontWeight: 800, fontFamily: 'monospace', fontSize: 20, color: '#0f172a' }}>{value}</div>
+      {pct != null ? (
+        <div style={{ marginTop: 4, fontSize: 11, fontWeight: 700, color: badgeColor ?? '#64748b' }}>{arrow} {pct.toFixed(1)}%{metaLabel ? ` \u00b7 meta: ${metaLabel}` : ''}</div>
+      ) : (
+        <div style={{ marginTop: 4, fontSize: 11, color: '#94a3b8' }}>Sin meta en forecast</div>
+      )}
+    </div>
+  )
+}
+
 function FunnelPanel({ dateFrom, dateTo, filtros }: { dateFrom: string; dateTo: string; filtros: FiltrosHome }) {
   const [data, setData] = useState<FunnelTotales | null>(null)
   useEffect(() => {
@@ -224,6 +240,18 @@ function FunnelPanel({ dateFrom, dateTo, filtros }: { dateFrom: string; dateTo: 
     oppsPerdidas: DUMMY.extras.oppsPerdidas, ganadosPorFacturarCount: DUMMY.extras.ganadosPorFacturar,
   }
   const tasas = data ? calcularTasas(data) : DUMMY.tasas
+  const [metas, setMetas] = useState<Record<string, MetaEtapa> | null>(null)
+  useEffect(() => {
+    let cancelled = false
+    fetchMetasForecast(dateFrom, dateTo, filtros.udn ?? null)
+      .then(result => { if (!cancelled) setMetas(result) })
+      .catch(err => { console.error('Error cargando metas_forecast en FunnelPanel:', err) })
+    return () => { cancelled = true }
+  }, [dateFrom, dateTo, filtros.udn])
+  const metaClientesMoney = metas?.clientes?.meta_money ?? null
+  const metaClientesCount = metas?.clientes?.meta_total ?? null
+  const pctIngresos = metaClientesMoney && metaClientesMoney > 0 ? (total.clientesValor / metaClientesMoney) * 100 : null
+  const pctProyectos = metaClientesCount && metaClientesCount > 0 ? (total.clientes / metaClientesCount) * 100 : null
   return (
     <div style={{
       background: '#fff', border: '1px solid #e2e8f0', borderRadius: 12, padding: 20,
@@ -306,34 +334,41 @@ function FunnelPanel({ dateFrom, dateTo, filtros }: { dateFrom: string; dateTo: 
         })}
       </div>
 
-      <div style={{ display: 'flex', flexDirection: 'column', gap: 8, minWidth: 0 }}>
+      <div style={{
+        background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: 10,
+        padding: '14px 16px', display: 'flex', flexDirection: 'column',
+      }}>
+        <div style={{ fontSize: 10, fontWeight: 700, color: '#94a3b8', letterSpacing: '0.06em', textTransform: 'uppercase', marginBottom: 8 }}>
+          Calidad y perdidas
+        </div>
         {[
           ['MQL descalificados', fmtNum(total.mqlDescalificados)],
           ['SQL objetadas', fmtNum(total.sqlObjetadas)],
           ['Opps perdidas', fmtNum(total.oppsPerdidas)],
           ['Ganados por facturar', fmtNum(total.ganadosPorFacturarCount)],
-        ].map(([label, value]) => (
+        ].map(([label, value], i) => (
           <div key={label} style={{
-            background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: 8,
-            padding: '7px 12px', fontSize: 11, color: '#334155',
-            width: '100%', boxSizing: 'border-box',
+            display: 'flex', justifyContent: 'space-between', alignItems: 'center',
+            padding: '8px 0', borderTop: i === 0 ? 'none' : '1px solid #e2e8f0',
           }}>
-            <div style={{ color: '#1e293b', fontSize: 9 }}>{label}</div>
-            <div style={{ fontWeight: 700, fontFamily: 'monospace', fontSize: 12, color: '#0f172a' }}>{value}</div>
+            <span style={{ fontSize: 11.5, color: '#334155' }}>{label}</span>
+            <span style={{ fontWeight: 700, fontFamily: 'monospace', fontSize: 13, color: '#0f172a' }}>{value}</span>
           </div>
         ))}
       </div>
 
     </div>
 
-      <div style={{ display: 'flex', gap: 16, flexWrap: 'wrap' }}>
-        <div style={{ background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: 10, padding: '12px 18px', fontSize: 13 }}>
-          <div style={{ color: '#64748b', fontSize: 11, marginBottom: 2 }}>Clientes ($)</div>
-          <div style={{ fontWeight: 800, fontFamily: 'monospace', fontSize: 18, color: '#2563eb' }}>{fmtMoney(total.clientesValor)}</div>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))', gap: 12 }}>
+        <ScoreCardKPI label="Ingresos del periodo" value={fmtMoney(total.clientesValor)} pct={pctIngresos} metaLabel={metaClientesMoney != null ? fmtMoney(metaClientesMoney) : null} />
+        <ScoreCardKPI label="Proyectos ganados" value={fmtNum(total.clientes)} pct={pctProyectos} metaLabel={metaClientesCount != null ? fmtNum(Math.round(metaClientesCount)) : null} />
+        <div style={{ background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: 10, padding: '12px 16px' }}>
+          <div style={{ fontSize: 10, fontWeight: 700, color: '#94a3b8', letterSpacing: '0.06em', textTransform: 'uppercase', marginBottom: 4 }}>Clientes ($)</div>
+          <div style={{ fontWeight: 800, fontFamily: 'monospace', fontSize: 20, color: '#0f172a' }}>{fmtMoney(total.clientesValor)}</div>
         </div>
-        <div style={{ background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: 10, padding: '12px 18px', fontSize: 13 }}>
-          <div style={{ color: '#64748b', fontSize: 11, marginBottom: 2 }}>Ganados por facturar ($)</div>
-          <div style={{ fontWeight: 800, fontFamily: 'monospace', fontSize: 18, color: '#0f172a' }}>{fmtMoney(total.ganadosPorFacturarValor)}</div>
+        <div style={{ background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: 10, padding: '12px 16px' }}>
+          <div style={{ fontSize: 10, fontWeight: 700, color: '#94a3b8', letterSpacing: '0.06em', textTransform: 'uppercase', marginBottom: 4 }}>Ganados por facturar ($)</div>
+          <div style={{ fontWeight: 800, fontFamily: 'monospace', fontSize: 20, color: '#0f172a' }}>{fmtMoney(total.ganadosPorFacturarValor)}</div>
         </div>
       </div>
     </div>
@@ -376,7 +411,7 @@ async function fetchFunnelTotalesPorEquipo(
 
 type MetaEtapa = { etapa: string; meta_total: number | null; meta_marketing: number | null; meta_comercial: number | null; meta_money: number | null; es_prorrateado?: boolean | null }
 
-async function fetchMetasForecast(fechaDesde: string, fechaHasta: string, udn: string): Promise<Record<string, MetaEtapa>> {
+async function fetchMetasForecast(fechaDesde: string, fechaHasta: string, udn: string | null): Promise<Record<string, MetaEtapa>> {
   const url = `${SUPABASE_MBR_URL}/rest/v1/rpc/metas_forecast_rango`
   const res = await fetch(url, {
     method: 'POST',
