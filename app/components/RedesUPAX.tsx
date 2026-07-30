@@ -1,5 +1,5 @@
 'use client'
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import MetaOrganico     from './redes/meta/MetaOrganico'
 import MetaAds          from './redes/meta/MetaAds'
 import GoogleAds        from './redes/google/GoogleAds'
@@ -7,6 +7,11 @@ import GA4              from './redes/google/GA4'
 import LinkedInOrganico from './redes/linkedin/LinkedInOrganico'
 import LinkedInAds      from './redes/linkedin/LinkedInAds'
 
+const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL || 'https://szxdvdbdyuxtvyvxbder.supabase.co'
+const SUPABASE_KEY = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || ''
+function fmtFechaHora(d: Date) {
+  return d.toLocaleString('es-MX', { day:'numeric', month:'short', hour:'numeric', minute:'2-digit', hour12:true, timeZone:'America/Mexico_City' }).replace('.', '')
+}
 const imgStyle = { height:22, width:'auto', objectFit:'contain' as const, maxWidth:64 }
 
 const TABS = [
@@ -58,6 +63,17 @@ function NetworkLogo({ color }: { color: string }) {
 }
 
 export default function RedesUPAX() {
+  const [ultimaActualizacion, setUltimaActualizacion] = useState<Date | null>(null)
+  useEffect(() => {
+    if (!SUPABASE_KEY) return
+    fetch(`${SUPABASE_URL}/rest/v1/meta_organico_posts?select=audit_date&order=audit_date.desc&limit=1`, {
+      headers: { apikey: SUPABASE_KEY, Authorization: `Bearer ${SUPABASE_KEY}` }
+    })
+      .then(r => r.ok ? r.json() : [])
+      .then(rows => { if (rows[0]?.audit_date) setUltimaActualizacion(new Date(rows[0].audit_date)) })
+      .catch(err => console.error('Error cargando ultima actualizacion de Redes:', err))
+  }, [])
+  const proximaActualizacion = ultimaActualizacion ? new Date(ultimaActualizacion.getTime() + 6*60*60*1000) : null
   const [activeId, setActiveId] = useState('meta-org')
   const tab = TABS.find(t => t.id === activeId)!
   return (
@@ -125,13 +141,17 @@ export default function RedesUPAX() {
             background:`${tab.primary}14`, borderRadius:20,
             padding:'3px 10px', border:`1px solid ${tab.primary}30`,
           }}>
-            <span style={{ width:6, height:6, borderRadius:'50%', background:tab.primary, display:'inline-block', animation:'none' }}/>
-            <span style={{ fontSize:11, fontWeight:700, color:tab.primary, letterSpacing:'0.03em' }}>
-              {new Date().toLocaleDateString('es-MX',{month:'short',year:'numeric'}).toUpperCase()}
+            <span className="live-dot" style={{ width:7, height:7, borderRadius:'50%', background:'#22C55E', display:'inline-block', flexShrink:0 }}/>
+            <span style={{ fontSize:11, fontWeight:700, color:tab.primary, letterSpacing:'0.02em', whiteSpace:'nowrap' }}>
+              {ultimaActualizacion
+                ? <>Última actualización: <span style={{ fontWeight:800 }}>{fmtFechaHora(ultimaActualizacion)}</span></>
+                : 'Cargando...'}
             </span>
           </div>
           <span style={{ fontSize:10, color:'#94a3b8', fontWeight:500, letterSpacing:'0.02em' }}>
-            Performance y Conversión
+            {proximaActualizacion
+              ? <>Próx. actualización: {fmtFechaHora(proximaActualizacion)}</>
+              : 'Performance y Conversión'}
           </span>
         </div>
         </div>{/* cierre maxWidth */}
