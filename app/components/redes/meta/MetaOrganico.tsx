@@ -60,9 +60,11 @@ export default function MetaOrganico({ accent, secondary }:Props) {
   const [posts,   setPosts]   = useState<Post[]>([])
   const [segs,    setSegs]    = useState<Seguidor[]>([])
   const [loading, setLoading] = useState(true)
-  const [filtUDN,  setFiltUDN]  = useState('Todas')
-  const [filtRed,  setFiltRed]  = useState('Todas')
-  const [filtTipo, setFiltTipo] = useState('Todos')
+  const [filtUDN,  setFiltUDN]  = useState<string[]>([])
+  const [filtRed,  setFiltRed]  = useState<string[]>([])
+  const [filtTipo, setFiltTipo] = useState<string[]>([])
+  const [openFiltro, setOpenFiltro] = useState<string|null>(null)
+  const filtroRef = useRef<HTMLDivElement>(null)
   const [imgErr,   setImgErr]   = useState<Record<string,boolean>>({})
   const [hoverImg, setHoverImg] = useState<string|null>(null)
   const [showPicker, setShowPicker] = useState(false)
@@ -81,6 +83,11 @@ export default function MetaOrganico({ accent, secondary }:Props) {
     document.addEventListener('mousedown', handler)
     return ()=>document.removeEventListener('mousedown', handler)
   },[])
+  useEffect(()=>{
+    const handler = (e:MouseEvent)=>{ if(filtroRef.current && !filtroRef.current.contains(e.target as Node)) setOpenFiltro(null) }
+    document.addEventListener('mousedown', handler)
+    return ()=>document.removeEventListener('mousedown', handler)
+  },[])
 
   useEffect(()=>{
     Promise.all([
@@ -91,14 +98,14 @@ export default function MetaOrganico({ accent, secondary }:Props) {
 
   const filtered = useMemo(()=>posts.filter(p=>
     p.fecha>=dateFrom && p.fecha<=dateTo &&
-    (filtUDN  ==='Todas' || p.udn    ===filtUDN) &&
-    (filtRed  ==='Todas' || p.fuente ===filtRed) &&
-    (filtTipo ==='Todos' || p.tipo   ===filtTipo)
+    (filtUDN.length===0  || filtUDN.includes(p.udn)) &&
+    (filtRed.length===0  || filtRed.includes(p.fuente)) &&
+    (filtTipo.length===0 || filtTipo.includes(p.tipo))
   ),[posts,dateFrom,dateTo,filtUDN,filtRed,filtTipo])
 
-  const isFiltered = filtUDN!=='Todas' || filtRed!=='Todas' || filtTipo!=='Todos' || activePreset!=='Este año'
+  const isFiltered = filtUDN.length>0 || filtRed.length>0 || filtTipo.length>0 || activePreset!=='Este año'
   function resetFilters(){
-    setFiltUDN('Todas'); setFiltRed('Todas'); setFiltTipo('Todos')
+    setFiltUDN([]); setFiltRed([]); setFiltTipo([])
     const [f,t] = PRESETS[2].fn()
     setDateFrom(f); setDateTo(t); setTempFrom(f); setTempTo(t)
     setActivePreset('Este año')
@@ -110,7 +117,7 @@ export default function MetaOrganico({ accent, secondary }:Props) {
   const totComp    = filtered.reduce((s,p)=>s+p.compartidos,0)
   const er         = calcER(filtered)
 
-  const segFiltered = segs.filter(s=>s.fecha>=dateFrom&&s.fecha<=dateTo&&(filtUDN==='Todas'||s.udn===filtUDN)&&(filtRed==='Todas'||s.fuente===filtRed))
+  const segFiltered = segs.filter(s=>s.fecha>=dateFrom&&s.fecha<=dateTo&&(filtUDN.length===0||filtUDN.includes(s.udn))&&(filtRed.length===0||filtRed.includes(s.fuente)))
   const latestSeg:Record<string,number>={}
   for(const s of [...segFiltered].sort((a,b)=>a.fecha<b.fecha?-1:1)) latestSeg[`${s.udn}_${s.fuente}`]=s.seguidores
   const totSeg = Object.values(latestSeg).reduce((a,b)=>a+b,0)
@@ -170,15 +177,39 @@ export default function MetaOrganico({ accent, secondary }:Props) {
           </div>
         </div>
         <div style={{marginLeft:'auto',display:'flex',gap:10,flexWrap:'wrap',alignItems:'center'}}>
-          {([['UDN',UDNS,filtUDN,setFiltUDN],['Red',REDES,filtRed,setFiltRed],['Tipo',TIPOS,filtTipo,setFiltTipo]] as any[]).map(([l,opts,val,set])=>(
-            <label key={l} style={{display:'flex',alignItems:'center',gap:6,fontSize:11,color:'rgba(255,255,255,0.75)',fontWeight:600}}>
-              {l}:
-              <select value={val} onChange={e=>set(e.target.value)}
-                style={{background:'rgba(255,255,255,0.2)',border:'1px solid rgba(255,255,255,0.4)',borderRadius:9,color:'#fff',padding:'7px 12px',fontSize:12,cursor:'pointer'}}>
-                {opts.map((o:string)=><option key={o} style={{background:'#1e293b'}}>{o}</option>)}
-              </select>
-            </label>
+          <div ref={filtroRef} style={{display:'flex',gap:10}}>
+          {([['UDN',UDNS.slice(1),filtUDN,setFiltUDN],['Red',REDES.slice(1),filtRed,setFiltRed],['Tipo',TIPOS.slice(1),filtTipo,setFiltTipo]] as [string,string[],string[],(v:string[])=>void][]).map(([l,opts,val,set])=>(
+            <div key={l} style={{position:'relative'}}>
+              <button onClick={()=>setOpenFiltro(openFiltro===l?null:l)}
+                style={{background:'rgba(255,255,255,0.2)',border:'1px solid rgba(255,255,255,0.4)',borderRadius:9,color:'#fff',padding:'7px 12px',fontSize:12,cursor:'pointer',display:'flex',alignItems:'center',gap:6,whiteSpace:'nowrap'}}>
+                {l}: {val.length===0 ? (l==='Tipo'?'Todos':'Todas') : val.length===1 ? val[0] : `${val.length} seleccionadas`}
+                <span style={{fontSize:9}}>▾</span>
+              </button>
+              {openFiltro===l&&(
+                <div style={{position:'absolute',left:0,top:'calc(100% + 6px)',background:'#fff',borderRadius:12,boxShadow:'0 8px 32px rgba(0,0,0,0.2)',padding:10,zIndex:100,minWidth:180,maxHeight:280,overflowY:'auto'}}>
+                  {opts.map(o=>{
+                    const checked = val.includes(o)
+                    return (
+                      <label key={o} style={{display:'flex',alignItems:'center',gap:8,padding:'6px 8px',borderRadius:7,cursor:'pointer',fontSize:12.5,color:'#334155'}}
+                        onMouseEnter={e=>(e.currentTarget.style.background='#f8fafc')}
+                        onMouseLeave={e=>(e.currentTarget.style.background='transparent')}>
+                        <input type='checkbox' checked={checked}
+                          onChange={()=>set(checked ? val.filter(x=>x!==o) : [...val,o])}
+                          style={{cursor:'pointer'}}/>
+                        {o}
+                      </label>
+                    )
+                  })}
+                  {val.length>0 && (
+                    <button onClick={()=>set([])} style={{width:'100%',marginTop:6,padding:'6px 8px',borderRadius:7,border:'none',background:'transparent',color:accent,fontSize:11.5,fontWeight:700,cursor:'pointer',textAlign:'left'}}>
+                      Limpiar
+                    </button>
+                  )}
+                </div>
+              )}
+            </div>
           ))}
+          </div>
           {/* Período */}
           <div style={{position:'relative'}} ref={pickerRef}>
             <button onClick={()=>setShowPicker(!showPicker)}
@@ -462,8 +493,7 @@ export default function MetaOrganico({ accent, secondary }:Props) {
                                 background:'rgba(15,23,42,0.92)',color:'#fff',borderRadius:10,padding:'8px 12px',
                                 fontSize:11,whiteSpace:'normal',maxWidth:200,zIndex:50,pointerEvents:'none',
                                 boxShadow:'0 4px 16px rgba(0,0,0,0.3)',lineHeight:1.5}}>
-                                <div style={{fontWeight:700,marginBottom:3,color:accent==='#1877f2'?'#93c5fd':accent}}>{p.tipo} · {p.fuente}</div>
-                                <div>{p.mensaje?.slice(0,80)}{(p.mensaje?.length||0)>80?'…':''}</div>
+                                <div style={{fontWeight:700,color:accent==='#1877f2'?'#93c5fd':accent}}>{p.tipo} · {p.fuente}</div>
                               </div>
                             )}
                           </>
