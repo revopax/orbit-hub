@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-import sys, os, json
+import sys, os, json, traceback
 from datetime import datetime
 sys.path.insert(0, os.path.dirname(__file__))
 
@@ -32,6 +32,7 @@ if __name__ == '__main__':
             results[name] = 'OK'
         except Exception as e:
             print(f"  ✗ Error en {name}: {e}")
+            traceback.print_exc()
             results[name] = f'ERROR: {e}'
 
     meta_info = {
