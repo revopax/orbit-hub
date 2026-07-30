@@ -229,7 +229,7 @@ function FunnelPanel({ dateFrom, dateTo, filtros }: { dateFrom: string; dateTo: 
       background: '#fff', border: '1px solid #e2e8f0', borderRadius: 12, padding: 20,
       display: 'flex', flexDirection: 'column', gap: 16, flex: '2 1 620px', minWidth: 0,
     }}>
-    <div style={{ display: 'flex', gap: 0, alignItems: 'center', flexWrap: 'nowrap', width: '100%' }}>
+    <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1fr) minmax(150px, 0.5fr) minmax(140px, 0.38fr)', gap: 12, alignItems: 'center', width: '100%' }}>
       <div style={{
         position: 'relative', width: '100%', maxWidth: 600, flexShrink: 1, minWidth: 0,
         backgroundColor: '#ffffff', isolation: 'isolate', marginLeft: 0,
@@ -237,14 +237,14 @@ function FunnelPanel({ dateFrom, dateTo, filtros }: { dateFrom: string; dateTo: 
         <img
           src={`/images/funnel-hubspot-v5.png?t=${Date.now()}`}
           alt="Funnel HubSpot"
-          style={{ width: '73.33%', maxWidth: 440, display: 'block', backgroundColor: '#ffffff', mixBlendMode: 'normal', filter: 'saturate(1.35) brightness(1.1)' }}
+          style={{ width: '100%', maxWidth: 440, display: 'block', backgroundColor: '#ffffff', mixBlendMode: 'normal', filter: 'saturate(1.35) brightness(1.1)' }}
         />
         {FUNNEL_STAGES.map((stage, i) => {
           const value = total[stage.key]
           const pos = RING_POSITIONS[i]
           return (
             <div key={stage.label} style={{
-              position: 'absolute', left: 0, width: '73.33%',
+              position: 'absolute', left: 0, width: '100%',
               top: `${pos.top}%`, height: `${pos.height}%`,
               display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
               textAlign: 'center', pointerEvents: 'none', gap: 1,
@@ -274,23 +274,15 @@ function FunnelPanel({ dateFrom, dateTo, filtros }: { dateFrom: string; dateTo: 
             </div>
           )
         })}
+      </div>
+
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 8, minWidth: 0 }}>
         {FUNNEL_STAGES.filter(s => s.tasaLabel).map((stage, idx) => {
-          // La costura entre etapa idx y idx+1 esta al final del rango top+height de la etapa idx
-          const next = RING_POSITIONS[idx + 1]
-          const seamTop = (next.top - 12) + idx * 2.8 // subido -12% base, separacion mas moderada
-          // El cono se angosta hacia abajo: la cara visible del embudo va de ~100% de ancho arriba
-          // a ~20% en la punta. Aproximamos el borde derecho del cono en esa altura (seamTop)
-          // para que la scorecard "seleccione" el borde y baje en diagonal, tipo escalera invertida.
-          const coneWidthAtSeam = 100 - seamTop * 0.55 // aprox mas suave: se angosta menos rapido
-          const leftOffset = coneWidthAtSeam + 16 // un poco mas separada del borde del cono
           const tasaValor = tasas[idx]?.valor ?? 0
           return (
-            <div key={stage.label} style={{
-              position: 'absolute', left: `${leftOffset * 0.733}%`, marginLeft: 6, width: 'clamp(92px, 21.6%, 130px)',
-              top: `${seamTop}%`, transform: 'translateY(-50%)',
-            }}>
+            <div key={stage.label} style={{ width: '100%' }}>
               <div style={{
-                display: 'inline-flex', flexDirection: 'column', gap: 2,
+                display: 'flex', flexDirection: 'column', gap: 2,
                 background: `${stage.color}12`, border: `1px solid ${stage.color}55`, borderLeft: `3px solid ${stage.color}`,
                 borderRadius: 8, padding: '6px 10px', boxShadow: '0 1px 3px rgba(15,23,42,0.08)',
               }}>
@@ -314,7 +306,7 @@ function FunnelPanel({ dateFrom, dateTo, filtros }: { dateFrom: string; dateTo: 
         })}
       </div>
 
-      <div style={{ display: 'flex', flexDirection: 'column', gap: 8, width: 150, flexShrink: 0, marginLeft: 8 }}>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 8, minWidth: 0 }}>
         {[
           ['MQL descalificados', fmtNum(total.mqlDescalificados)],
           ['SQL objetadas', fmtNum(total.sqlObjetadas)],
@@ -324,7 +316,7 @@ function FunnelPanel({ dateFrom, dateTo, filtros }: { dateFrom: string; dateTo: 
           <div key={label} style={{
             background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: 8,
             padding: '7px 12px', fontSize: 11, color: '#334155',
-            width: 150, boxSizing: 'border-box',
+            width: '100%', boxSizing: 'border-box',
           }}>
             <div style={{ color: '#1e293b', fontSize: 9 }}>{label}</div>
             <div style={{ fontWeight: 700, fontFamily: 'monospace', fontSize: 12, color: '#0f172a' }}>{value}</div>
