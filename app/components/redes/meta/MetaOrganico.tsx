@@ -454,8 +454,8 @@ export default function MetaOrganico({ accent, secondary }:Props) {
                               onError={()=>setImgErr(prev=>({...prev,[p.post_id]:true}))}
                               style={{width:56,height:56,objectFit:'cover',borderRadius:8,border:'1px solid #e2e8f0',
                                 display:'block',transition:'transform 0.2s ease, box-shadow 0.2s ease',
-                                transform:hoverImg===p.post_id?'scale(1.5)':'scale(1)',
-                                boxShadow:hoverImg===p.post_id?'0 8px 24px rgba(0,0,0,0.25)':'none',
+                                transform:hoverImg===p.post_id?'scale(3.2)':'scale(1)',
+                                boxShadow:hoverImg===p.post_id?'0 12px 36px rgba(0,0,0,0.35)':'none',
                                 zIndex:hoverImg===p.post_id?10:1,position:'relative'}}/>
                             {hoverImg===p.post_id&&(
                               <div style={{position:'absolute',left:'50%',bottom:'calc(100% + 8px)',transform:'translateX(-50%)',
