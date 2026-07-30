@@ -10,23 +10,26 @@ interface SidebarV2Props {
   onLogout?: () => void;
 }
 
-const BRAND = '#dc2626';
+const BRAND = '#7038D8';
 
 const MODULOS = [
   {
     id: 'brujula' as const,
     label: 'Brújula Comercial 2.0',
     iconImg: '/logos/orbit-brujula-outline.svg',
+    iconImgActivo: '/logos/orbit-brujula-selected-white.svg',
   },
   {
     id: 'redes' as const,
     label: 'Redes UPAX',
     iconImg: '/logos/orbit-redes-outline.svg',
+    iconImgActivo: '/logos/orbit-redes-selected-white.svg',
   },
   {
     id: 'hubspot' as const,
     label: 'HubSpot Analytics',
     iconImg: '/logos/orbit-analytics-outline.svg',
+    iconImgActivo: '/logos/orbit-analytics-selected-white.svg',
   },
 ];
 
@@ -89,7 +92,7 @@ export function SidebarV2({ acento, moduloActivo, onModuloChange, nombre, onLogo
           onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = 'transparent'; }}
         >
           <span style={{ flexShrink: 0, display: 'flex', width: 22, height: 22, alignItems: 'center', justifyContent: 'center' }}>
-            <img src="/logos/orbit-iam-outline.svg" alt="" style={{ width: 18, height: 18, objectFit: 'contain' }} />
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87M16 3.13a4 4 0 010 7.75"/></svg>
           </span>
           <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', opacity: expanded ? 1 : 0, transition: 'opacity 0.15s' }}>
             IAM · Gestión de usuarios
@@ -123,7 +126,7 @@ export function SidebarV2({ acento, moduloActivo, onModuloChange, nombre, onLogo
             >
               <span style={{ flexShrink: 0, display: 'flex', width: 22, height: 22 }}>
                 {mod.iconImg
-                  ? <img src={mod.iconImg} alt="" style={{ width: 22, height: 22, objectFit: 'contain', borderRadius: 4 }} />
+                  ? <img src={isActivo && mod.iconImgActivo ? mod.iconImgActivo : mod.iconImg} alt="" style={{ width: 22, height: 22, objectFit: 'contain', borderRadius: 4 }} />
                   : mod.icon}
               </span>
               <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', opacity: expanded ? 1 : 0, transition: 'opacity 0.15s' }}>
