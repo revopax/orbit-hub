@@ -13,8 +13,8 @@ export async function POST(req: Request) {
     const udn = rol === 'admin' ? null : (udns ?? []).join(',');
     const { error } = await supabaseAdmin.from('perfiles').update({
       rol, udn, activo,
-      udn_madre: udn_madre ?? null,
-      nivel_jerarquico: nivel_jerarquico ?? null,
+      udn_madre: udn_madre || null,
+      nivel_jerarquico: nivel_jerarquico || null,
       reporta_a: reporta_a ?? null,
       vistas: (vistas ?? []).join(',') || null,
       permisos: permisos ?? null,
