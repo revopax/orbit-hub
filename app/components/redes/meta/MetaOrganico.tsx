@@ -158,10 +158,13 @@ export default function MetaOrganico({ accent, secondary }:Props) {
         </div>
         <div style={{marginLeft:'auto',display:'flex',gap:10,flexWrap:'wrap',alignItems:'center'}}>
           {([['UDN',UDNS,filtUDN,setFiltUDN],['Red',REDES,filtRed,setFiltRed],['Tipo',TIPOS,filtTipo,setFiltTipo]] as any[]).map(([l,opts,val,set])=>(
-            <select key={l} value={val} onChange={e=>set(e.target.value)}
-              style={{background:'rgba(255,255,255,0.2)',border:'1px solid rgba(255,255,255,0.4)',borderRadius:9,color:'#fff',padding:'7px 12px',fontSize:12,cursor:'pointer'}}>
-              {opts.map((o:string)=><option key={o} style={{background:'#1e293b'}}>{o}</option>)}
-            </select>
+            <label key={l} style={{display:'flex',alignItems:'center',gap:6,fontSize:11,color:'rgba(255,255,255,0.75)',fontWeight:600}}>
+              {l}:
+              <select value={val} onChange={e=>set(e.target.value)}
+                style={{background:'rgba(255,255,255,0.2)',border:'1px solid rgba(255,255,255,0.4)',borderRadius:9,color:'#fff',padding:'7px 12px',fontSize:12,cursor:'pointer'}}>
+                {opts.map((o:string)=><option key={o} style={{background:'#1e293b'}}>{o}</option>)}
+              </select>
+            </label>
           ))}
           {/* Período */}
           <div style={{position:'relative'}} ref={pickerRef}>
@@ -210,7 +213,7 @@ export default function MetaOrganico({ accent, secondary }:Props) {
         <KPICard label='Alcance / Espectadores'        value={fmtK(totAlcance)} accent={accent}/>
         <KPICard label='Impresiones / Visualizaciones' value={fmtK(totImp)}     accent={accent}/>
         <KPICard label='Interacciones Totales'         value={fmtK(totInt)}     accent={secondary}/>
-        <KPICard label='Seguidores Totales'            value={fmtK(totSeg)}     accent={secondary}/>
+        <KPICard label='Seguidores Totales'            value={totSeg.toLocaleString('es-MX')} accent={secondary}/>
       </div>
       <div style={{display:'flex',gap:14,flexWrap:'wrap',marginBottom:24}}>
         <KPICard label='Engagement Rate' value={`${er.toFixed(2)}%`}    accent={accent}    small/>
