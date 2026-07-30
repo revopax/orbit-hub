@@ -360,16 +360,12 @@ function FunnelPanel({ dateFrom, dateTo, filtros }: { dateFrom: string; dateTo: 
     </div>
 
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))', gap: 12 }}>
-        <ScoreCardKPI label="Ingresos del periodo" value={fmtMoney(total.clientesValor)} pct={pctIngresos} metaLabel={metaClientesMoney != null ? fmtMoney(metaClientesMoney) : null} />
-        <ScoreCardKPI label="Proyectos ganados" value={fmtNum(total.clientes)} pct={pctProyectos} metaLabel={metaClientesCount != null ? fmtNum(Math.round(metaClientesCount)) : null} />
-        <div style={{ background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: 10, padding: '12px 16px' }}>
-          <div style={{ fontSize: 10, fontWeight: 700, color: '#94a3b8', letterSpacing: '0.06em', textTransform: 'uppercase', marginBottom: 4 }}>Clientes ($)</div>
-          <div style={{ fontWeight: 800, fontFamily: 'monospace', fontSize: 20, color: '#0f172a' }}>{fmtMoney(total.clientesValor)}</div>
-        </div>
+        <ScoreCardKPI label="Clientes ($)" value={fmtMoney(total.clientesValor)} pct={pctIngresos} metaLabel={metaClientesMoney != null ? fmtMoney(metaClientesMoney) : null} />
         <div style={{ background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: 10, padding: '12px 16px' }}>
           <div style={{ fontSize: 10, fontWeight: 700, color: '#94a3b8', letterSpacing: '0.06em', textTransform: 'uppercase', marginBottom: 4 }}>Ganados por facturar ($)</div>
           <div style={{ fontWeight: 800, fontFamily: 'monospace', fontSize: 20, color: '#0f172a' }}>{fmtMoney(total.ganadosPorFacturarValor)}</div>
         </div>
+        <ScoreCardKPI label="Proyectos ganados" value={fmtNum(total.clientes)} pct={pctProyectos} metaLabel={metaClientesCount != null ? fmtNum(Math.round(metaClientesCount)) : null} />
       </div>
     </div>
   )
