@@ -15,7 +15,7 @@ const BRAND = '#7c3aed';
 const MODULOS = [
   {
     id: 'brujula' as const,
-    label: 'Brújula Comercial',
+    label: 'Brújula Comercial 2.0',
     iconImg: '/logos/brujula-sidebar-logo.png',
   },
   {

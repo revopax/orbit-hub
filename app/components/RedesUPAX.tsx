@@ -105,6 +105,16 @@ export default function RedesUPAX() {
                 {t.id==='li-ads'     && <img src="/logos/Linkedin-Ads-logo.png" alt="" style={{width:20,height:20,objectFit:'contain'}}/>}
               </span>
               {t.label}
+              {t.id !== 'meta-org' && (
+                <span style={{
+                  fontSize: 9, fontWeight: 700, padding: '2px 6px', borderRadius: 5,
+                  background: active ? 'rgba(255,255,255,0.25)' : '#f1f5f9',
+                  color: active ? '#ffffff' : '#94a3b8',
+                  whiteSpace: 'nowrap',
+                }}>
+                  En proceso
+                </span>
+              )}
             </button>
             )
           })}

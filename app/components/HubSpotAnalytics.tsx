@@ -2727,8 +2727,19 @@ export default function HubSpotAnalytics() {
                   color: active ? '#ffffff' : '#64748b',
                   fontSize: 12.5, fontWeight: active ? 700 : 500,
                   cursor: 'pointer', whiteSpace: 'nowrap', transition: 'all 0.2s',
+                  display: 'flex', alignItems: 'center', gap: 7,
                 }}>
                   {t.label}
+                  {(t.id === 'mbr' || t.id === 'email') && (
+                    <span style={{
+                      fontSize: 9, fontWeight: 700, padding: '2px 6px', borderRadius: 5,
+                      background: active ? 'rgba(255,255,255,0.25)' : '#f1f5f9',
+                      color: active ? '#ffffff' : '#94a3b8',
+                      whiteSpace: 'nowrap',
+                    }}>
+                      En proceso
+                    </span>
+                  )}
                 </button>
               )
             })}
