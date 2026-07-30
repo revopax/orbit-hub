@@ -30,6 +30,7 @@ jobs:
         env:
           SUPABASE_URL: https://szxdvdbdyuxtvyvxbder.supabase.co
           SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_ANON_KEY }}
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
           META_PAGE_TOKENS: ${{ secrets.META_PAGE_TOKENS }}
           GOOGLE_SERVICE_ACCOUNT_JSON: ${{ secrets.GOOGLE_SERVICE_ACCOUNT_JSON }}
         run: |

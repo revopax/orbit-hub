@@ -4,6 +4,40 @@ sys.path.insert(0, os.path.dirname(os.path.dirname(__file__)))
 
 SUPABASE_URL = os.environ.get("SUPABASE_URL", "https://szxdvdbdyuxtvyvxbder.supabase.co")
 SUPABASE_KEY = os.environ.get("SUPABASE_ANON_KEY", "")
+SUPABASE_SERVICE_KEY = os.environ.get("SUPABASE_SERVICE_ROLE_KEY", "")
+STORAGE_BUCKET = "meta-organico-media"
+
+def guardar_imagen_permanente(url_original, post_id):
+    """Descarga la imagen/thumbnail de Meta (URL efimera) y la sube a Supabase Storage,
+    devolviendo una URL publica permanente. Si falla por cualquier motivo, devuelve la
+    URL original como fallback (mejor tener algo que nada)."""
+    if not url_original or not SUPABASE_SERVICE_KEY:
+        return url_original
+    try:
+        img_res = requests.get(url_original, timeout=15)
+        if img_res.status_code != 200 or not img_res.content:
+            return url_original
+        ext = "jpg"
+        ctype = img_res.headers.get("Content-Type", "")
+        if "png" in ctype: ext = "png"
+        elif "webp" in ctype: ext = "webp"
+        path = f"{post_id}.{ext}"
+        upload_res = requests.post(
+            f"{SUPABASE_URL}/storage/v1/object/{STORAGE_BUCKET}/{path}",
+            headers={
+                "Authorization": f"Bearer {SUPABASE_SERVICE_KEY}",
+                "Content-Type": ctype or "image/jpeg",
+                "x-upsert": "true",
+            },
+            data=img_res.content, timeout=20,
+        )
+        if upload_res.status_code not in (200, 201):
+            print(f"    ⚠ Storage upload {upload_res.status_code} para {post_id}: {upload_res.text[:150]}")
+            return url_original
+        return f"{SUPABASE_URL}/storage/v1/object/public/{STORAGE_BUCKET}/{path}"
+    except Exception as e:
+        print(f"    ⚠ Error guardando imagen de {post_id}: {e}")
+        return url_original
 SINCE_TS     = int((datetime.now() - timedelta(days=90)).timestamp())
 HOY_STR      = datetime.now().strftime('%Y-%m-%d')
 AHORA        = datetime.now().strftime("%Y-%m-%d %H:%M")
@@ -116,6 +150,7 @@ def extract():
                 reac = p.get('reactions', {}).get('summary', {}).get('total_count', 0)
                 comm = p.get('comments',  {}).get('summary', {}).get('total_count', 0)
                 shar = p.get('shares',    {}).get('count', 0)
+                img = guardar_imagen_permanente(img, p['id'])
                 rows.append({"fecha": p['created_time'][:10], "fuente": "Facebook", "udn": udn,
                     "post_id": p['id'], "mensaje": (p.get('message','') or '')[:200].replace('\n',' '),
                     "tipo": tipo, "impresiones_views": views, "alcance": alc,
@@ -147,6 +182,7 @@ def extract():
                         tipo, img = identificar_tipo(m, "Instagram", ep)
                         likes = m.get('like_count', 0)
                         comms = m.get('comments_count', 0)
+                        img = guardar_imagen_permanente(img, m['id'])
                         rows.append({"fecha": m['timestamp'][:10], "fuente": "Instagram", "udn": udn,
                             "post_id": m['id'],
                             "mensaje": (m.get('caption','') or 'Sin texto')[:200].replace('\n',' '),
