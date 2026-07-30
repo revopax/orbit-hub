@@ -240,19 +240,25 @@ export default function MetaOrganico({ accent, secondary }:Props) {
         <div style={card}>
           <div style={{fontSize:14,fontWeight:700,color:'#0f172a',marginBottom:4}}>Engagement Rate por UDN</div>
           <div style={{fontSize:12,color:'#94a3b8',marginBottom:20}}>Objetivo: Ver qué marca conecta mejor</div>
-          <div style={{display:'flex',alignItems:'flex-end',gap:6,height:140}}>
-            {erPorUDN.map(d=>(
-              <div key={d.u} style={{flex:1,display:'flex',flexDirection:'column',alignItems:'center',gap:4,position:'relative',cursor:'default'}}
-                title={`${d.u}: ${d.v.toFixed(2)}%`}>
-                <div style={{fontSize:9,color:'#475569',fontWeight:700}}>{d.v.toFixed(1)}%</div>
-                <div style={{width:'100%',borderRadius:'6px 6px 0 0',height:`${(d.v/maxER)*110}px`,
-                  background:`linear-gradient(to top,${accent},${accent}99)`,boxShadow:`0 4px 12px ${accent}33`,
-                  transition:'filter 0.2s'}}
-                  onMouseEnter={e=>(e.currentTarget.style.filter='brightness(1.15)')}
-                  onMouseLeave={e=>(e.currentTarget.style.filter='brightness(1)')}/>
-                <div style={{fontSize:8,color:'#94a3b8',fontWeight:600,textAlign:'center',lineHeight:1.2}}>{d.u.split(' ')[0]}</div>
+          <div style={{display:'flex',gap:8}}>
+            <div style={{writingMode:'vertical-rl',transform:'rotate(180deg)',fontSize:10,color:'#94a3b8',display:'flex',alignItems:'center',justifyContent:'center'}}>Engagement Rate (%)</div>
+            <div style={{flex:1}}>
+              <div style={{display:'flex',alignItems:'flex-end',gap:6,height:140}}>
+                {erPorUDN.map(d=>(
+                  <div key={d.u} style={{flex:1,display:'flex',flexDirection:'column',alignItems:'center',gap:4,position:'relative',cursor:'default'}}
+                    title={`${d.u}: ${d.v.toFixed(2)}%`}>
+                    <div style={{fontSize:9,color:'#475569',fontWeight:700}}>{d.v.toFixed(1)}%</div>
+                    <div style={{width:'100%',borderRadius:'6px 6px 0 0',height:`${(d.v/maxER)*110}px`,
+                      background:`linear-gradient(to top,${accent},${accent}99)`,boxShadow:`0 4px 12px ${accent}33`,
+                      transition:'filter 0.2s'}}
+                      onMouseEnter={e=>(e.currentTarget.style.filter='brightness(1.15)')}
+                      onMouseLeave={e=>(e.currentTarget.style.filter='brightness(1)')}/>
+                    <div style={{fontSize:8,color:'#94a3b8',fontWeight:600,textAlign:'center',lineHeight:1.2}}>{d.u.split(' ')[0]}</div>
+                  </div>
+                ))}
               </div>
-            ))}
+              <div style={{textAlign:'center',fontSize:10,color:'#94a3b8',marginTop:6}}>Unidad de Negocio</div>
+            </div>
           </div>
         </div>
 
@@ -260,17 +266,23 @@ export default function MetaOrganico({ accent, secondary }:Props) {
         <div style={card}>
           <div style={{fontSize:14,fontWeight:700,color:'#0f172a',marginBottom:4}}>Engagement Rate por mes</div>
           <div style={{fontSize:12,color:'#94a3b8',marginBottom:20}}>Tendencia mensual</div>
-          <div style={{display:'flex',alignItems:'flex-end',gap:12,height:140}}>
-            {erPorMes.map((d,i)=>(
-              <div key={i} style={{flex:1,display:'flex',flexDirection:'column',alignItems:'center',gap:4}} title={`${d.mes}: ${d.er.toFixed(2)}%`}>
-                <div style={{fontSize:10,color:'#475569',fontWeight:700}}>{d.er.toFixed(1)}%</div>
-                <div style={{width:'100%',borderRadius:'6px 6px 0 0',height:`${(d.er/maxErM)*110}px`,
-                  background:`linear-gradient(to top,${secondary},${secondary}99)`,transition:'filter 0.2s'}}
-                  onMouseEnter={e=>(e.currentTarget.style.filter='brightness(1.15)')}
-                  onMouseLeave={e=>(e.currentTarget.style.filter='brightness(1)')}/>
-                <div style={{fontSize:11,color:'#94a3b8',fontWeight:600}}>{d.mes}</div>
+          <div style={{display:'flex',gap:8}}>
+            <div style={{writingMode:'vertical-rl',transform:'rotate(180deg)',fontSize:10,color:'#94a3b8',display:'flex',alignItems:'center',justifyContent:'center'}}>Engagement Rate (%)</div>
+            <div style={{flex:1}}>
+              <div style={{display:'flex',alignItems:'flex-end',gap:12,height:140}}>
+                {erPorMes.map((d,i)=>(
+                  <div key={i} style={{flex:1,display:'flex',flexDirection:'column',alignItems:'center',gap:4}} title={`${d.mes}: ${d.er.toFixed(2)}%`}>
+                    <div style={{fontSize:10,color:'#475569',fontWeight:700}}>{d.er.toFixed(1)}%</div>
+                    <div style={{width:'100%',borderRadius:'6px 6px 0 0',height:`${(d.er/maxErM)*110}px`,
+                      background:`linear-gradient(to top,${secondary},${secondary}99)`,transition:'filter 0.2s'}}
+                      onMouseEnter={e=>(e.currentTarget.style.filter='brightness(1.15)')}
+                      onMouseLeave={e=>(e.currentTarget.style.filter='brightness(1)')}/>
+                    <div style={{fontSize:11,color:'#94a3b8',fontWeight:600}}>{d.mes}</div>
+                  </div>
+                ))}
               </div>
-            ))}
+              <div style={{textAlign:'center',fontSize:10,color:'#94a3b8',marginTop:6}}>Mes</div>
+            </div>
           </div>
         </div>
       </div>
@@ -285,10 +297,10 @@ export default function MetaOrganico({ accent, secondary }:Props) {
             <span style={{display:'flex',alignItems:'center',gap:5,color:'#64748b'}}><span style={{width:14,height:2,background:secondary,display:'inline-block',borderRadius:2,opacity:0.7}}/>Impresiones</span>
           </div>
           {alcPorMes.length>1?(() => {
-            const HL = H*1.7
+            const HL = H
             return (
             <div style={{position:'relative'}}>
-              <svg viewBox={`0 0 ${W+PL} ${HL+PB+20}`} style={{width:'100%',height:260,overflow:'visible'}}>
+              <svg viewBox={`0 0 ${W+PL} ${HL+PB+20}`} style={{width:'100%',height:190,overflow:'visible'}}>
                 {/* Y axis label */}
                 <text x='10' y={(HL+PB)/2} transform={`rotate(-90,10,${(HL+PB)/2})`} textAnchor='middle' fill='#94a3b8' fontSize='10'>Personas</text>
                 {/* Y axis ticks */}
@@ -302,8 +314,9 @@ export default function MetaOrganico({ accent, secondary }:Props) {
                 {/* X axis label */}
                 <text x={PL+W/2} y={HL+PB+32} textAnchor='middle' fill='#94a3b8' fontSize='10'>Mes</text>
                 {(() => {
-                  const pA=alcPorMes.map((d,i)=>[PL+(i/(alcPorMes.length-1))*W, PB+HL-(d.alc/Math.max(maxAlc,1))*HL] as [number,number])
-                  const pI=alcPorMes.map((d,i)=>[PL+(i/(alcPorMes.length-1))*W, PB+HL-(d.imp/Math.max(maxImp,1))*HL] as [number,number])
+                  const escalaCompartida = Math.max(maxAlc,maxImp,1)
+                  const pA=alcPorMes.map((d,i)=>[PL+(i/(alcPorMes.length-1))*W, PB+HL-(d.alc/escalaCompartida)*HL] as [number,number])
+                  const pI=alcPorMes.map((d,i)=>[PL+(i/(alcPorMes.length-1))*W, PB+HL-(d.imp/escalaCompartida)*HL] as [number,number])
                   // Relleno de la BRECHA entre Alcance e Impresiones (no del area hasta el piso)
                   const gapPoints = `${pA.map(p=>p.join(',')).join(' ')} ${pI.slice().reverse().map(p=>p.join(',')).join(' ')}`
                   return<>
