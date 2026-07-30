@@ -10,10 +10,11 @@ const sb = createClient(
   'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InN6eGR2ZGJkeXV4dHZ5dnhiZGVyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzcyNDAwODUsImV4cCI6MjA5MjgxNjA4NX0.uiplnYCA9lJy-o18r2x1-9bRTFjTZiBNJ-01QiCepTg'
 );
 
-const ROLES = ['admin','director','comercial','sdr'];
-const ROL_LABEL: Record<string,string> = { admin:'Admin', director:'Director', comercial:'Comercial', sdr:'SDR', operativo:'Operativo' };
+const ROLES = ['admin','director','comercial','sdr','marketing'];
+const ROL_LABEL: Record<string,string> = { admin:'Admin', director:'Director', comercial:'Comercial', sdr:'SDR', operativo:'Operativo', marketing:'Marketing' };
 const UDNS_LIST = ['UIX','MU','PE','ZU','NC','HOF','RL','MEXA'];
 const UDN_MADRE_LIST = ['UIX','MU','PE','ZU','NC','HOF','RL','MEXA','MKT'];
+const SQUADS_LIST = ['Portafolio y Ecosistema','Web y Contenidos','Performance y Conversión','Outbound y Pipeline','RevOps'];
 const NIVEL_LIST = [
   { val:'principal', label:'Principal' },
   { val:'gerente', label:'Gerente' },
