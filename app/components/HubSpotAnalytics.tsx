@@ -74,16 +74,26 @@ const DUMMY = {
 const UDNS_LIST = ['Upax', 'Promo Espacio', 'Marketing United', 'Research Land', 'Mexa Creativa', 'House Of Films', 'UIX', 'Zeus', 'Neracode']
 const FUENTES_LIST = ['Chatflow', 'Content Nurturing', 'Evento', 'Inbound', 'Paid Media', 'Prospección', 'RRSS', 'RRSS Paid', 'Referido IA', 'Referidos', 'Sin fuente', 'Website']
 type FiltrosHome = {
-  udn: string; origen: string; conversion: string; fuente: string; fuenteConversion: string
+  udn: string[]; origen: string[]; conversion: string[]; fuente: string[]; fuenteConversion: string[]
 }
-const FILTROS_VACIOS: FiltrosHome = { udn: '', origen: '', conversion: '', fuente: '', fuenteConversion: '' }
+const FILTROS_VACIOS: FiltrosHome = { udn: [], origen: [], conversion: [], fuente: [], fuenteConversion: [] }
+function arrToParam(arr: string[]): string | null {
+  return arr.length ? arr.join('|') : null
+}
 function filtrosParams(f: FiltrosHome) {
   return {
-    p_udn: f.udn || null,
-    p_origen: f.origen || null,
-    p_conversion: f.conversion || null,
-    p_fuente: f.fuente || null,
-    p_fuente_conversion: f.fuenteConversion || null,
+    p_udn: arrToParam(f.udn),
+    p_origen: arrToParam(f.origen),
+    p_conversion: arrToParam(f.conversion),
+    p_fuente: arrToParam(f.fuente),
+    p_fuente_conversion: arrToParam(f.fuenteConversion),
+  }
+}
+function filtrosParams3(f: FiltrosHome) {
+  return {
+    p_udn: arrToParam(f.udn),
+    p_origen: arrToParam(f.origen),
+    p_fuente: arrToParam(f.fuente),
   }
 }
 
@@ -251,7 +261,7 @@ function FunnelPanel({ dateFrom, dateTo, filtros }: { dateFrom: string; dateTo: 
     let cancelled = false
     // Para las scorecards ejecutivas (Clientes $, Proyectos ganados) usamos siempre la meta ANUAL
     // completa sin prorratear, independiente del rango de fechas que el usuario este filtrando.
-    fetchMetasForecast('2026-01-01', '2026-12-31', filtros.udn ?? null)
+    fetchMetasForecast('2026-01-01', '2026-12-31', arrToParam(filtros.udn))
       .then(result => { if (!cancelled) setMetas(result) })
       .catch(err => { console.error('Error cargando metas_forecast en FunnelPanel:', err) })
     return () => { cancelled = true }
@@ -456,8 +466,8 @@ function TeamsPanel({ dateFrom, dateTo, filtros }: { dateFrom: string; dateTo: s
   }, [dateFrom, dateTo, filtros])
   useEffect(() => {
     let cancelled = false
-    if (!filtros.udn) { setMetas(null); return }
-    fetchMetasForecast(dateFrom, dateTo, filtros.udn)
+    if (!filtros.udn.length) { setMetas(null); return }
+    fetchMetasForecast(dateFrom, dateTo, arrToParam(filtros.udn))
       .then(result => { if (!cancelled) setMetas(result) })
       .catch(err => { console.error('Error cargando metas_forecast:', err); if (!cancelled) setMetas(null) })
     return () => { cancelled = true }
@@ -592,9 +602,67 @@ function TeamColumn({ title, color, data, metas, equipo, globalData }: { title: 
   )
 }
 
+function MultiSelect({ label, opciones, selected, onChange }: {
+  label: string; opciones: string[]; selected: string[]; onChange: (v: string[]) => void
+}) {
+  const [open, setOpen] = useState(false)
+  const ref = useRef<HTMLDivElement>(null)
+  useEffect(() => {
+    function onClickOutside(e: MouseEvent) {
+      if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false)
+    }
+    document.addEventListener('mousedown', onClickOutside)
+    return () => document.removeEventListener('mousedown', onClickOutside)
+  }, [])
+  function toggle(o: string) {
+    onChange(selected.includes(o) ? selected.filter(x => x !== o) : [...selected, o])
+  }
+  const buttonLabel = selected.length === 0 ? label : selected.length === 1 ? selected[0] : `${selected.length} seleccionadas`
+  return (
+    <div style={{ position: 'relative' }} ref={ref}>
+      <button onClick={() => setOpen(!open)}
+        style={{
+          background: selected.length ? `${ACCENT}12` : '#f8fafc',
+          border: selected.length ? `1px solid ${ACCENT}55` : '1px solid #e2e8f0',
+          borderRadius: 9, color: selected.length ? ACCENT : '#334155',
+          padding: '7px 12px', fontSize: 12.5, cursor: 'pointer', fontWeight: 500,
+          display: 'flex', alignItems: 'center', gap: 6, whiteSpace: 'nowrap',
+        }}>
+        {buttonLabel} <span style={{ fontSize: 9 }}>▼</span>
+      </button>
+      {open && (
+        <div style={{
+          position: 'absolute', left: 0, top: 'calc(100% + 6px)', background: '#fff',
+          borderRadius: 12, boxShadow: '0 8px 40px rgba(0,0,0,0.18)', padding: 10, zIndex: 100,
+          minWidth: 200, maxHeight: 280, overflowY: 'auto',
+        }}>
+          {opciones.map(o => (
+            <label key={o} style={{
+              display: 'flex', alignItems: 'center', gap: 8, padding: '6px 8px', borderRadius: 6,
+              cursor: 'pointer', fontSize: 12.5, color: '#334155',
+            }}>
+              <input type="checkbox" checked={selected.includes(o)} onChange={() => toggle(o)} />
+              {o}
+            </label>
+          ))}
+          {selected.length > 0 && (
+            <button onClick={() => onChange([])}
+              style={{
+                marginTop: 6, width: '100%', padding: '6px 8px', borderRadius: 6, border: 'none',
+                background: '#f1f5f9', color: '#64748b', fontSize: 12, cursor: 'pointer', fontWeight: 600,
+              }}>
+              Limpiar
+            </button>
+          )}
+        </div>
+      )}
+    </div>
+  )
+}
+
 function FiltrosBar({ dateFrom, dateTo, onDateChange, filtros, onFiltroChange }: {
   dateFrom: string; dateTo: string; onDateChange: (from: string, to: string, preset: string) => void
-  filtros: FiltrosHome; onFiltroChange: (key: keyof FiltrosHome, value: string) => void
+  filtros: FiltrosHome; onFiltroChange: (key: keyof FiltrosHome, value: string[]) => void
 }) {
   const [activePreset, setActivePreset] = useState('Este año')
   const [tempFrom, setTempFrom] = useState(dateFrom)
@@ -634,15 +702,8 @@ function FiltrosBar({ dateFrom, dateTo, onDateChange, filtros, onFiltroChange }:
         { key: 'fuente' as const, label: 'Fuente adquisición', opciones: FUENTES_LIST },
         { key: 'fuenteConversion' as const, label: 'Fuente MQL', opciones: FUENTES_LIST },
       ]).map(f => (
-        <select key={f.key} value={filtros[f.key]} onChange={e => onFiltroChange(f.key, e.target.value)}
-          style={{
-            background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: 9,
-            color: '#334155', padding: '7px 12px', fontSize: 12.5, cursor: 'pointer',
-            fontWeight: 500,
-          }}>
-          <option value="">{f.label}</option>
-          {f.opciones.map(o => <option key={o} value={o}>{o}</option>)}
-        </select>
+        <MultiSelect key={f.key} label={f.label} opciones={f.opciones} selected={filtros[f.key]}
+          onChange={v => onFiltroChange(f.key, v)} />
       ))}
 
       <div style={{ position: 'relative' }} ref={pickerRef}>
@@ -697,7 +758,7 @@ function FiltrosBar({ dateFrom, dateTo, onDateChange, filtros, onFiltroChange }:
       </div>
 
       <button
-        onClick={() => { (['udn','origen','conversion','fuente','fuenteConversion'] as const).forEach(k => onFiltroChange(k, '')) }}
+        onClick={() => { (['udn','origen','conversion','fuente','fuenteConversion'] as const).forEach(k => onFiltroChange(k, [])) }}
         style={{
           background: ACCENT, border: 'none', borderRadius: 9, color: '#fff',
           padding: '7px 14px', fontSize: 12.5, cursor: 'pointer', fontWeight: 700,
@@ -1382,7 +1443,7 @@ async function fetchSqlCredencialesCalificadas(
       Authorization: `Bearer ${SUPABASE_MBR_KEY}`,
       'Content-Type': 'application/json',
     },
-    body: JSON.stringify({ fecha_desde: fechaDesde, fecha_hasta: fechaHasta, p_udn: filtros.udn || null, p_origen: filtros.origen || null, p_fuente: filtros.fuente || null }),
+    body: JSON.stringify({ fecha_desde: fechaDesde, fecha_hasta: fechaHasta, ...filtrosParams3(filtros) }),
   })
   if (!res.ok) throw new Error(`Error RPC sql_credenciales_completadas_por_mes_udn: ${res.status}`)
   const rows: { mes: string; udn: string; registros: number }[] = await res.json()
@@ -1411,7 +1472,7 @@ async function fetchSqlCredencialesCalificadas(
       Authorization: `Bearer ${SUPABASE_MBR_KEY}`,
       'Content-Type': 'application/json',
     },
-    body: JSON.stringify({ fecha_desde: fechaDesde, fecha_hasta: fechaHasta, p_udn: filtros.udn || null, p_origen: filtros.origen || null, p_fuente: filtros.fuente || null }),
+    body: JSON.stringify({ fecha_desde: fechaDesde, fecha_hasta: fechaHasta, ...filtrosParams3(filtros) }),
   })
   if (!resOrigen.ok) throw new Error(`Error RPC sql_credenciales_completadas_por_origen: ${resOrigen.status}`)
   const rowsOrigen: { origen: string; registros: number }[] = await resOrigen.json()
@@ -1568,7 +1629,7 @@ async function fetchPropuestasCreadas(
       Authorization: `Bearer ${SUPABASE_MBR_KEY}`,
       'Content-Type': 'application/json',
     },
-    body: JSON.stringify({ fecha_desde: fechaDesde, fecha_hasta: fechaHasta, p_udn: filtros.udn || null, p_origen: filtros.origen || null, p_fuente: filtros.fuente || null }),
+    body: JSON.stringify({ fecha_desde: fechaDesde, fecha_hasta: fechaHasta, ...filtrosParams3(filtros) }),
   })
   if (!res.ok) throw new Error(`Error RPC propuestas_creadas_por_mes_udn: ${res.status}`)
   const rows: { mes: string; udn: string; registros: number }[] = await res.json()
@@ -1597,7 +1658,7 @@ async function fetchPropuestasCreadas(
       Authorization: `Bearer ${SUPABASE_MBR_KEY}`,
       'Content-Type': 'application/json',
     },
-    body: JSON.stringify({ fecha_desde: fechaDesde, fecha_hasta: fechaHasta, p_udn: filtros.udn || null, p_origen: filtros.origen || null, p_fuente: filtros.fuente || null }),
+    body: JSON.stringify({ fecha_desde: fechaDesde, fecha_hasta: fechaHasta, ...filtrosParams3(filtros) }),
   })
   if (!resOrigen.ok) throw new Error(`Error RPC propuestas_creadas_por_origen: ${resOrigen.status}`)
   const rowsOrigen: { origen: string; registros: number }[] = await resOrigen.json()
@@ -1754,7 +1815,7 @@ async function fetchPropuestasPerdidas(
       Authorization: `Bearer ${SUPABASE_MBR_KEY}`,
       'Content-Type': 'application/json',
     },
-    body: JSON.stringify({ fecha_desde: fechaDesde, fecha_hasta: fechaHasta, p_udn: filtros.udn || null, p_origen: filtros.origen || null, p_fuente: filtros.fuente || null }),
+    body: JSON.stringify({ fecha_desde: fechaDesde, fecha_hasta: fechaHasta, ...filtrosParams3(filtros) }),
   })
   if (!res.ok) throw new Error(`Error RPC propuestas_perdidas_por_mes_udn: ${res.status}`)
   const rows: { mes: string; udn: string; registros: number }[] = await res.json()
@@ -1783,7 +1844,7 @@ async function fetchPropuestasPerdidas(
       Authorization: `Bearer ${SUPABASE_MBR_KEY}`,
       'Content-Type': 'application/json',
     },
-    body: JSON.stringify({ fecha_desde: fechaDesde, fecha_hasta: fechaHasta, p_udn: filtros.udn || null, p_origen: filtros.origen || null, p_fuente: filtros.fuente || null }),
+    body: JSON.stringify({ fecha_desde: fechaDesde, fecha_hasta: fechaHasta, ...filtrosParams3(filtros) }),
   })
   if (!resOrigen.ok) throw new Error(`Error RPC propuestas_perdidas_por_origen: ${resOrigen.status}`)
   const rowsOrigen: { origen: string; registros: number }[] = await resOrigen.json()
@@ -1946,7 +2007,7 @@ async function fetchPropuestasActivasPorUdn(
       Authorization: `Bearer ${SUPABASE_MBR_KEY}`,
       'Content-Type': 'application/json',
     },
-    body: JSON.stringify({ fecha_desde: fechaDesde, fecha_hasta: fechaHasta, p_udn: filtros.udn || null, p_origen: filtros.origen || null, p_fuente: filtros.fuente || null }),
+    body: JSON.stringify({ fecha_desde: fechaDesde, fecha_hasta: fechaHasta, ...filtrosParams3(filtros) }),
   })
   if (!res.ok) throw new Error(`Error RPC propuestas_activas_por_udn: ${res.status}`)
   const rows: { udn: string; registros: number; valor: number }[] = await res.json()
@@ -1966,7 +2027,7 @@ async function fetchPropuestasActivasPorUdnEtapa(
       Authorization: `Bearer ${SUPABASE_MBR_KEY}`,
       'Content-Type': 'application/json',
     },
-    body: JSON.stringify({ fecha_desde: fechaDesde, fecha_hasta: fechaHasta, p_udn: filtros.udn || null, p_origen: filtros.origen || null, p_fuente: filtros.fuente || null }),
+    body: JSON.stringify({ fecha_desde: fechaDesde, fecha_hasta: fechaHasta, ...filtrosParams3(filtros) }),
   })
   if (!res.ok) throw new Error(`Error RPC propuestas_activas_por_udn_etapa: ${res.status}`)
   const rows: { udn: string; etapa: string; registros: number; valor: number }[] = await res.json()
@@ -2185,7 +2246,7 @@ async function fetchPropuestasGanadasFacturar(
       Authorization: `Bearer ${SUPABASE_MBR_KEY}`,
       'Content-Type': 'application/json',
     },
-    body: JSON.stringify({ fecha_desde: fechaDesde, fecha_hasta: fechaHasta, p_udn: filtros.udn || null, p_origen: filtros.origen || null, p_fuente: filtros.fuente || null }),
+    body: JSON.stringify({ fecha_desde: fechaDesde, fecha_hasta: fechaHasta, ...filtrosParams3(filtros) }),
   })
   if (!res.ok) throw new Error(`Error RPC propuestas_ganadas_facturar_por_mes_udn: ${res.status}`)
   const rows: { mes: string; udn: string; registros: number }[] = await res.json()
@@ -2214,7 +2275,7 @@ async function fetchPropuestasGanadasFacturar(
       Authorization: `Bearer ${SUPABASE_MBR_KEY}`,
       'Content-Type': 'application/json',
     },
-    body: JSON.stringify({ fecha_desde: fechaDesde, fecha_hasta: fechaHasta, p_udn: filtros.udn || null, p_origen: filtros.origen || null, p_fuente: filtros.fuente || null }),
+    body: JSON.stringify({ fecha_desde: fechaDesde, fecha_hasta: fechaHasta, ...filtrosParams3(filtros) }),
   })
   if (!resOrigen.ok) throw new Error(`Error RPC propuestas_ganadas_facturar_por_origen: ${resOrigen.status}`)
   const porOrigen: { origen: string; registros: number; valor: number }[] = await resOrigen.json()
@@ -2373,7 +2434,7 @@ async function fetchPropuestasFacturadas(
       Authorization: `Bearer ${SUPABASE_MBR_KEY}`,
       'Content-Type': 'application/json',
     },
-    body: JSON.stringify({ fecha_desde: fechaDesde, fecha_hasta: fechaHasta, p_udn: filtros.udn || null, p_origen: filtros.origen || null, p_fuente: filtros.fuente || null }),
+    body: JSON.stringify({ fecha_desde: fechaDesde, fecha_hasta: fechaHasta, ...filtrosParams3(filtros) }),
   })
   if (!res.ok) throw new Error(`Error RPC propuestas_facturadas_por_mes_udn: ${res.status}`)
   const rows: { mes: string; udn: string; registros: number }[] = await res.json()
@@ -2402,7 +2463,7 @@ async function fetchPropuestasFacturadas(
       Authorization: `Bearer ${SUPABASE_MBR_KEY}`,
       'Content-Type': 'application/json',
     },
-    body: JSON.stringify({ fecha_desde: fechaDesde, fecha_hasta: fechaHasta, p_udn: filtros.udn || null, p_origen: filtros.origen || null, p_fuente: filtros.fuente || null }),
+    body: JSON.stringify({ fecha_desde: fechaDesde, fecha_hasta: fechaHasta, ...filtrosParams3(filtros) }),
   })
   if (!resOrigen.ok) throw new Error(`Error RPC propuestas_facturadas_por_origen: ${resOrigen.status}`)
   const porOrigen: { origen: string; registros: number; valor: number }[] = await resOrigen.json()
@@ -2652,7 +2713,7 @@ function HomeFunnel() {
     setDateFrom(from)
     setDateTo(to)
   }
-  function handleFiltroChange(key: keyof FiltrosHome, value: string) {
+  function handleFiltroChange(key: keyof FiltrosHome, value: string[]) {
     setFiltros(prev => ({ ...prev, [key]: value }))
   }
 
