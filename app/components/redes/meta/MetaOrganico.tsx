@@ -77,6 +77,9 @@ export default function MetaOrganico({ accent, secondary }:Props) {
   const [tooltip1, setTooltip1] = useState<Tooltip|null>(null)
   const [tooltip2, setTooltip2] = useState<Tooltip|null>(null)
   const [sort,     setSort]     = useState<SortState>({ col:'alcance', dir:'desc' })
+  const [pagina,   setPagina]   = useState(1)
+  const PAGE_SIZE = 10
+  useEffect(()=>{ setPagina(1) }, [filtUDN, filtRed, filtTipo, dateFrom, dateTo])
   const pickerRef = useRef<HTMLDivElement>(null)
 
   useEffect(()=>{
@@ -130,17 +133,20 @@ export default function MetaOrganico({ accent, secondary }:Props) {
   const intPorMes = mesSet.map(mes=>{const mp=filtered.filter(p=>p.fecha.startsWith(mes));return{mes:MESES[parseInt(mes.slice(5,7))-1],int:mp.reduce((s,p)=>s+p.interacciones,0),n:mp.length}})
 
   const rawBitacora = [...filtered].filter(p=>p.alcance>0).map(p=>({...p,er:p.interacciones/p.alcance*100}))
-  const bitacora = rawBitacora.sort((a,b)=>{
+  const bitacoraCompleta = rawBitacora.sort((a,b)=>{
     let av:number, bv:number
     if(sort.col==='er')            { av=a.er;            bv=b.er }
     else if(sort.col==='fecha')    { av=a.fecha<b.fecha?-1:1; bv=0 }
     else                           { av=(a as any)[sort.col]; bv=(b as any)[sort.col] }
     if(sort.col==='fecha') return sort.dir==='asc'? (a.fecha<b.fecha?-1:1) : (a.fecha>b.fecha?-1:1)
     return sort.dir==='desc'? bv-av : av-bv
-  }).slice(0,10)
+  })
+  const totalPaginas = Math.max(1, Math.ceil(bitacoraCompleta.length / PAGE_SIZE))
+  const bitacora = bitacoraCompleta.slice((pagina-1)*PAGE_SIZE, pagina*PAGE_SIZE)
 
   function toggleSort(col:string){
     setSort(prev=>prev.col===col?{col,dir:prev.dir==='desc'?'asc':'desc'}:{col,dir:'desc'})
+    setPagina(1)
   }
   function SortArrow({col}:{col:string}){
     if(sort.col!==col) return <span style={{color:'#cbd5e1',marginLeft:4}}>↕</span>
@@ -526,6 +532,19 @@ export default function MetaOrganico({ accent, secondary }:Props) {
                 ))}
               </tbody>
             </table>
+          </div>
+        )}
+        {!loading && bitacoraCompleta.length>0 && (
+          <div style={{display:'flex',alignItems:'center',justifyContent:'center',gap:12,marginTop:16}}>
+            <button onClick={()=>setPagina(p=>Math.max(1,p-1))} disabled={pagina===1}
+              style={{padding:'6px 14px',borderRadius:8,border:'1px solid #e2e8f0',background:pagina===1?'#f8fafc':'#fff',color:pagina===1?'#cbd5e1':'#334155',fontSize:12.5,fontWeight:600,cursor:pagina===1?'default':'pointer'}}>
+              ← Anterior
+            </button>
+            <span style={{fontSize:12.5,color:'#64748b'}}>Página {pagina} de {totalPaginas}</span>
+            <button onClick={()=>setPagina(p=>Math.min(totalPaginas,p+1))} disabled={pagina===totalPaginas}
+              style={{padding:'6px 14px',borderRadius:8,border:'1px solid #e2e8f0',background:pagina===totalPaginas?'#f8fafc':'#fff',color:pagina===totalPaginas?'#cbd5e1':'#334155',fontSize:12.5,fontWeight:600,cursor:pagina===totalPaginas?'default':'pointer'}}>
+              Siguiente →
+            </button>
           </div>
         )}
       </div>
