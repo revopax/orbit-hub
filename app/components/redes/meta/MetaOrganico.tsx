@@ -470,14 +470,14 @@ export default function MetaOrganico({ accent, secondary }:Props) {
                     {label:'Enlace',      col:''},
                     {label:'Tipo',        col:''},
                     {label:'Fuente',      col:''},
-                    {label:'Alcance',     col:'alcance'},
+                    {label:'Alcance',     col:'alcance', info:'Personas/cuentas unicas que vieron el contenido.'},
                     {label: filtRed.length===1 ? (filtRed[0]==='Facebook'?'Reacciones':'Me gusta') : 'Reacciones / Me gusta',  col:'reacciones',
                       info: filtRed.length===1 ? (filtRed[0]==='Facebook'?'Suma de todos los tipos de reaccion (me gusta, me encanta, etc.).':'Me gusta (like_count).') : 'Facebook: suma de todos los tipos de reaccion. Instagram: me gusta (like_count).'},
                     {label:'Coment.',     col:'comentarios', info:null},
                     {label: filtRed.length===1 ? (filtRed[0]==='Facebook'?'Compart.':'Guardado') : 'Compart. / Guardado',    col:'compartidos',
                       info: filtRed.length===1 ? (filtRed[0]==='Facebook'?'Veces que se compartio el post.':'Veces que se guardo el contenido (Instagram no expone shares por post).') : 'Facebook: compartidos reales. Instagram: guardados (no expone shares por post).'},
-                    {label:'Interacciones',col:'interacciones'},
-                    {label:'ER %',        col:'er'},
+                    {label:'Interacciones',col:'interacciones', info:'Suma de reacciones/me gusta + comentarios + compartidos/guardados de ese post.'},
+                    {label:'ER %',        col:'er', info:'(Interacciones / Alcance) x 100, de ese post individual.'},
                   ].map(h=>(
                     <th key={h.label}
                       onClick={h.col?()=>toggleSort(h.col):undefined}

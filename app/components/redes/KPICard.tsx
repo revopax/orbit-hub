@@ -1,5 +1,5 @@
 'use client'
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 
 function useCountUp(raw: string, dur = 1200) {
   const [val, setVal] = useState('0')
@@ -28,15 +28,24 @@ interface Props {
 }
 export function InfoTip({ text }: { text: string }) {
   const [show, setShow] = useState(false)
+  const ref = useRef<HTMLSpanElement>(null)
+  const [pos, setPos] = useState<{x:number,y:number}|null>(null)
   return (
-    <span style={{ position:'relative', display:'inline-flex' }}
-      onMouseEnter={()=>setShow(true)} onMouseLeave={()=>setShow(false)}>
-      <span style={{ cursor:'help', color:'#cbd5e1', fontSize:11, fontWeight:700, marginLeft:4 }}>ⓘ</span>
-      {show && (
-        <span style={{ position:'absolute', left:'50%', bottom:'calc(100% + 6px)', transform:'translateX(-50%)',
+    <span ref={ref} style={{ position:'relative', display:'inline-flex' }}
+      onMouseEnter={()=>{ if(ref.current){ const r=ref.current.getBoundingClientRect(); setPos({x:r.left+r.width/2, y:r.top}) }; setShow(true) }}
+      onMouseLeave={()=>setShow(false)}>
+      <span style={{ cursor:'help', display:'inline-flex', alignItems:'center', marginLeft:5 }}>
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#94a3b8" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+          <circle cx="12" cy="12" r="10"/>
+          <line x1="12" y1="16" x2="12" y2="12"/>
+          <line x1="12" y1="8" x2="12.01" y2="8"/>
+        </svg>
+      </span>
+      {show && pos && (
+        <span style={{ position:'fixed', left:pos.x, top:pos.y-8, transform:'translate(-50%,-100%)',
           background:'rgba(15,23,42,0.95)', color:'#fff', borderRadius:8, padding:'7px 10px',
           fontSize:11, fontWeight:500, whiteSpace:'normal', width:200, lineHeight:1.4,
-          zIndex:100, pointerEvents:'none', boxShadow:'0 4px 16px rgba(0,0,0,0.3)', textTransform:'none', letterSpacing:'normal' }}>
+          zIndex:1000, pointerEvents:'none', boxShadow:'0 4px 16px rgba(0,0,0,0.3)', textTransform:'none', letterSpacing:'normal' }}>
           {text}
         </span>
       )}
