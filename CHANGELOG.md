@@ -23,6 +23,8 @@
 - Corregido bug de paginacion: `fetchSB` solo traia 1,000 filas por el limite de PostgREST; ahora pagina con header `Range` hasta traer el dataset completo.
 - Filtros UDN/Red/Tipo con seleccion multiple (checkboxes).
 - Bitacora de Contenido: orden por defecto cambiado de ER% a Alcance (evita sesgo hacia Historias); labels aclaran Reacciones/Me gusta y Compartidos/Guardado segun plataforma; zoom de imagen con `position: fixed` (ya no se corta en bordes de tabla) y sin texto superpuesto; paginacion de 10 en 10.
+- Componente `InfoTip` reutilizable (icono ⓘ con tooltip al hover): agregado a las KPICards (Alcance, Impresiones, Interacciones, Seguidores, Engagement Rate, Compartidos) y a los encabezados de tabla (Reacciones, Compartidos) con la formula/definicion exacta de cada metrica.
+- Labels y valores de KPICards y encabezados de tabla dinamicos segun filtro de fuente: al filtrar solo Facebook o solo Instagram, se muestra el nombre nativo de esa plataforma (Alcance/Cuentas alcanzadas, Reproducciones de video/Visualizaciones, Reacciones/Me gusta, Compartidos/Guardados).
 - Graficos corregidos: "Interacciones vs Posts" (barras dentro del area, con etiqueta de valor), "Alcance vs Impresiones" (bug de escala independiente por serie corregido, sombreado de brecha real entre lineas), "Engagement Rate por UDN/mes" (labels de ejes agregados).
 - Indicador dinamico "Ultima actualizacion" / "Proxima actualizacion" conectado a `MAX(audit_date)` real, con punto parpadeante.
 - Extractores `google_ads`, `ga4`, `linkedin_organico` pausados en el cron hasta abordar esas pestañas.
