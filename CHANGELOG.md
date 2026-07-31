@@ -1,3 +1,17 @@
+## [v2.3.0] - 2026-07-31
+
+### HubSpot Analytics — Filtros multi-selección
+- 5 filtros del Home convertidos de `<select>` a dropdown con checkboxes ("N seleccionadas" + Limpiar)
+- 21 RPCs migradas a `ANY(string_to_array(p_x, '|'))` sin cambiar firmas (retrocompatible)
+- DROP del overload duplicado `propuestas_perdidas_por_origen(date,date)`
+- Eliminado hack `case UIX→UiX` en `sql_credenciales_completadas_por_mes_udn`
+- `FiltrosHome`: `string` → `string[]` + helper `arrToParam()`
+- `filtrosParams3()` desduplica 12 bodies inline idénticos del Grupo B
+- Componente `MultiSelect` self-contained (light theme, clic-fuera-para-cerrar)
+
+### Pendiente
+- Badge "Última sincronización con HubSpot" (RPC `mbr_ultima_sincronizacion` lista en Supabase)
+
 # Changelog — ORBIT Hub
 ## [Sin versión] — 30 de julio de 2026
 
