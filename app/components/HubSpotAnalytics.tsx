@@ -2708,7 +2708,19 @@ function HomeFunnel() {
   const [dateFrom, setDateFrom] = useState(new Date().getFullYear() + '-01-01')
   const [dateTo, setDateTo] = useState(toDateStr(new Date()))
   const [filtros, setFiltros] = useState<FiltrosHome>(FILTROS_VACIOS)
-
+  const [ultimaSync, setUltimaSync] = useState<string | null>(null)
+  useEffect(() => {
+    fetch(`${SUPABASE_MBR_URL}/rest/v1/rpc/mbr_ultima_sincronizacion`, {
+      method: 'POST', headers: { apikey: SUPABASE_MBR_KEY, Authorization: `Bearer ${SUPABASE_MBR_KEY}`, 'Content-Type': 'application/json' },
+      body: JSON.stringify({}),
+    }).then(r => r.json()).then(ts => {
+      if (!ts) return
+      const diff = Math.round((Date.now() - new Date(ts).getTime()) / 60000)
+      if (diff < 60) setUltimaSync(`hace ${diff} min`)
+      else if (diff < 1440) setUltimaSync(`hace ${Math.floor(diff/60)}h ${diff%60}min`)
+      else setUltimaSync(`hace ${Math.floor(diff/1440)}d`)
+    }).catch(() => {})
+  }, [])
   function handleDateChange(from, to, _preset) {
     setDateFrom(from)
     setDateTo(to)
@@ -2716,9 +2728,28 @@ function HomeFunnel() {
   function handleFiltroChange(key: keyof FiltrosHome, value: string[]) {
     setFiltros(prev => ({ ...prev, [key]: value }))
   }
+  return (
+    <div>
+      {ultimaSync && (
+        <div style={{ background: '#f0fdf4', borderBottom: '1px solid #bbf7d0', padding: '5px 20px', fontSize: 11.5, color: '#166534', textAlign: 'right' }}>
+          🔄 Datos sincronizados con HubSpot <strong>{ultimaSync}</strong>
+        </div>
+      )}
+      <FiltrosBar dateFrom={dateFrom} dateTo={dateTo} onDateChange={handleDateChange} filtros={filtros} onFiltroChange={handleFiltroChange} />
+      <div style={{ maxWidth: 1400, margin: '0 auto', width: '100%', padding: 20, display: 'flex', flexDirection: 'column', gap: 20 }}>
+        <div style={{ display: 'flex', gap: 16, alignItems: 'stretch', flexWrap: 'wrap' }}>
+          <FunnelPanel dateFrom={dateFrom} dateTo={dateTo} filtros={filtros} />
+          <TeamsPanel dateFrom={dateFrom} dateTo={dateTo} filtros={filtros} />
+        </div>
+        <ContactosTimelinePanel dateFrom={dateFrom} dateTo={dateTo} filtros={filtros} />
 
   return (
     <div>
+      {ultimaSync && (
+        <div style={{ background: '#f0fdf4', borderBottom: '1px solid #bbf7d0', padding: '5px 20px', fontSize: 11.5, color: '#166534', textAlign: 'right' }}>
+          🔄 Datos sincronizados con HubSpot <strong>{ultimaSync}</strong>
+        </div>
+      )}
       <FiltrosBar dateFrom={dateFrom} dateTo={dateTo} onDateChange={handleDateChange} filtros={filtros} onFiltroChange={handleFiltroChange} />
       <div style={{ maxWidth: 1400, margin: '0 auto', width: '100%', padding: 20, display: 'flex', flexDirection: 'column', gap: 20 }}>
 
