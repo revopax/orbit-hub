@@ -28,7 +28,7 @@ const MODULOS = [
   },
   {
     id: 'hubspot' as const,
-    label: 'HubSpot Analytics',
+    label: 'Data & Analytics',
     iconImg: '/logos/orbit-analytics-outline.svg',
     iconImgActivo: '/logos/orbit-analytics-selected-white.svg',
   },

@@ -54,7 +54,7 @@ const SUBTABS: { id: SubTab; label: string }[] = [
   { id: 'email',    label: 'Email marketing' },
 ]
 
-const ACCENT = '#FF6B35'
+const ACCENT = '#7038E5'
 
 const DUMMY = {
   actualizado: 'Datos de ejemplo — pendiente de conexión a HubSpot',
@@ -111,6 +111,9 @@ function fmtMoney(n: number) {
 }
 function fmtNum(n: number) {
   return new Intl.NumberFormat('es-MX').format(n)
+}
+function fmtFechaHora(d: Date) {
+  return d.toLocaleString('es-MX', { day: 'numeric', month: 'short', hour: 'numeric', minute: '2-digit', hour12: true, timeZone: 'America/Mexico_City' }).replace('.', '')
 }
 
 const FUNNEL_STAGES: { label: string; key: keyof typeof DUMMY.total; color: string; tasaLabel?: string; tasaIdeal?: number | null }[] = [
@@ -622,9 +625,9 @@ function MultiSelect({ label, opciones, selected, onChange }: {
     <div style={{ position: 'relative' }} ref={ref}>
       <button onClick={() => setOpen(!open)}
         style={{
-          background: selected.length ? `${ACCENT}12` : '#f8fafc',
-          border: selected.length ? `1px solid ${ACCENT}55` : '1px solid #e2e8f0',
-          borderRadius: 9, color: selected.length ? ACCENT : '#334155',
+          background: selected.length ? '#EEF3FF' : '#f8fafc',
+          border: selected.length ? '1px solid #3B67F2' : '1px solid #e2e8f0',
+          borderRadius: 9, color: selected.length ? '#3B67F2' : '#334155',
           padding: '7px 12px', fontSize: 12.5, cursor: 'pointer', fontWeight: 500,
           display: 'flex', alignItems: 'center', gap: 6, whiteSpace: 'nowrap',
         }}>
@@ -760,8 +763,8 @@ function FiltrosBar({ dateFrom, dateTo, onDateChange, filtros, onFiltroChange }:
       <button
         onClick={() => { (['udn','origen','conversion','fuente','fuenteConversion'] as const).forEach(k => onFiltroChange(k, [])) }}
         style={{
-          background: ACCENT, border: 'none', borderRadius: 9, color: '#fff',
-          padding: '7px 14px', fontSize: 12.5, cursor: 'pointer', fontWeight: 700,
+          background: '#fff', border: '1px solid #dce3f0', borderRadius: 9, color: '#475569',
+          padding: '7px 14px', fontSize: 12.5, cursor: 'pointer', fontWeight: 600,
           display: 'flex', alignItems: 'center', gap: 6, marginLeft: 'auto',
         }}>
         ✕ Borrar filtros
@@ -2708,16 +2711,6 @@ function HomeFunnel() {
   const [dateFrom, setDateFrom] = useState(new Date().getFullYear() + '-01-01')
   const [dateTo, setDateTo] = useState(toDateStr(new Date()))
   const [filtros, setFiltros] = useState<FiltrosHome>(FILTROS_VACIOS)
-  const [ultimaSync, setUltimaSync] = useState<Date | null>(null)
-  useEffect(() => {
-    fetch(`${SUPABASE_MBR_URL}/rest/v1/rpc/mbr_ultima_sincronizacion`, {
-      method: 'POST', headers: { apikey: SUPABASE_MBR_KEY, Authorization: `Bearer ${SUPABASE_MBR_KEY}`, 'Content-Type': 'application/json' },
-      body: JSON.stringify({}),
-    }).then(r => r.json()).then(ts => {
-      if (!ts) return
-      setUltimaSync(new Date(ts))
-    }).catch(() => {})
-  }, [])
   function handleDateChange(from, to, _preset) {
     setDateFrom(from)
     setDateTo(to)
@@ -2729,28 +2722,18 @@ function HomeFunnel() {
     <div>
       <FiltrosBar dateFrom={dateFrom} dateTo={dateTo} onDateChange={handleDateChange} filtros={filtros} onFiltroChange={handleFiltroChange} />
       <div style={{ maxWidth: 1400, margin: '0 auto', width: '100%', padding: 20, display: 'flex', flexDirection: 'column', gap: 20 }}>
-
         <div style={{ display: 'flex', gap: 16, alignItems: 'stretch', flexWrap: 'wrap' }}>
           <FunnelPanel dateFrom={dateFrom} dateTo={dateTo} filtros={filtros} />
           <TeamsPanel dateFrom={dateFrom} dateTo={dateTo} filtros={filtros} />
         </div>
-
         <ContactosTimelinePanel dateFrom={dateFrom} dateTo={dateTo} filtros={filtros} />
-
         <MqlTimelinePanel dateFrom={dateFrom} dateTo={dateTo} filtros={filtros} />
-
         <MqlDescalificadosPanel dateFrom={dateFrom} dateTo={dateTo} filtros={filtros} />
-
         <SqlCredencialesTimelinePanel dateFrom={dateFrom} dateTo={dateTo} filtros={filtros} />
-
         <PropuestasCreadasTimelinePanel dateFrom={dateFrom} dateTo={dateTo} filtros={filtros} />
-
         <PropuestasPerdidasTimelinePanel dateFrom={dateFrom} dateTo={dateTo} filtros={filtros} />
-
         <PropuestasActivasPorUdnPanel dateFrom={dateFrom} dateTo={dateTo} filtros={filtros} />
-
         <PropuestasGanadasFacturarTimelinePanel dateFrom={dateFrom} dateTo={dateTo} filtros={filtros} />
-
         <PropuestasFacturadasTimelinePanel dateFrom={dateFrom} dateTo={dateTo} filtros={filtros} />
       </div>
     </div>
@@ -2767,6 +2750,17 @@ function Placeholder({ label }: { label: string }) {
 
 export default function HubSpotAnalytics() {
   const [sub, setSub] = useState<SubTab>('home')
+  const [ultimaSync, setUltimaSync] = useState<Date | null>(null)
+  useEffect(() => {
+    fetch(`${SUPABASE_MBR_URL}/rest/v1/rpc/mbr_ultima_sincronizacion`, {
+      method: 'POST',
+      headers: { apikey: SUPABASE_MBR_KEY, Authorization: `Bearer ${SUPABASE_MBR_KEY}`, 'Content-Type': 'application/json' },
+      body: JSON.stringify({}),
+    }).then(r => r.json()).then(ts => {
+      if (!ts) return
+      setUltimaSync(new Date(ts))
+    }).catch(() => {})
+  }, [])
 
   return (
     <div style={{ minHeight: '100%', background: 'var(--bg)', fontFamily: 'Inter,-apple-system,sans-serif' }}>
@@ -2778,10 +2772,10 @@ export default function HubSpotAnalytics() {
       }}>
         <div style={{ maxWidth: 1400, margin: '0 auto', width: '100%', display: 'flex', alignItems: 'center', gap: 14 }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexShrink: 0 }}>
-            <img src="/logos/hubspot-logo.webp" alt="HubSpot" style={{ height: 22, width: 22, objectFit: 'contain' }} />
+            <img src="/logos/orbit-analytics-outline.svg" alt="Data & Analytics" style={{ height: 22, width: 22, objectFit: 'contain', filter: 'invert(0)' }} />
             <div style={{ display: 'flex', alignItems: 'baseline' }}>
-              <span style={{ fontWeight: 800, fontSize: 14, color: '#0f172a' }}>HubSpot</span>
-              <span style={{ fontWeight: 900, fontSize: 14, color: ACCENT, marginLeft: 4 }}>Analytics</span>
+              <span style={{ fontWeight: 800, fontSize: 14, color: '#172033' }}>Data</span>
+              <span style={{ fontWeight: 900, fontSize: 14, color: ACCENT, marginLeft: 4 }}>& Analytics</span>
             </div>
           </div>
           <div style={{ width: 1, height: 24, background: '#e2e8f0', flexShrink: 0 }} />
@@ -2813,6 +2807,20 @@ export default function HubSpotAnalytics() {
               )
             })}
           </div>
+          {ultimaSync && (
+            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', flexShrink: 0, gap: 3 }}>
+              <div style={{
+                display: 'flex', alignItems: 'center', gap: 6,
+                background: `${ACCENT}14`, borderRadius: 20,
+                padding: '3px 10px', border: `1px solid ${ACCENT}30`,
+              }}>
+                <span style={{ width: 7, height: 7, borderRadius: '50%', background: '#22C55E', display: 'inline-block', flexShrink: 0 }} />
+                <span style={{ fontSize: 11, fontWeight: 700, color: ACCENT, letterSpacing: '0.02em', whiteSpace: 'nowrap' }}>
+                  Última actualización: <span style={{ fontWeight: 800 }}>{fmtFechaHora(ultimaSync)}</span>
+                </span>
+              </div>
+            </div>
+          )}
         </div>
       </div>
 
