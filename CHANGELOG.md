@@ -1,4 +1,47 @@
 # Changelog — ORBIT Hub
+## [Sin versión] — 30 de julio de 2026
+
+### HubSpot Analytics — Brújula Comercial 2.0 (FunnelPanel)
+- Corregido bug de fórmula en el Sheets de Forecast (Cumplimiento Marketing de Lead referenciaba la columna de Comercial).
+- Remapeo de metas: la meta del forecast "Lead" se reasigna a la etapa Contactos; la etapa Leads del `mbr` queda sin meta ("Sin meta en forecast").
+- RPC `metas_forecast_rango`: prorrateo diario de metas mensuales segun dias cubiertos en el rango filtrado, con bandera `es_prorrateado` y etiqueta "Meta prorrateada".
+- Cumplimiento global en Opps y Clientes (etapas sin split Marketing/Comercial), evitando dividir una meta compartida entre ambas columnas.
+- RPC `funnel_totales`: distingue fecha de creacion (funnel) de fecha de facturacion (scorecards ejecutivas) via los campos nuevos `clientes_facturados_rango` y `clientes_valor_facturado_rango`.
+- Scorecards ejecutivas agregadas: Clientes ($), Ganados por facturar ($), Proyectos ganados — con meta anual fija sin prorratear.
+- Rediseño del panel del funnel: grid de 3 columnas (funnel 3D | tasas de conversion | Calidad y perdidas), reemplazando el posicionamiento absoluto en escalera.
+
+### Sidebar / Identidad
+- Rebranding "Brújula Comercial" → "Brújula Comercial 2.0".
+- Badge "En proceso" en tabs no conectados (META Ads, Google Ads, GA4, LinkedIn Organico/Ads, MBR, Email marketing).
+- Nuevos iconos SVG del sidebar (outline / activo) y color de acento cambiado de morado (#7c3aed) a #7038D8.
+- Filtrado real de modulos visibles segun `perfil.permisos` (antes el checkbox no ocultaba nada).
+
+### Redes UPAX — META Orgánico
+- Pipeline migrado a `pipeline_redes/`, automatizado con GitHub Actions (`redes.yml`) cada 6 horas.
+- Corregido `Invalid header value` por saltos de linea en los secrets de Supabase (`.strip()` en ambas keys).
+- Imagenes de Meta (URLs efimeras `scontent-*`) ahora se descargan y suben a Supabase Storage (bucket `meta-organico-media`), con URL publica permanente — incluye Historias capturadas dentro de su ventana de 24h.
+- Corregido bug de paginacion: `fetchSB` solo traia 1,000 filas por el limite de PostgREST; ahora pagina con header `Range` hasta traer el dataset completo.
+- Filtros UDN/Red/Tipo con seleccion multiple (checkboxes).
+- Bitacora de Contenido: orden por defecto cambiado de ER% a Alcance (evita sesgo hacia Historias); labels aclaran Reacciones/Me gusta y Compartidos/Guardado segun plataforma; zoom de imagen con `position: fixed` (ya no se corta en bordes de tabla) y sin texto superpuesto; paginacion de 10 en 10.
+- Graficos corregidos: "Interacciones vs Posts" (barras dentro del area, con etiqueta de valor), "Alcance vs Impresiones" (bug de escala independiente por serie corregido, sombreado de brecha real entre lineas), "Engagement Rate por UDN/mes" (labels de ejes agregados).
+- Indicador dinamico "Ultima actualizacion" / "Proxima actualizacion" conectado a `MAX(audit_date)` real, con punto parpadeante.
+- Extractores `google_ads`, `ga4`, `linkedin_organico` pausados en el cron hasta abordar esas pestañas.
+
+### IAM
+- Corregido: `/api/iam/crear` no guardaba `udn_madre`, `nivel_jerarquico` ni `reporta_a`.
+- Corregido: `/api/iam/editar` guardaba string vacio en campos opcionales, violando el CHECK constraint.
+- Rollback agregado en `/api/iam/crear`: evita usuarios huerfanos en Auth si falla el insert del perfil.
+- Constraint de rol ampliado: rol "Marketing" + 15 puestos del organigrama.
+- Nueva columna `squad` en `perfiles`, con catalogo de 5 squads del organigrama.
+- Formulario de alta de usuario reordenado y condicional segun modulos seleccionados (UDNs/UDN madre solo si Brujula; Squad solo si Redes y/o HubSpot).
+
+### Pendientes abiertos
+- Conciliacion de criterio "Real" (creacion vs facturacion/cierre) entre `mbr` y el Sheets de Forecast para MQLs y otras etapas.
+- Split de metas por etapa (SQLs) no sigue el patron generico 60/40 — pendiente traer valores reales del Sheets.
+- Reactivar y construir frontend de google_ads/ga4/linkedin_organico cuando se aborden esas pestañas.
+- Migracion de imagenes a Storage solo aplica hacia adelante; historico fuera de la ventana de 90 dias no se repara retroactivamente.
+- Fase C de permisos IAM (ocultar tabs/componentes especificos dentro de cada modulo) pendiente.
+
 
 ## [Sin versión] — 29 de julio de 2026 (sesión 2)
 
