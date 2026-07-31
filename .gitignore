@@ -47,3 +47,5 @@ modules/brujula-comercial/pipeline/data/
 pipeline_redes/*.json
 pipeline_redes/service_account.json
 pipeline_redes/meta_page_tokens*.json
+google-ads.yaml
+client_secret*.json
