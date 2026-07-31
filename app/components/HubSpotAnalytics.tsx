@@ -760,6 +760,7 @@ function FiltrosBar({ dateFrom, dateTo, onDateChange, filtros, onFiltroChange }:
         )}
       </div>
 
+      {(['udn','origen','conversion','fuente','fuenteConversion'] as const).some(k => filtros[k].length > 0) && (
       <button
         onClick={() => { (['udn','origen','conversion','fuente','fuenteConversion'] as const).forEach(k => onFiltroChange(k, [])) }}
         style={{
@@ -769,6 +770,7 @@ function FiltrosBar({ dateFrom, dateTo, onDateChange, filtros, onFiltroChange }:
         }}>
         ✕ Borrar filtros
       </button>
+      )}
     </div>
     </div>
   )
