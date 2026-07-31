@@ -72,7 +72,7 @@ export default function Page() {
           permisos={perfil?.permisos}
         />
         <div style={{
-          flex: 1, overflow: 'auto',
+          flex: 1, overflowY: 'auto', overflowX: 'auto',
           background: esClaro ? '#ffffff' : 'var(--bg, #0F172A)',
         }}>
           {moduloActivo === 'brujula' && <BrujulaComercial />}
