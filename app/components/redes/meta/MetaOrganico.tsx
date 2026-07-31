@@ -458,9 +458,9 @@ export default function MetaOrganico({ accent, secondary }:Props) {
                     {label:'Tipo',        col:''},
                     {label:'Fuente',      col:''},
                     {label:'Alcance',     col:'alcance'},
-                    {label:'Reacciones / Me gusta',  col:'reacciones'},
+                    {label: filtRed.length===1 ? (filtRed[0]==='Facebook'?'Reacciones':'Me gusta') : 'Reacciones / Me gusta',  col:'reacciones'},
                     {label:'Coment.',     col:'comentarios'},
-                    {label:'Compart. / Guardado',    col:'compartidos'},
+                    {label: filtRed.length===1 ? (filtRed[0]==='Facebook'?'Compart.':'Guardado') : 'Compart. / Guardado',    col:'compartidos'},
                     {label:'Interacciones',col:'interacciones'},
                     {label:'ER %',        col:'er'},
                   ].map(h=>(
