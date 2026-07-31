@@ -71,7 +71,7 @@ const DUMMY = {
   extras: { mqlDescalificados: 875, sqlObjetadas: 18, oppsPerdidas: 385, ganadosPorFacturar: 113, ganadosPorFacturarValor: 63861022, clientesValor: 14055420 },
 }
 
-const UDNS_LIST = ['Upax', 'Promo Espacio', 'Marketing United', 'Research Land', 'Mexa Creativa', 'House Of Films', 'UiX', 'Zeus', 'Neracode']
+const UDNS_LIST = ['Upax', 'Promo Espacio', 'Marketing United', 'Research Land', 'Mexa Creativa', 'House Of Films', 'UIX', 'Zeus', 'Neracode']
 const FUENTES_LIST = ['Chatflow', 'Content Nurturing', 'Evento', 'Inbound', 'Paid Media', 'Prospección', 'RRSS', 'RRSS Paid', 'Referido IA', 'Referidos', 'Sin fuente', 'Website']
 type FiltrosHome = {
   udn: string; origen: string; conversion: string; fuente: string; fuenteConversion: string
