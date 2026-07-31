@@ -1,6 +1,6 @@
 'use client'
 import { useState, useEffect, useMemo, useRef } from 'react'
-import KPICard from '../KPICard'
+import KPICard, { InfoTip } from '../KPICard'
 
 const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL || 'https://szxdvdbdyuxtvyvxbder.supabase.co'
 const SUPABASE_KEY = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || ''
@@ -261,14 +261,27 @@ export default function MetaOrganico({ accent, secondary }:Props) {
 
       {/* KPIs */}
       <div style={{display:'flex',gap:14,flexWrap:'wrap',marginBottom:14}}>
-        <KPICard label='Alcance / Espectadores'        value={fmtK(totAlcance)} accent={accent}/>
-        <KPICard label='Impresiones / Visualizaciones' value={fmtK(totImp)}     accent={accent}/>
-        <KPICard label='Interacciones Totales'         value={fmtK(totInt)}     accent={secondary}/>
-        <KPICard label='Seguidores Totales'            value={totSeg.toLocaleString('es-MX')} accent={secondary}/>
+        <KPICard
+          label={filtRed.length===1 ? (filtRed[0]==='Facebook'?'Alcance':'Cuentas alcanzadas') : 'Alcance / Espectadores'}
+          value={fmtK(totAlcance)} accent={accent}
+          info={filtRed.length===1 ? (filtRed[0]==='Facebook'?'Personas unicas que vieron el post (post_impressions_unique).':'Cuentas unicas que vieron el contenido (reach).') : 'Personas/cuentas unicas alcanzadas. En Facebook: post_impressions_unique. En Instagram: reach.'}
+        />
+        <KPICard
+          label={filtRed.length===1 ? (filtRed[0]==='Facebook'?'Reproducciones de video':'Visualizaciones') : 'Impresiones / Visualizaciones'}
+          value={fmtK(totImp)} accent={accent}
+          info={filtRed.length===1 ? (filtRed[0]==='Facebook'?'Reproducciones de video del post (post_video_views). Es 0 en posts sin video.':'Numero de veces que se vio el contenido (views), incluye repeticiones.') : 'Facebook: reproducciones de video. Instagram: numero de veces visto (views), incluye repeticiones.'}
+        />
+        <KPICard label='Interacciones Totales' value={fmtK(totInt)} accent={secondary}
+          info='Suma de reacciones/me gusta + comentarios + compartidos/guardados de todo el contenido filtrado.'/>
+        <KPICard label='Seguidores Totales' value={totSeg.toLocaleString('es-MX')} accent={secondary}
+          info='Ultimo valor registrado por UDN y red social (no se suma historico, se toma el snapshot mas reciente).'/>
       </div>
       <div style={{display:'flex',gap:14,flexWrap:'wrap',marginBottom:24}}>
-        <KPICard label='Engagement Rate' value={`${er.toFixed(2)}%`}    accent={accent}    small/>
-        <KPICard label='Compartidos'     value={fmtK(totComp)}           accent={accent}    small/>
+        <KPICard label='Engagement Rate' value={`${er.toFixed(2)}%`} accent={accent} small
+          info='(Suma de interacciones / suma de alcance) x 100, de todo el contenido filtrado. Ponderado por exposicion, no promedio simple por post.'/>
+        <KPICard label={filtRed.length===1 ? (filtRed[0]==='Facebook'?'Compartidos':'Guardados') : 'Compartidos'}
+          value={fmtK(totComp)} accent={accent} small
+          info={filtRed.length===1 ? (filtRed[0]==='Facebook'?'Veces que se compartio el post.':'Veces que se guardo el contenido (Instagram no expone shares por post).') : 'Facebook: compartidos reales. Instagram: guardados (no expone shares por post).'}/>
         <KPICard label='# de Posts'      value={String(filtered.length)} accent={secondary} small/>
       </div>
 
@@ -458,9 +471,11 @@ export default function MetaOrganico({ accent, secondary }:Props) {
                     {label:'Tipo',        col:''},
                     {label:'Fuente',      col:''},
                     {label:'Alcance',     col:'alcance'},
-                    {label: filtRed.length===1 ? (filtRed[0]==='Facebook'?'Reacciones':'Me gusta') : 'Reacciones / Me gusta',  col:'reacciones'},
-                    {label:'Coment.',     col:'comentarios'},
-                    {label: filtRed.length===1 ? (filtRed[0]==='Facebook'?'Compart.':'Guardado') : 'Compart. / Guardado',    col:'compartidos'},
+                    {label: filtRed.length===1 ? (filtRed[0]==='Facebook'?'Reacciones':'Me gusta') : 'Reacciones / Me gusta',  col:'reacciones',
+                      info: filtRed.length===1 ? (filtRed[0]==='Facebook'?'Suma de todos los tipos de reaccion (me gusta, me encanta, etc.).':'Me gusta (like_count).') : 'Facebook: suma de todos los tipos de reaccion. Instagram: me gusta (like_count).'},
+                    {label:'Coment.',     col:'comentarios', info:null},
+                    {label: filtRed.length===1 ? (filtRed[0]==='Facebook'?'Compart.':'Guardado') : 'Compart. / Guardado',    col:'compartidos',
+                      info: filtRed.length===1 ? (filtRed[0]==='Facebook'?'Veces que se compartio el post.':'Veces que se guardo el contenido (Instagram no expone shares por post).') : 'Facebook: compartidos reales. Instagram: guardados (no expone shares por post).'},
                     {label:'Interacciones',col:'interacciones'},
                     {label:'ER %',        col:'er'},
                   ].map(h=>(
@@ -471,7 +486,7 @@ export default function MetaOrganico({ accent, secondary }:Props) {
                         cursor:h.col?'pointer':'default',userSelect:'none',
                         background:sort.col===h.col?`${accent}08`:'transparent',
                         borderRadius:4}}>
-                      {h.label}{h.col&&<SortArrow col={h.col}/>}
+                      {h.label}{(h as any).info&&<InfoTip text={(h as any).info}/>}{h.col&&<SortArrow col={h.col}/>}
                     </th>
                   ))}
                 </tr>

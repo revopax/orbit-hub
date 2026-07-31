@@ -24,9 +24,26 @@ function useCountUp(raw: string, dur = 1200) {
 
 interface Props {
   label: string; value: string; accent: string;
-  delta?: string; deltaUp?: boolean; small?: boolean; bg?: string; gradient?: string
+  delta?: string; deltaUp?: boolean; small?: boolean; bg?: string; gradient?: string; info?: string
 }
-export default function KPICard({ label, value, accent, delta, deltaUp, small }: Props) {
+export function InfoTip({ text }: { text: string }) {
+  const [show, setShow] = useState(false)
+  return (
+    <span style={{ position:'relative', display:'inline-flex' }}
+      onMouseEnter={()=>setShow(true)} onMouseLeave={()=>setShow(false)}>
+      <span style={{ cursor:'help', color:'#cbd5e1', fontSize:11, fontWeight:700, marginLeft:4 }}>ⓘ</span>
+      {show && (
+        <span style={{ position:'absolute', left:'50%', bottom:'calc(100% + 6px)', transform:'translateX(-50%)',
+          background:'rgba(15,23,42,0.95)', color:'#fff', borderRadius:8, padding:'7px 10px',
+          fontSize:11, fontWeight:500, whiteSpace:'normal', width:200, lineHeight:1.4,
+          zIndex:100, pointerEvents:'none', boxShadow:'0 4px 16px rgba(0,0,0,0.3)', textTransform:'none', letterSpacing:'normal' }}>
+          {text}
+        </span>
+      )}
+    </span>
+  )
+}
+export default function KPICard({ label, value, accent, delta, deltaUp, small, info }: Props) {
   const animated = useCountUp(value)
   return (
     <div style={{
@@ -43,7 +60,9 @@ export default function KPICard({ label, value, accent, delta, deltaUp, small }:
         background:`radial-gradient(circle at top right,${accent}12,transparent 70%)`,
         pointerEvents:'none' }}/>
       <div style={{ fontSize:10.5,color:'#94a3b8',textTransform:'uppercase',
-        letterSpacing:'0.1em',marginBottom:8,fontWeight:600 }}>{label}</div>
+        letterSpacing:'0.1em',marginBottom:8,fontWeight:600, display:'flex', alignItems:'center' }}>
+        {label}{info && <InfoTip text={info}/>}
+      </div>
       <div style={{ fontSize: small ? 24 : 30,fontWeight:800,
         color:'#0f172a',lineHeight:1,marginBottom:8,
         fontVariantNumeric:'tabular-nums',letterSpacing:'-0.02em' }}>{animated}</div>
