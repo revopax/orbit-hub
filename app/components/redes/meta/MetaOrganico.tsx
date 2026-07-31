@@ -66,6 +66,7 @@ export default function MetaOrganico({ accent, secondary }:Props) {
   const [openFiltro, setOpenFiltro] = useState<string|null>(null)
   const filtroRef = useRef<HTMLDivElement>(null)
   const [imgErr,   setImgErr]   = useState<Record<string,boolean>>({})
+  const imgCellRefs = useRef<Record<string, HTMLDivElement | null>>({})
   const [hoverImg, setHoverImg] = useState<string|null>(null)
   const [showPicker, setShowPicker] = useState(false)
   const [dateFrom, setDateFrom] = useState(`${new Date().getFullYear()}-01-01`)
@@ -476,29 +477,27 @@ export default function MetaOrganico({ accent, secondary }:Props) {
                     onMouseLeave={e=>(e.currentTarget.style.background=i%2===0?'#fff':'#fafbfc')}>
                     <td style={{padding:'10px 12px',color:'#64748b',whiteSpace:'nowrap'}}>{p.fecha}</td>
                     <td style={{padding:'6px 12px',textAlign:'center',position:'relative'}}>
-                      <div style={{position:'relative',display:'inline-block'}}
+                      <div ref={el=>{imgCellRefs.current[p.post_id]=el}} style={{position:'relative',display:'inline-block'}}
                         onMouseEnter={()=>setHoverImg(p.post_id)}
                         onMouseLeave={()=>setHoverImg(null)}>
                         {p.link_imagen&&!imgErr[p.post_id]?(
                           <>
                             <img src={p.link_imagen} alt=''
                               onError={()=>setImgErr(prev=>({...prev,[p.post_id]:true}))}
-                              style={{width:56,height:56,objectFit:'cover',borderRadius:8,border:'1px solid #e2e8f0',
-                                display:'block',transition:'transform 0.2s ease, box-shadow 0.2s ease',
-                                transform:hoverImg===p.post_id?'scale(3.2)':'scale(1)',
-                                boxShadow:hoverImg===p.post_id?'0 12px 36px rgba(0,0,0,0.35)':'none',
-                                zIndex:hoverImg===p.post_id?10:1,position:'relative'}}/>
-                            {hoverImg===p.post_id&&(
-                              <div style={{position:'absolute',left:'50%',bottom:'calc(100% + 8px)',transform:'translateX(-50%)',
-                                background:'rgba(15,23,42,0.92)',color:'#fff',borderRadius:10,padding:'8px 12px',
-                                fontSize:11,whiteSpace:'normal',maxWidth:200,zIndex:50,pointerEvents:'none',
-                                boxShadow:'0 4px 16px rgba(0,0,0,0.3)',lineHeight:1.5}}>
-                                <div style={{fontWeight:700,color:accent==='#1877f2'?'#93c5fd':accent}}>{p.tipo} · {p.fuente}</div>
-                              </div>
-                            )}
+                              style={{width:56,height:56,objectFit:'cover',borderRadius:8,border:'1px solid #e2e8f0',display:'block'}}/>
+                            {hoverImg===p.post_id && imgCellRefs.current[p.post_id] && (() => {
+                              const r = imgCellRefs.current[p.post_id]!.getBoundingClientRect()
+                              const cx = r.left + r.width/2, cy = r.top + r.height/2
+                              return (
+                                <img src={p.link_imagen} alt=''
+                                  style={{position:'fixed', left:cx, top:cy, transform:'translate(-50%,-50%)',
+                                    width:190, height:190, objectFit:'cover', borderRadius:10,
+                                    boxShadow:'0 16px 44px rgba(0,0,0,0.4)', zIndex:1000, pointerEvents:'none'}}/>
+                              )
+                            })()}
                           </>
                         ):(
-                          <div style={{width:56,height:56,borderRadius:8,background:'#f1f5f9',display:'flex',alignItems:'center',justifyContent:'center',fontSize:20,transition:'transform 0.2s',transform:hoverImg===p.post_id?'scale(1.4)':'scale(1)'}}>
+                          <div style={{width:56,height:56,borderRadius:8,background:'#f1f5f9',display:'flex',alignItems:'center',justifyContent:'center',fontSize:20}}>
                             {p.fuente==='Instagram'?'📷':'📘'}
                           </div>
                         )}
