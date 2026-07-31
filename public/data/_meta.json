@@ -1,7 +1,7 @@
 {
-  "updated_at": "2026-07-30T23:53:31Z",
-  "duration_s": 0.4,
+  "updated_at": "2026-07-31T00:00:22Z",
+  "duration_s": 210.5,
   "status": {
-    "meta_organico": "ERROR: Invalid header value b'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InN6eGR2ZGJkeXV4dHZ5dnhiZGVyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzcyNDAwODUsImV4cCI6MjA5MjgxNjA4NX0.uiplnYCA9lJy-o18r2x1-9bRTFjTZiBNJ-01QiCepTg\\n'"
+    "meta_organico": "OK"
   }
 }
