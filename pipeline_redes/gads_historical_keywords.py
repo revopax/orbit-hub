@@ -32,7 +32,10 @@ TIPO_MAP = {
     'SEARCH': 'Búsqueda', 'VIDEO': 'Video', 'DEMAND_GEN': 'Demand Gen',
 }
 
-def log(msg): print(f"[{datetime.now().strftime('%H:%M:%S')}] {msg}", flush=True)
+def log(msg, level='INFO'):
+    icons = {'INFO': '→', 'OK': '✅', 'WARN': '⚠️', 'ERROR': '🔥', 'START': '🚀', 'DONE': '🎯'}
+    icon = icons.get(level, '→')
+    print(f"[{datetime.now().strftime('%H:%M:%S')}] {icon} {msg}", flush=True)
 
 def get_env():
     """Lee .env.local si no hay vars de entorno."""

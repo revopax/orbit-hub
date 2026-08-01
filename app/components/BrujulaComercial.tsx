@@ -77,7 +77,7 @@ export default function BrujulaComercial() {
               <p style={{ fontSize: 13, fontWeight: 500, margin: '0 0 8px', color: 'var(--txt-1)' }}>
                 Cruce de señales · {udnActiva.nombre}
               </p>
-              <GraficaCruceSenales brandColor={udnActiva.color} isDark={false} />
+              <GraficaCruceSenales brandColor={udnActiva.color} isDark={false} udn={udnActiva.nombre} />
             </div>
             <div>
               <p style={{ fontSize: 13, fontWeight: 500, margin: '0 0 8px', color: 'var(--txt-1)' }}>
