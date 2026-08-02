@@ -1,21 +1,21 @@
 #!/usr/bin/env python3
 """
-Google Ads Search Terms → Supabase (gads_search_terms)
+Google Ads Search Terms → Supabase (gads_search_terms) — agregado MENSUAL
 Uso:
-  python3 pipeline_redes/gads_search_terms.py            # últimos 90 días
-  python3 pipeline_redes/gads_search_terms.py 2024-01-01 # desde fecha
+  python3 pipeline_redes/gads_historical_keywords.py            # últimos 90 días
+  python3 pipeline_redes/gads_historical_keywords.py 2024-01-01 # desde fecha
 """
 import sys, os
 sys.path.insert(0, os.path.dirname(__file__))
 
 from datetime import datetime, timedelta
+from collections import defaultdict
 from google.ads.googleads.client import GoogleAdsClient
 from supabase import create_client
 
-# ── Config ────────────────────────────────────────────────────────────────────
-YAML_PATH   = os.path.join(os.path.dirname(__file__), 'google-ads.yaml')
-SUPA_URL    = os.getenv('NEXT_PUBLIC_SUPABASE_URL_ANALYTICS', '')
-SUPA_KEY    = os.getenv('SUPABASE_SERVICE_ROLE_KEY_ANALYTICS', '')
+YAML_PATH = os.path.join(os.path.dirname(__file__), 'google-ads.yaml')
+SUPA_URL  = os.getenv('NEXT_PUBLIC_SUPABASE_URL_MBR', '')
+SUPA_KEY  = os.getenv('SUPABASE_SERVICE_ROLE_KEY_MBR', '')
 
 CUSTOMER_IDS = {
     "House Of Films":   "3855421374",
@@ -34,11 +34,9 @@ TIPO_MAP = {
 
 def log(msg, level='INFO'):
     icons = {'INFO': '→', 'OK': '✅', 'WARN': '⚠️', 'ERROR': '🔥', 'START': '🚀', 'DONE': '🎯'}
-    icon = icons.get(level, '→')
-    print(f"[{datetime.now().strftime('%H:%M:%S')}] {icon} {msg}", flush=True)
+    print(f"[{datetime.now().strftime('%H:%M:%S')}] {icons.get(level,'→')} {msg}", flush=True)
 
 def get_env():
-    """Lee .env.local si no hay vars de entorno."""
     env_path = os.path.join(os.path.dirname(__file__), '..', '.env.local')
     env = {}
     if os.path.exists(env_path):
@@ -49,17 +47,15 @@ def get_env():
                 env[k.strip()] = v.strip().strip('"').strip("'")
     return env
 
-def extract_search_terms(client, udn, cid, start_date, end_date):
+def extract_and_aggregate(client, udn, cid, start_date, end_date):
+    """Extrae search terms y agrega por mes+campana+término."""
     service = client.get_service("GoogleAdsService")
     query = f"""
         SELECT
             segments.date,
             campaign.name,
             campaign.advertising_channel_type,
-            ad_group.name,
             search_term_view.search_term,
-            search_term_view.status,
-            segments.keyword.info.match_type,
             metrics.impressions,
             metrics.clicks,
             metrics.cost_micros,
@@ -68,58 +64,50 @@ def extract_search_terms(client, udn, cid, start_date, end_date):
         WHERE segments.date BETWEEN '{start_date}' AND '{end_date}'
           AND metrics.impressions > 0
     """
-    rows = []
+    # Agrega en memoria por mes+campana+término
+    agg = defaultdict(lambda: {'impresiones': 0, 'clics': 0, 'costo': 0.0, 'conversiones': 0.0, 'tipo_campana': ''})
+    raw_count = 0
     try:
         for r in service.search(customer_id=cid, query=query):
-            fecha = str(r.segments.date)
-            mes   = fecha[:7]
-            tipo  = TIPO_MAP.get(
-                str(r.campaign.advertising_channel_type.name).upper(),
-                str(r.campaign.advertising_channel_type.name)
-            )
-            match = str(r.segments.keyword.info.match_type.name)
-            rows.append({
-                "fecha":          fecha,
-                "mes":            mes,
-                "udn":            udn,
-                "campana":        r.campaign.name,
-                "tipo_campana":   tipo,
-                "grupo_anuncios": r.ad_group.name,
-                "search_term":    r.search_term_view.search_term,
-                "match_type":     match,
-                "status":         str(r.search_term_view.status.name),
-                "impresiones":    int(r.metrics.impressions),
-                "clics":          int(r.metrics.clicks),
-                "costo":          round(r.metrics.cost_micros / 1e6, 4),
-                "conversiones":   round(r.metrics.conversions, 4),
-            })
+            mes   = str(r.segments.date)[:7]  # 'YYYY-MM'
+            camp  = r.campaign.name
+            term  = r.search_term_view.search_term
+            tipo  = TIPO_MAP.get(str(r.campaign.advertising_channel_type.name).upper(), '')
+            key   = (mes, camp, term)
+            agg[key]['impresiones']  += int(r.metrics.impressions)
+            agg[key]['clics']        += int(r.metrics.clicks)
+            agg[key]['costo']        += r.metrics.cost_micros / 1e6
+            agg[key]['conversiones'] += r.metrics.conversions
+            agg[key]['tipo_campana']  = tipo
+            raw_count += 1
     except Exception as e:
-        log(f"  ✗ {udn}: {e}")
-    return rows
+        log(f"{udn}: {e}", 'ERROR')
+        return [], 0
+
+    rows = []
+    for (mes, camp, term), v in agg.items():
+        rows.append({
+            "mes":          mes,
+            "udn":          udn,
+            "campana":      camp,
+            "tipo_campana": v['tipo_campana'],
+            "search_term":  term,
+            "impresiones":  v['impresiones'],
+            "clics":        v['clics'],
+            "costo":        round(v['costo'], 4),
+            "conversiones": round(v['conversiones'], 4),
+        })
+    return rows, raw_count
 
 def upsert_supabase(supa, rows):
     if not rows:
         return 0
-    # Deduplicar por clave única antes del upsert
-    seen = {}
-    for r in rows:
-        key = (r['fecha'], r['udn'], r['campana'], r['grupo_anuncios'], r['search_term'])
-        if key not in seen:
-            seen[key] = r
-        else:
-            # Acumular métricas si hay duplicado
-            seen[key]['impresiones'] += r['impresiones']
-            seen[key]['clics']       += r['clics']
-            seen[key]['costo']       += r['costo']
-            seen[key]['conversiones']+= r['conversiones']
-    deduped = list(seen.values())
-    # Batch de 500
     total = 0
-    for i in range(0, len(deduped), 500):
-        batch = deduped[i:i+500]
+    for i in range(0, len(rows), 500):
+        batch = rows[i:i+500]
         supa.table('gads_search_terms').upsert(
             batch,
-            on_conflict='fecha,udn,campana,grupo_anuncios,search_term'
+            on_conflict='mes,udn,campana,search_term'
         ).execute()
         total += len(batch)
     return total
@@ -129,26 +117,26 @@ def main():
     url = SUPA_URL or env.get('NEXT_PUBLIC_SUPABASE_URL_MBR', '')
     key = SUPA_KEY or env.get('SUPABASE_SERVICE_ROLE_KEY_MBR', '')
     if not url or not key:
-        log("ERROR: faltan SUPABASE_URL/KEY en .env.local"); sys.exit(1)
+        log("Faltan SUPABASE_URL/KEY en .env.local", 'ERROR'); sys.exit(1)
 
     start_date = sys.argv[1] if len(sys.argv) > 1 else \
                  (datetime.now() - timedelta(days=90)).strftime('%Y-%m-%d')
     end_date   = datetime.now().strftime('%Y-%m-%d')
-    log(f"Rango: {start_date} → {end_date}")
+    log(f"Rango: {start_date} → {end_date}", 'START')
 
     client = GoogleAdsClient.load_from_storage(YAML_PATH)
     supa   = create_client(url, key)
 
-    total_insertados = 0
-    for udn, cid_fmt in CUSTOMER_IDS.items():
-        log(f"→ {udn} ({cid_fmt})...")
-        rows = extract_search_terms(client, udn, cid_fmt, start_date, end_date)
-        log(f"  {len(rows)} términos encontrados")
+    total = 0
+    for udn, cid in CUSTOMER_IDS.items():
+        log(f"{udn} ({cid})...")
+        rows, raw = extract_and_aggregate(client, udn, cid, start_date, end_date)
+        log(f"{udn}: {raw:,} registros diarios → {len(rows):,} filas mensuales agregadas")
         n = upsert_supabase(supa, rows)
-        log(f"  ✓ {n} filas upserted")
-        total_insertados += n
+        log(f"{udn}: {n:,} filas upserted", 'OK')
+        total += n
 
-    log(f"\n✅ Total insertado: {total_insertados} filas")
+    log(f"Total insertado: {total:,} filas mensuales", 'DONE')
 
 if __name__ == '__main__':
     main()
