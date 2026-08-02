@@ -45,23 +45,20 @@ export function TablaKeywords({ udn }: { udn: string }) {
   const [mesActual, setMesActual] = useState('');
 
   useEffect(() => {
-    const now = new Date();
-    const mes = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
-    const mesPrev = now.getMonth() === 0
-      ? `${now.getFullYear() - 1}-12`
-      : `${now.getFullYear()}-${String(now.getMonth()).padStart(2, '0')}`;
-    setMesActual(mes);
     setLoading(true);
-
-    // Intenta mes actual, si vacío usa mes anterior
-    supa.rpc('get_keywords_table', { p_udn: udn, p_mes: mes })
+    // Busca el mes más reciente con datos para esta UDN
+    supa
+      .from('gads_search_terms')
+      .select('mes')
+      .ilike('udn', udn.replace(' ', '%'))
+      .gt('impresiones', 0)
+      .order('mes', { ascending: false })
+      .limit(1)
       .then(({ data }) => {
-        if (data && data.length > 0 && data.some((r: KeywordRow) => r.impresiones > 0)) {
-          setRows(data);
-        } else {
-          setMesActual(mesPrev);
-          return supa.rpc('get_keywords_table', { p_udn: udn, p_mes: mesPrev });
-        }
+        const mes = data?.[0]?.mes ?? '';
+        if (!mes) { setLoading(false); return; }
+        setMesActual(mes);
+        return supa.rpc('get_keywords_table', { p_udn: udn, p_mes: mes });
       })
       .then((res: any) => { if (res?.data) setRows(res.data); })
       .finally(() => setLoading(false));
