@@ -35,6 +35,7 @@ export function GraficaCruceSenales({ brandColor, isDark, udn, anio }: GraficaCr
       .rpc('get_keywords_signal', { p_udn: udn, p_anio: anioConsulta })
       .then(({ data, error }) => {
         if (error || !data) return;
+        console.log('[Señal reactiva]', udn, data);
         setReactiva(data.map((r: { mes: string; indice: number }) => ({ mes: r.mes, indice: Number(r.indice) })));
       });
   }, [udn, anio]);
@@ -76,7 +77,7 @@ export function GraficaCruceSenales({ brandColor, isDark, udn, anio }: GraficaCr
       },
     });
     return () => { chartRef.current?.destroy(); };
-  }, [brandColor, isDark, reactiva]);
+  }, [brandColor, isDark, reactiva, udn]);
 
   return (
     <div style={{ position: 'relative', width: '100%', height: 280 }}>
