@@ -38,54 +38,74 @@ export function KpiScoreCards({ udn, mes }: Props) {
       .finally(() => setLoading(false));
   }, [udn, mes]);
 
-  const cardStyle = {
-    background: 'var(--surface-1)', borderRadius: 12,
-    border: '0.5px solid var(--border)', padding: '14px 18px',
-  };
-
   if (loading) return (
-    <div style={{ display:'grid', gridTemplateColumns:'repeat(auto-fit,minmax(150px,1fr))', gap:12 }}>
-      {[1,2,3,4].map(i => <div key={i} style={{ ...cardStyle, height:72, background:'var(--surface-0)' }} />)}
+    <div style={{ display:'grid', gridTemplateColumns:'repeat(auto-fit,minmax(200px,1fr))', gap:12 }}>
+      {[1,2,3,4].map(i => (
+        <div key={i} style={{ height:110, borderRadius:12, background:'#F1F5F9', border:'0.5px solid #E2E8F0' }} />
+      ))}
     </div>
   );
 
   if (!data) return null;
 
   const esPico = data.mes_pico === mes;
-  const señalColor = data.indice_senal >= 130 ? '#059669' : data.indice_senal >= 100 ? '#534AB7' : '#94A3B8';
+  const señalVal = Math.round(data.indice_senal);
+  const señalColor = señalVal >= 130 ? '#059669' : señalVal >= 100 ? '#534AB7' : '#94A3B8';
+  const señalBg = señalVal >= 130 ? '#ECFDF5' : señalVal >= 100 ? '#EEEDFE' : '#F8FAFC';
+  const señalBorder = señalVal >= 130 ? '#059669' : señalVal >= 100 ? '#534AB7' : '#CBD5E1';
+  const pct = Math.min(señalVal, 200) / 200;
 
   return (
-    <div style={{ display:'grid', gridTemplateColumns:'repeat(auto-fit,minmax(150px,1fr))', gap:12 }}>
-      <div style={cardStyle}>
-        <p style={{ fontSize:11, color:'var(--text-secondary)', margin:'0 0 4px' }}>Señal de búsqueda</p>
-        <p style={{ fontSize:28, fontWeight:500, margin:0, color: señalColor, lineHeight:1 }}>
-          {Math.round(data.indice_senal)}
-        </p>
-        <p style={{ fontSize:11, margin:'4px 0 0', color: esPico ? '#059669' : 'var(--text-muted)' }}>
-          {esPico ? '↑ Pico del período' : `Pico: ${fmtMes(data.mes_pico)} · ${Math.round(data.indice_pico)}`}
-        </p>
+    <div style={{ display:'grid', gridTemplateColumns:'repeat(auto-fit,minmax(200px,1fr))', gap:12 }}>
+
+      {/* Señal */}
+      <div style={{ background:'#fff', borderRadius:12, border:`1.5px solid ${señalBorder}33`, padding:'16px 20px', position:'relative', overflow:'hidden' }}>
+        <div style={{ position:'absolute', top:0, left:0, width:`${Math.round(pct*100)}%`, height:3, background:señalColor, borderRadius:'12px 0 0 0' }} />
+        <p style={{ fontSize:11, fontWeight:600, color:'#64748B', textTransform:'uppercase', letterSpacing:'0.06em', margin:'0 0 8px' }}>Señal de búsqueda</p>
+        <p style={{ fontSize:36, fontWeight:700, margin:'0 0 4px', color:señalColor, lineHeight:1, fontVariantNumeric:'tabular-nums' }}>{señalVal}</p>
+        <div style={{ display:'flex', alignItems:'center', gap:6, marginTop:8 }}>
+          <span style={{ fontSize:10, fontWeight:600, padding:'2px 8px', borderRadius:20, background:señalBg, color:señalColor }}>
+            {esPico ? '↑ Pico del período' : señalVal >= 100 ? 'Señal activa' : 'Señal baja'}
+          </span>
+          {!esPico && <span style={{ fontSize:11, color:'#94A3B8' }}>Pico: {fmtMes(data.mes_pico)} · {Math.round(data.indice_pico)}</span>}
+        </div>
       </div>
-      <div style={cardStyle}>
-        <p style={{ fontSize:11, color:'var(--text-secondary)', margin:'0 0 4px' }}>Impresiones</p>
-        <p style={{ fontSize:28, fontWeight:500, margin:0, color:'var(--text-primary)', lineHeight:1 }}>
-          {data.impresiones_total.toLocaleString()}
+
+      {/* Impresiones */}
+      <div style={{ background:'#fff', borderRadius:12, border:'0.5px solid #E2E8F0', padding:'16px 20px' }}>
+        <p style={{ fontSize:11, fontWeight:600, color:'#64748B', textTransform:'uppercase', letterSpacing:'0.06em', margin:'0 0 8px' }}>Impresiones Google Ads</p>
+        <p style={{ fontSize:36, fontWeight:700, margin:'0 0 4px', color:'#1e1b4b', lineHeight:1, fontVariantNumeric:'tabular-nums' }}>
+          {data.impresiones_total >= 1000
+            ? `${(data.impresiones_total/1000).toFixed(1)}K`
+            : data.impresiones_total.toLocaleString()}
         </p>
-        <p style={{ fontSize:11, margin:'4px 0 0', color:'var(--text-muted)' }}>{fmtMes(mes)}</p>
+        <p style={{ fontSize:11, color:'#94A3B8', margin:'8px 0 0' }}>veces apareció tu anuncio · {fmtMes(mes)}</p>
       </div>
-      <div style={cardStyle}>
-        <p style={{ fontSize:11, color:'var(--text-secondary)', margin:'0 0 4px' }}>Keywords activas</p>
-        <p style={{ fontSize:28, fontWeight:500, margin:0, color:'var(--text-primary)', lineHeight:1 }}>
-          {data.keywords_activas} <span style={{ fontSize:16, color:'var(--text-muted)' }}>/ {data.keywords_total}</span>
-        </p>
-        <p style={{ fontSize:11, margin:'4px 0 0', color:'var(--text-muted)' }}>del plan SEO con actividad</p>
+
+      {/* Keywords */}
+      <div style={{ background:'#fff', borderRadius:12, border:'0.5px solid #E2E8F0', padding:'16px 20px' }}>
+        <p style={{ fontSize:11, fontWeight:600, color:'#64748B', textTransform:'uppercase', letterSpacing:'0.06em', margin:'0 0 8px' }}>Keywords SEO activas</p>
+        <div style={{ display:'flex', alignItems:'baseline', gap:6, margin:'0 0 4px' }}>
+          <p style={{ fontSize:36, fontWeight:700, margin:0, color:'#1e1b4b', lineHeight:1, fontVariantNumeric:'tabular-nums' }}>{data.keywords_activas}</p>
+          <p style={{ fontSize:18, fontWeight:400, margin:0, color:'#94A3B8' }}>/ {data.keywords_total}</p>
+        </div>
+        <div style={{ height:4, background:'#F1F5F9', borderRadius:2, marginTop:10, overflow:'hidden' }}>
+          <div style={{ width:`${Math.round((data.keywords_activas/Math.max(data.keywords_total,1))*100)}%`, height:'100%', background:'#534AB7', borderRadius:2 }} />
+        </div>
+        <p style={{ fontSize:11, color:'#94A3B8', margin:'6px 0 0' }}>del plan SEO con actividad este mes</p>
       </div>
-      <div style={cardStyle}>
-        <p style={{ fontSize:11, color:'var(--text-secondary)', margin:'0 0 4px' }}>Competidores detectados</p>
-        <p style={{ fontSize:28, fontWeight:500, margin:0, color: data.competidores_det > 0 ? '#D97706' : 'var(--text-muted)', lineHeight:1 }}>
+
+      {/* Competidores */}
+      <div style={{ background:'#fff', borderRadius:12, border:`0.5px solid ${data.competidores_det > 0 ? '#FDE68A' : '#E2E8F0'}`, padding:'16px 20px' }}>
+        <p style={{ fontSize:11, fontWeight:600, color:'#64748B', textTransform:'uppercase', letterSpacing:'0.06em', margin:'0 0 8px' }}>Competidores detectados</p>
+        <p style={{ fontSize:36, fontWeight:700, margin:'0 0 4px', color: data.competidores_det > 0 ? '#D97706' : '#94A3B8', lineHeight:1, fontVariantNumeric:'tabular-nums' }}>
           {data.competidores_det}
         </p>
-        <p style={{ fontSize:11, margin:'4px 0 0', color:'var(--text-muted)' }}>en búsquedas de Google Ads</p>
+        <p style={{ fontSize:11, color:'#94A3B8', margin:'8px 0 0' }}>
+          {data.competidores_det > 0 ? 'búsquedas de competidores activaron tu anuncio' : 'sin actividad de competidores este mes'}
+        </p>
       </div>
+
     </div>
   );
 }

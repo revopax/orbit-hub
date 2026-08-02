@@ -31,38 +31,52 @@ export function SegmentosServicio({ udn, mes }: Props) {
   const max = Math.max(...rows.map(r => r.impresiones), 1);
 
   return (
-    <div style={{ background:'var(--surface-1)', borderRadius:12, border:'0.5px solid var(--border)', padding:'16px 20px' }}>
-      <p style={{ fontSize:11, fontWeight:500, color:'var(--text-secondary)', textTransform:'uppercase', letterSpacing:'0.06em', margin:'0 0 14px' }}>
-        Actividad por segmento de servicio
-      </p>
+    <div style={{ background:'#fff', borderRadius:12, border:'0.5px solid #E2E8F0', padding:'20px 24px' }}>
+      <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', marginBottom:16 }}>
+        <p style={{ fontSize:11, fontWeight:700, color:'#64748B', textTransform:'uppercase', letterSpacing:'0.06em', margin:0 }}>
+          Actividad por segmento de servicio
+        </p>
+        <p style={{ fontSize:11, color:'#94A3B8', margin:0 }}>Impresiones Google Ads</p>
+      </div>
+
       {loading ? (
-        <div style={{ display:'flex', flexDirection:'column', gap:10 }}>
-          {[1,2,3,4].map(i => <div key={i} style={{ height:24, background:'var(--surface-0)', borderRadius:4 }} />)}
+        <div style={{ display:'flex', flexDirection:'column', gap:14 }}>
+          {[1,2,3,4].map(i => (
+            <div key={i} style={{ display:'flex', alignItems:'center', gap:12 }}>
+              <div style={{ height:12, width:120, background:'#F1F5F9', borderRadius:4 }} />
+              <div style={{ flex:1, height:8, background:'#F1F5F9', borderRadius:4 }} />
+              <div style={{ height:12, width:60, background:'#F1F5F9', borderRadius:4 }} />
+            </div>
+          ))}
         </div>
       ) : rows.length === 0 ? (
-        <p style={{ fontSize:12, color:'var(--text-muted)' }}>Sin datos este período</p>
+        <p style={{ fontSize:12, color:'#94A3B8', textAlign:'center', padding:'24px 0' }}>Sin datos este período</p>
       ) : (
-        <div style={{ display:'flex', flexDirection:'column', gap:10 }}>
-          {rows.map(r => (
-            <div key={r.categoria}>
-              <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:4 }}>
-                <span style={{ fontSize:12, color: r.impresiones > 0 ? 'var(--text-primary)' : 'var(--text-muted)', fontWeight: r.impresiones > 0 ? 500 : 400 }}>
-                  {r.categoria}
-                </span>
-                <div style={{ display:'flex', alignItems:'center', gap:12 }}>
-                  <span style={{ fontSize:11, color:'var(--text-muted)' }}>
-                    {r.keywords_activas}/{r.keywords_total} kws activas
-                  </span>
-                  <span style={{ fontSize:12, fontWeight:600, color: r.impresiones > 0 ? '#534AB7' : 'var(--text-muted)', minWidth:60, textAlign:'right' }}>
-                    {r.impresiones > 0 ? r.impresiones.toLocaleString() : '—'}
-                  </span>
-                </div>
+        <div style={{ display:'flex', flexDirection:'column', gap:14 }}>
+          {rows.map((r, i) => (
+            <div key={r.categoria} style={{ display:'flex', alignItems:'center', gap:12 }}>
+              <div style={{ width:24, fontSize:11, fontWeight:700, color:'#94A3B8', textAlign:'right', flexShrink:0 }}>
+                {i+1}
               </div>
-              <div style={{ height:6, background:'var(--surface-0)', borderRadius:3, overflow:'hidden' }}>
+              <div style={{ width:180, flexShrink:0 }}>
+                <p style={{ fontSize:12, fontWeight: r.impresiones > 0 ? 600 : 400, color: r.impresiones > 0 ? '#1e1b4b' : '#94A3B8', margin:0, overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>
+                  {r.categoria}
+                </p>
+                <p style={{ fontSize:10, color:'#94A3B8', margin:'1px 0 0' }}>{r.keywords_activas}/{r.keywords_total} kws activas</p>
+              </div>
+              <div style={{ flex:1, height:8, background:'#F1F5F9', borderRadius:4, overflow:'hidden' }}>
                 <div style={{
-                  width: `${Math.round((r.impresiones / max) * 100)}%`,
-                  height:'100%', background:'#534AB7', borderRadius:3,
+                  width: r.impresiones > 0 ? `${Math.max(Math.round((r.impresiones/max)*100), 2)}%` : '0%',
+                  height:'100%',
+                  background: i === 0 ? '#534AB7' : i === 1 ? '#7C3AED' : i === 2 ? '#A78BFA' : '#C4B5FD',
+                  borderRadius:4,
+                  transition:'width 0.5s ease',
                 }} />
+              </div>
+              <div style={{ width:70, textAlign:'right', flexShrink:0 }}>
+                <span style={{ fontSize:13, fontWeight:700, color: r.impresiones > 0 ? '#534AB7' : '#CBD5E1', fontVariantNumeric:'tabular-nums' }}>
+                  {r.impresiones > 0 ? r.impresiones.toLocaleString() : '—'}
+                </span>
               </div>
             </div>
           ))}
