@@ -46,7 +46,7 @@ export default function BrujulaComercial() {
         height: 56, position: 'sticky', top: 0, zIndex: 100,
       }}>
         <div style={{ maxWidth: 1400, margin: '0 auto', width: '100%', display: 'flex', alignItems: 'center', gap: 14 }}>
-          <img src="/logos/orbit-brujula-outline.svg" alt="" style={{ width: 28, height: 28, flexShrink: 0 }} />
+          <img src="/logos/brujula-comercial-logo.png" alt="" style={{ width: 32, height: 32, borderRadius: 8, flexShrink: 0 }} />
           <span style={{ fontWeight: 700, fontSize: 15, color: 'var(--txt-1)' }}>
             Brújula <span style={{ color: ACCENT }}>Comercial</span>
           </span>
