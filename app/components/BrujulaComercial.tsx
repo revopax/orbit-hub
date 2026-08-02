@@ -3,6 +3,7 @@ import { useState } from 'react';
 import { UDNBar } from './UDNBar';
 import { GraficaCruceSenales } from './GraficaCruceSenales';
 import { ScoreCardsConvergencia } from './ScoreCardsConvergencia';
+import { TablaKeywords } from './TablaKeywords';
 import { UDNS } from '../lib/data';
 import { useAuth } from '../hooks/useAuth';
 import type { UDN } from '../lib/types';
@@ -78,6 +79,12 @@ export default function BrujulaComercial() {
                 Cruce de señales · {udnActiva.nombre}
               </p>
               <GraficaCruceSenales brandColor={udnActiva.color} isDark={false} udn={udnActiva.nombre} />
+            </div>
+            <div>
+              <p style={{ fontSize: 13, fontWeight: 500, margin: '0 0 8px', color: 'var(--txt-1)' }}>
+                Señales de búsqueda
+              </p>
+              <TablaKeywords udn={udnActiva.nombre} />
             </div>
             <div>
               <p style={{ fontSize: 13, fontWeight: 500, margin: '0 0 8px', color: 'var(--txt-1)' }}>
