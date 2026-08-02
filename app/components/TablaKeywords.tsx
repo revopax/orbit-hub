@@ -15,9 +15,9 @@ interface KeywordRow {
 }
 
 const TIPO_META: Record<string, { color: string; bg: string; desc: string }> = {
-  'Navigational':  { color: '#6B7280', bg: '#F3F4F6', desc: 'Ya te conoce, busca tu marca' },
-  'Informational': { color: '#2563EB', bg: '#EFF6FF', desc: 'Explorando, aún no compra' },
-  'Commercial':    { color: '#D97706', bg: '#FFFBEB', desc: 'Comparando, momento de prospectar' },
+  'Navigational':  { color: '#6B7280', bg: '#F3F4F6', desc: 'Ya te conoce, busca tu marca directamente' },
+  'Informational': { color: '#2563EB', bg: '#EFF6FF', desc: 'Explorando el tema, aún no compra' },
+  'Commercial':    { color: '#D97706', bg: '#FFFBEB', desc: 'Comparando opciones, momento de prospectar' },
   'Transactional': { color: '#059669', bg: '#ECFDF5', desc: 'Quiere contratar ya' },
 };
 
@@ -31,7 +31,7 @@ function TipoBadge({ tipo }: { tipo: string }) {
           <span key={t} title={meta.desc} style={{
             fontSize: 10, fontWeight: 600, padding: '2px 7px',
             borderRadius: 4, color: meta.color, background: meta.bg,
-            cursor: 'default', whiteSpace: 'nowrap',
+            cursor: 'help', whiteSpace: 'nowrap', border: `1px solid ${meta.color}22`,
           }}>{t}</span>
         );
       })}
@@ -39,120 +39,102 @@ function TipoBadge({ tipo }: { tipo: string }) {
   );
 }
 
+function MiniTabla({ titulo, subtitulo, rows, emptyMsg }: {
+  titulo: string; subtitulo?: string;
+  rows: KeywordRow[]; emptyMsg: string;
+}) {
+  return (
+    <div style={{ flex: 1, minWidth: 0 }}>
+      <p style={{ fontSize: 11, fontWeight: 700, color: '#6B7280', textTransform: 'uppercase', letterSpacing: '0.06em', margin: '0 0 4px' }}>{titulo}</p>
+      {subtitulo && <p style={{ fontSize: 10, color: '#94A3B8', margin: '0 0 8px' }}>{subtitulo}</p>}
+      <div style={{ border: '1px solid #E2E8F0', borderRadius: 8, overflow: 'hidden' }}>
+        <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 12 }}>
+          <thead>
+            <tr style={{ background: '#F8FAFC' }}>
+              <th style={{ padding: '7px 10px', textAlign: 'left', fontWeight: 600, color: '#64748B', fontSize: 10 }}>Keyword</th>
+              <th style={{ padding: '7px 10px', textAlign: 'left', fontWeight: 600, color: '#64748B', fontSize: 10 }}>Intención</th>
+              <th style={{ padding: '7px 10px', textAlign: 'right', fontWeight: 600, color: '#64748B', fontSize: 10 }}>Impr.</th>
+            </tr>
+          </thead>
+          <tbody>
+            {rows.length === 0 ? (
+              <tr><td colSpan={3} style={{ padding: '12px 10px', color: '#94A3B8', fontSize: 11, textAlign: 'center' }}>{emptyMsg}</td></tr>
+            ) : rows.map((r, i) => (
+              <tr key={r.keyword} style={{ borderTop: i > 0 ? '1px solid #F1F5F9' : 'none', background: r.impresiones > 0 ? '#fff' : '#FAFAFA' }}>
+                <td style={{ padding: '7px 10px', color: r.impresiones > 0 ? '#1e1b4b' : '#94A3B8', fontWeight: r.impresiones > 0 ? 500 : 400, maxWidth: 160, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                  {r.keyword}
+                </td>
+                <td style={{ padding: '7px 10px' }}><TipoBadge tipo={r.tipo} /></td>
+                <td style={{ padding: '7px 10px', textAlign: 'right', fontWeight: 600, color: r.impresiones > 0 ? '#1e1b4b' : '#CBD5E1', fontSize: 12 }}>
+                  {r.impresiones > 0 ? r.impresiones.toLocaleString() : '—'}
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  );
+}
+
 export function TablaKeywords({ udn }: { udn: string }) {
-  const [rows, setRows] = useState<KeywordRow[]>([]);
+  const [rows, setRows]       = useState<KeywordRow[]>([]);
   const [loading, setLoading] = useState(true);
-  const [mesActual, setMesActual] = useState('');
+  const [mes, setMes]         = useState('');
 
   useEffect(() => {
     setLoading(true);
-    // Busca el mes más reciente con datos para esta UDN
-    supa
-      .from('gads_search_terms')
-      .select('mes')
-      .ilike('udn', udn.replace(' ', '%'))
-      .gt('impresiones', 0)
-      .order('mes', { ascending: false })
-      .limit(1)
+    setRows([]);
+    supa.rpc('get_mes_reciente', { p_udn: udn })
       .then(({ data }) => {
-        const mes = data?.[0]?.mes ?? '';
-        if (!mes) { setLoading(false); return; }
-        setMesActual(mes);
-        return supa.rpc('get_keywords_table', { p_udn: udn, p_mes: mes });
+        const m = data?.[0]?.mes ?? '';
+        if (!m) { setLoading(false); return null; }
+        setMes(m);
+        return supa.rpc('get_keywords_table', { p_udn: udn, p_mes: m });
       })
       .then((res: any) => { if (res?.data) setRows(res.data); })
       .finally(() => setLoading(false));
   }, [udn]);
 
   const golden   = rows.filter(r => r.es_golden);
-  const emerging = rows.filter(r => !r.es_golden).slice(0, 5);
-
-  if (loading) return (
-    <div style={{ padding: '16px 0', color: '#94A3B8', fontSize: 12 }}>Cargando señales de búsqueda...</div>
-  );
+  const emerging = rows.filter(r => !r.es_golden).slice(0, 8);
 
   return (
     <div style={{ marginBottom: 20 }}>
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
+      {/* Header */}
+      <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: 12, flexWrap: 'wrap', gap: 8 }}>
         <div>
-          <p style={{ fontSize: 13, fontWeight: 600, margin: 0, color: '#1e1b4b' }}>
-            Señales de búsqueda · {udn}
-          </p>
-          <p style={{ fontSize: 11, color: '#94A3B8', margin: '2px 0 0' }}>
-            {mesActual} · Google Ads Search Terms
-          </p>
+          <p style={{ fontSize: 13, fontWeight: 600, margin: '0 0 2px', color: '#1e1b4b' }}>Señales de búsqueda · {udn}</p>
+          <p style={{ fontSize: 11, color: '#94A3B8', margin: 0 }}>{mes} · Google Ads Search Terms</p>
         </div>
-        {/* Leyenda */}
-        <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', justifyContent: 'flex-end' }}>
+        {/* Leyenda de tipos */}
+        <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', alignItems: 'center' }}>
           {Object.entries(TIPO_META).map(([tipo, meta]) => (
             <span key={tipo} title={meta.desc} style={{
-              fontSize: 10, fontWeight: 500, padding: '2px 7px',
-              borderRadius: 4, color: meta.color, background: meta.bg,
-              cursor: 'default',
-            }}>{tipo}</span>
+              fontSize: 10, fontWeight: 600, padding: '2px 7px', borderRadius: 4,
+              color: meta.color, background: meta.bg, cursor: 'help',
+              border: `1px solid ${meta.color}22`,
+            }}>{tipo} · {meta.desc}</span>
           ))}
         </div>
       </div>
 
-      {/* Keywords estratégicas */}
-      <div style={{ marginBottom: 16 }}>
-        <p style={{ fontSize: 11, fontWeight: 700, color: '#6B7280', textTransform: 'uppercase', letterSpacing: '0.06em', margin: '0 0 6px' }}>
-          Keywords estratégicas SEO
-        </p>
-        <div style={{ border: '1px solid #E2E8F0', borderRadius: 8, overflow: 'hidden' }}>
-          <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 12 }}>
-            <thead>
-              <tr style={{ background: '#F8FAFC' }}>
-                <th style={{ padding: '8px 12px', textAlign: 'left', fontWeight: 600, color: '#64748B', fontSize: 11 }}>Keyword</th>
-                <th style={{ padding: '8px 12px', textAlign: 'left', fontWeight: 600, color: '#64748B', fontSize: 11 }}>Intención</th>
-                <th style={{ padding: '8px 12px', textAlign: 'right', fontWeight: 600, color: '#64748B', fontSize: 11 }}>Impresiones</th>
-              </tr>
-            </thead>
-            <tbody>
-              {golden.map((r, i) => (
-                <tr key={r.keyword} style={{ borderTop: i > 0 ? '1px solid #F1F5F9' : 'none', background: r.impresiones > 0 ? '#fff' : '#FAFAFA' }}>
-                  <td style={{ padding: '8px 12px', color: r.impresiones > 0 ? '#1e1b4b' : '#94A3B8', fontWeight: r.impresiones > 0 ? 500 : 400 }}>
-                    {r.keyword}
-                  </td>
-                  <td style={{ padding: '8px 12px' }}><TipoBadge tipo={r.tipo} /></td>
-                  <td style={{ padding: '8px 12px', textAlign: 'right', fontWeight: 600, color: r.impresiones > 0 ? '#1e1b4b' : '#CBD5E1' }}>
-                    {r.impresiones > 0 ? r.impresiones.toLocaleString() : '—'}
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      </div>
-
-      {/* Oportunidades emergentes */}
-      {emerging.length > 0 && (
-        <div>
-          <p style={{ fontSize: 11, fontWeight: 700, color: '#6B7280', textTransform: 'uppercase', letterSpacing: '0.06em', margin: '0 0 6px' }}>
-            Oportunidades detectadas · no mapeadas en SEO
-          </p>
-          <div style={{ border: '1px solid #E2E8F0', borderRadius: 8, overflow: 'hidden' }}>
-            <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 12 }}>
-              <thead>
-                <tr style={{ background: '#F8FAFC' }}>
-                  <th style={{ padding: '8px 12px', textAlign: 'left', fontWeight: 600, color: '#64748B', fontSize: 11 }}>Término real buscado</th>
-                  <th style={{ padding: '8px 12px', textAlign: 'left', fontWeight: 600, color: '#64748B', fontSize: 11 }}>Intención inferida</th>
-                  <th style={{ padding: '8px 12px', textAlign: 'right', fontWeight: 600, color: '#64748B', fontSize: 11 }}>Impresiones</th>
-                </tr>
-              </thead>
-              <tbody>
-                {emerging.map((r, i) => (
-                  <tr key={r.keyword} style={{ borderTop: i > 0 ? '1px solid #F1F5F9' : 'none' }}>
-                    <td style={{ padding: '8px 12px', color: '#1e1b4b', fontWeight: 500 }}>{r.keyword}</td>
-                    <td style={{ padding: '8px 12px' }}><TipoBadge tipo={r.tipo} /></td>
-                    <td style={{ padding: '8px 12px', textAlign: 'right', fontWeight: 600, color: '#1e1b4b' }}>
-                      {r.impresiones.toLocaleString()}
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+      {loading ? (
+        <div style={{ color: '#94A3B8', fontSize: 12, padding: '12px 0' }}>Cargando señales...</div>
+      ) : (
+        <div style={{ display: 'flex', gap: 16, alignItems: 'flex-start', flexWrap: 'wrap' }}>
+          <MiniTabla
+            titulo="Keywords estratégicas SEO"
+            subtitulo="Keywords definidas en el plan SEO vs búsquedas reales"
+            rows={golden}
+            emptyMsg="Sin datos este mes"
+          />
+          <MiniTabla
+            titulo="Oportunidades no mapeadas"
+            subtitulo="Términos reales con alto volumen fuera del plan SEO"
+            rows={emerging}
+            emptyMsg="Sin oportunidades detectadas"
+          />
         </div>
       )}
     </div>
