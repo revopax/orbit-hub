@@ -2774,7 +2774,7 @@ export default function HubSpotAnalytics() {
       }}>
         <div style={{ maxWidth: 1400, margin: '0 auto', width: '100%', display: 'flex', alignItems: 'center', gap: 14 }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexShrink: 0 }}>
-            <img src="/logos/orbit-analytics-outline.svg" alt="Data & Analytics" style={{ height: 22, width: 22, objectFit: 'contain', filter: 'invert(0)' }} />
+            <div style={{ width: 26, height: 26, borderRadius: 6, background: '#7038E5', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}><img src="/logos/orbit-analytics-outline.svg" alt="Data & Analytics" style={{ height: 16, width: 16, objectFit: 'contain', filter: 'brightness(0) invert(1)' }} /></div>
             <div style={{ display: 'flex', alignItems: 'baseline' }}>
               <span style={{ fontWeight: 800, fontSize: 14, color: '#172033' }}>Data</span>
               <span style={{ fontWeight: 900, fontSize: 14, color: ACCENT, marginLeft: 4 }}>& Analytics</span>
