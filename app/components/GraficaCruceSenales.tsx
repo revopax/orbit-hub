@@ -9,8 +9,8 @@ import { createClient } from '@supabase/supabase-js';
 Chart.register(LineController, LineElement, PointElement, LinearScale, CategoryScale, Tooltip, Legend, Filler);
 
 const supaAnalytics = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL_MBR!,
-  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY_MBR!
+  'https://wuwhcljeigskajjoyghv.supabase.co',
+  'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Ind1d2hjbGplaWdza2Fqam95Z2h2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3MDQyMjI5NjcsImV4cCI6MjAxOTc5ODk2N30.dDw2ogt3LXEnpKln6zPRUp7Thj5Bs47CPIsZlaE9F_A'
 );
 const MESES_CORTOS = ['Ene','Feb','Mar','Abr','May','Jun','Jul','Ago','Sep','Oct','Nov','Dic'];
 
