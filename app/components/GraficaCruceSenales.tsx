@@ -31,15 +31,22 @@ export function GraficaCruceSenales({ brandColor, isDark, udn, anio }: GraficaCr
   const labelRef     = useRef<HTMLDivElement>(null);
   const bandRef      = useRef<HTMLDivElement>(null);
   const [reactiva, setReactiva] = useState<KeywordSignal[]>([]);
+  const cacheRef = useRef<Record<string, KeywordSignal[]>>({});
 
   useEffect(() => {
     const anioConsulta = anio ?? new Date().getFullYear() - 1;
+    const cacheKey = `${udn}-${anioConsulta}`;
+    if (cacheRef.current[cacheKey]) {
+      setReactiva(cacheRef.current[cacheKey]);
+      return;
+    }
     supaAnalytics
       .rpc('get_keywords_signal', { p_udn: udn, p_anio: anioConsulta })
       .then(({ data, error }) => {
-        console.log('[RPC]', udn, anioConsulta, { data, error });
         if (error || !data) return;
-        setReactiva(data.map((r: { mes: string; indice: number }) => ({ mes: r.mes, indice: Number(r.indice) })));
+        const parsed = data.map((r: { mes: string; indice: number }) => ({ mes: r.mes, indice: Number(r.indice) }));
+        cacheRef.current[cacheKey] = parsed;
+        setReactiva(parsed);
       });
   }, [udn, anio]);
 
