@@ -37,6 +37,7 @@ export function GraficaCruceSenales({ brandColor, isDark, udn, anio }: GraficaCr
     supaAnalytics
       .rpc('get_keywords_signal', { p_udn: udn, p_anio: anioConsulta })
       .then(({ data, error }) => {
+        console.log('[RPC]', udn, anioConsulta, { data, error });
         if (error || !data) return;
         setReactiva(data.map((r: { mes: string; indice: number }) => ({ mes: r.mes, indice: Number(r.indice) })));
       });
