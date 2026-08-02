@@ -70,7 +70,7 @@ export function GraficaCruceSenales({ brandColor, isDark, udn, anio }: GraficaCr
         ctx.setLineDash([]);
         ctx.font = '9px sans-serif';
         ctx.fillStyle = isDark ? 'rgba(255,255,255,0.35)' : 'rgba(100,100,160,0.6)';
-        ctx.fillText('base 100', right - 44, yPx - 4);
+        ctx.fillText('base 100 · por encima = señal activa', right - 178, yPx - 4);
         ctx.restore();
       },
     };
@@ -166,7 +166,7 @@ export function GraficaCruceSenales({ brandColor, isDark, udn, anio }: GraficaCr
     const yPx = chart.scales.y.getPixelForValue(maxVal);
 
     // Banda vertical — meses donde intención > 100
-    const activeIdxs = data.reduce<number[]>((acc, v, i) => { if (v > 100) acc.push(i); return acc; }, []);
+    const activeIdxs = data.reduce<number[]>((acc, v, i) => { if (v > 115) acc.push(i); return acc; }, []);
     if (bandRef.current && activeIdxs.length > 0) {
       const xStart = chart.scales.x.getPixelForValue(activeIdxs[0]);
       const xEnd   = chart.scales.x.getPixelForValue(activeIdxs[activeIdxs.length - 1]);
@@ -187,7 +187,7 @@ export function GraficaCruceSenales({ brandColor, isDark, udn, anio }: GraficaCr
       ringRef.current.style.top   = `${yPx - 5}px`;
       labelRef.current.style.left = `${xPx + 10}px`;
       labelRef.current.style.top  = `${yPx - 22}px`;
-      labelRef.current.textContent = `Pico · ${mesPico}`;
+      labelRef.current.textContent = `Alta intención · ${mesPico} · prospectar ahora`;
     }
   }
 
