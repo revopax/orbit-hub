@@ -1,6 +1,7 @@
 'use client';
 import { useEffect, useState } from 'react';
 import { createClient } from '@supabase/supabase-js';
+import { InfoTip } from './redes/KPICard';
 
 const supa = createClient(
   'https://wuwhcljeigskajjoyghv.supabase.co',
@@ -61,7 +62,7 @@ export function KpiScoreCards({ udn, mes }: Props) {
       {/* Señal */}
       <div style={{ background:'#fff', borderRadius:12, border:`1.5px solid ${señalBorder}33`, padding:'16px 20px', position:'relative', overflow:'hidden' }}>
         <div style={{ position:'absolute', top:0, left:0, width:`${Math.round(pct*100)}%`, height:3, background:señalColor, borderRadius:'12px 0 0 0' }} />
-        <p style={{ fontSize:11, fontWeight:600, color:'#64748B', textTransform:'uppercase', letterSpacing:'0.06em', margin:'0 0 8px' }}>Señal de búsqueda <span title="Índice base 100 que mide el volumen de impresiones vs el promedio histórico. 100 = promedio normal. Mayor a 130 = señal alta." style={{ fontSize:12, color:'#94A3B8', cursor:'help', fontWeight:400, textTransform:'none', letterSpacing:'normal' }}>ⓘ</span></p>
+        <p style={{ fontSize:11, fontWeight:600, color:'#64748B', textTransform:'uppercase', letterSpacing:'0.06em', margin:'0 0 8px' }}>Señal de búsqueda <InfoTip text="Índice base 100 que mide el volumen de impresiones vs el promedio histórico. 100 = promedio normal. Mayor a 130 = señal alta." /></p>
         <p style={{ fontSize:36, fontWeight:700, margin:'0 0 4px', color:señalColor, lineHeight:1, fontVariantNumeric:'tabular-nums' }}>{señalVal}</p>
         <div style={{ display:'flex', alignItems:'center', gap:6, marginTop:8 }}>
           <span style={{ fontSize:10, fontWeight:600, padding:'2px 8px', borderRadius:20, background:señalBg, color:señalColor }}>
@@ -73,7 +74,7 @@ export function KpiScoreCards({ udn, mes }: Props) {
 
       {/* Impresiones */}
       <div style={{ background:'#fff', borderRadius:12, border:'0.5px solid #E2E8F0', padding:'16px 20px' }}>
-        <p style={{ fontSize:11, fontWeight:600, color:'#64748B', textTransform:'uppercase', letterSpacing:'0.06em', margin:'0 0 8px' }}>Impresiones Google Ads <span title="Veces que tu anuncio apareció en Google. No es personas únicas — una persona puede generar múltiples impresiones." style={{ fontSize:12, color:'#94A3B8', cursor:'help', fontWeight:400, textTransform:'none', letterSpacing:'normal' }}>ⓘ</span></p>
+        <p style={{ fontSize:11, fontWeight:600, color:'#64748B', textTransform:'uppercase', letterSpacing:'0.06em', margin:'0 0 8px' }}>Impresiones Google Ads <InfoTip text="Veces que tu anuncio apareció en Google. No es personas únicas — una persona puede generar múltiples impresiones." /></p>
         <p style={{ fontSize:36, fontWeight:700, margin:'0 0 4px', color:'#1e1b4b', lineHeight:1, fontVariantNumeric:'tabular-nums' }}>
           {data.impresiones_total >= 1000
             ? `${(data.impresiones_total/1000).toFixed(1)}K`
@@ -84,7 +85,7 @@ export function KpiScoreCards({ udn, mes }: Props) {
 
       {/* Keywords */}
       <div style={{ background:'#fff', borderRadius:12, border:'0.5px solid #E2E8F0', padding:'16px 20px' }}>
-        <p style={{ fontSize:11, fontWeight:600, color:'#64748B', textTransform:'uppercase', letterSpacing:'0.06em', margin:'0 0 8px' }}>Keywords SEO activas <span title="De las keywords de tu plan SEO, cuántas generaron al menos 1 impresión en Google Ads este mes." style={{ fontSize:12, color:'#94A3B8', cursor:'help', fontWeight:400, textTransform:'none', letterSpacing:'normal' }}>ⓘ</span></p>
+        <p style={{ fontSize:11, fontWeight:600, color:'#64748B', textTransform:'uppercase', letterSpacing:'0.06em', margin:'0 0 8px' }}>Keywords SEO activas <InfoTip text="De las keywords de tu plan SEO, cuántas generaron al menos 1 impresión en Google Ads este mes." /></p>
         <div style={{ display:'flex', alignItems:'baseline', gap:6, margin:'0 0 4px' }}>
           <p style={{ fontSize:36, fontWeight:700, margin:0, color:'#1e1b4b', lineHeight:1, fontVariantNumeric:'tabular-nums' }}>{data.keywords_activas}</p>
           <p style={{ fontSize:18, fontWeight:400, margin:0, color:'#94A3B8' }}>/ {data.keywords_total}</p>
@@ -97,7 +98,7 @@ export function KpiScoreCards({ udn, mes }: Props) {
 
       {/* Competidores */}
       <div style={{ background:'#fff', borderRadius:12, border:`0.5px solid ${data.competidores_det > 0 ? '#FDE68A' : '#E2E8F0'}`, padding:'16px 20px' }}>
-        <p style={{ fontSize:11, fontWeight:600, color:'#64748B', textTransform:'uppercase', letterSpacing:'0.06em', margin:'0 0 8px' }}>Competidores detectados <span title="Búsquedas de competidores que activaron tus anuncios. Google mostró tu marca a alguien que buscaba a tu competencia." style={{ fontSize:12, color:'#94A3B8', cursor:'help', fontWeight:400, textTransform:'none', letterSpacing:'normal' }}>ⓘ</span></p>
+        <p style={{ fontSize:11, fontWeight:600, color:'#64748B', textTransform:'uppercase', letterSpacing:'0.06em', margin:'0 0 8px' }}>Competidores detectados <InfoTip text="Búsquedas de competidores que activaron tus anuncios. Google mostró tu marca a alguien que buscaba a tu competencia." /></p>
         <p style={{ fontSize:36, fontWeight:700, margin:'0 0 4px', color: data.competidores_det > 0 ? '#D97706' : '#94A3B8', lineHeight:1, fontVariantNumeric:'tabular-nums' }}>
           {data.competidores_det}
         </p>

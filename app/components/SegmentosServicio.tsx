@@ -1,6 +1,7 @@
 'use client';
 import { useEffect, useState } from 'react';
 import { createClient } from '@supabase/supabase-js';
+import { InfoTip } from './redes/KPICard';
 
 const supa = createClient(
   'https://wuwhcljeigskajjoyghv.supabase.co',
@@ -85,7 +86,7 @@ export function SegmentosServicio({ udn, mes }: { udn: string; mes: string }) {
           <p style={{ fontSize:11, fontWeight:700, color:'#64748B', textTransform:'uppercase', letterSpacing:'0.06em', margin:0 }}>
             Actividad por segmento de servicio
           </p>
-          <span title="Impresiones de Google Ads agrupadas por categoría de servicio del SEO Masterplan. Haz clic en un segmento para ver el detalle de keywords." style={{ fontSize:12, color:'#94A3B8', cursor:'help' }}>ⓘ</span>
+          <InfoTip text="Impresiones de Google Ads agrupadas por categoría de servicio del SEO Masterplan. Haz clic en un segmento para ver el detalle de keywords." />
         </div>
         <p style={{ fontSize:11, color:'#94A3B8', margin:0 }}>Impresiones · clic para ver detalle</p>
       </div>
