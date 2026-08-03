@@ -195,7 +195,10 @@ export function GraficaCruceSenales({ brandColor, isDark, udn, anio }: GraficaCr
       ringRef.current.style.top   = `${yPx - 5}px`;
       labelRef.current.style.left = `${xPx + 10}px`;
       labelRef.current.style.top  = `${yPx - 22}px`;
-      labelRef.current.textContent = `Alta intención · ${mesPico} · prospectar ahora`;
+      const [anioP, mesP] = mesPico.split('-');
+      const MESES_LAB = ['Ene','Feb','Mar','Abr','May','Jun','Jul','Ago','Sep','Oct','Nov','Dic'];
+      const mesLabel = MESES_LAB[parseInt(mesP)-1];
+      labelRef.current.textContent = `Pico de búsqueda · ${mesLabel} ${anioP}`;
     }
   }
 
