@@ -32,16 +32,16 @@ export function GraficaCruceSenales({ brandColor, isDark, udn, anio }: GraficaCr
   const bandRef      = useRef<HTMLDivElement>(null);
   const [reactiva, setReactiva] = useState<KeywordSignal[]>([]);
   const cacheRef = useRef<Record<string, KeywordSignal[]>>({});
+  const [rango, setRango] = useState({ desde: mesesAtrasDefault(MAX_MES, 11), hasta: MAX_MES });
 
   useEffect(() => {
-    const anioConsulta = anio ?? new Date().getFullYear() - 1;
-    const cacheKey = `${udn}-${anioConsulta}`;
+    const cacheKey = `${udn}-${rango.desde}-${rango.hasta}`;
     if (cacheRef.current[cacheKey]) {
       setReactiva(cacheRef.current[cacheKey]);
       return;
     }
     supaAnalytics
-      .rpc('get_keywords_signal', { p_udn: udn, p_anio: anioConsulta })
+      .rpc('get_keywords_signal', { p_udn: udn, p_desde: rango.desde, p_hasta: rango.hasta })
       .then(({ data, error }) => {
         if (error || !data) return;
         const parsed = data.map((r: { mes: string; indice_mercado: number | null }) => ({
@@ -51,7 +51,7 @@ export function GraficaCruceSenales({ brandColor, isDark, udn, anio }: GraficaCr
         cacheRef.current[cacheKey] = parsed;
         setReactiva(parsed);
       });
-  }, [udn, anio]);
+  }, [udn, rango]);
 
   useEffect(() => {
     if (!canvasRef.current) return;
@@ -260,6 +260,12 @@ export function GraficaCruceSenales({ brandColor, isDark, udn, anio }: GraficaCr
         }
       `}</style>
 
+      <SelectorRangoMeses
+        desde={rango.desde}
+        hasta={rango.hasta}
+        maxMes={MAX_MES}
+        onChange={(d, h) => setRango({ desde: d, hasta: h })}
+      />
       {/* Canvas wrapper */}
       <div ref={wrapperRef} style={{ position: 'relative', width: '100%', height: 280 }}>
         {/* 1 · Banda vertical */}
