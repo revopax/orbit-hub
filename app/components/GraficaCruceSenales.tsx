@@ -176,7 +176,7 @@ export function GraficaCruceSenales({ brandColor, isDark, udn, anio }: GraficaCr
     const chart = chartRef.current;
     if (!chart || !wrapperRef.current) return;
 
-    const data      = reactiva.length > 0 ? reactiva.map(p => p.indice) : mockSerieTemporal.map(p => p.reactiva);
+    const data      = reactiva.length > 0 ? reactiva.map(p => p.indice_mercado ?? 0) : mockSerieTemporal.map(p => p.reactiva);
     const maxVal    = Math.max(...data);
     const maxIdx    = data.indexOf(maxVal);
     const labels    = reactiva.length > 0 ? reactiva.map(p => MESES_CORTOS[parseInt(p.mes.split('-')[1]) - 1]) : mockSerieTemporal.map(p => p.mes);
