@@ -5,6 +5,14 @@ import {
   LinearScale, CategoryScale, Tooltip, Legend, Filler,
 } from 'chart.js';
 import { mockSerieTemporal } from '../lib/mockCruceSenales';
+import { SelectorRangoMeses } from './SelectorRangoMeses';
+
+const MAX_MES = '2026-08';
+function mesesAtrasDefault(mesRef: string, n: number): string {
+  const [y, m] = mesRef.split('-').map(Number);
+  const d = new Date(y, m - 1 - n, 1);
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
+}
 import { createClient } from '@supabase/supabase-js';
 Chart.register(LineController, LineElement, PointElement, LinearScale, CategoryScale, Tooltip, Legend, Filler);
 
