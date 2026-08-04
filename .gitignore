@@ -49,3 +49,4 @@ pipeline_redes/service_account.json
 pipeline_redes/meta_page_tokens*.json
 google-ads.yaml
 client_secret*.json
+pipeline_redes/.env
