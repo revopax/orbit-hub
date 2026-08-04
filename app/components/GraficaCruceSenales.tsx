@@ -14,7 +14,7 @@ const supaAnalytics = createClient(
 );
 const MESES_CORTOS = ['Ene','Feb','Mar','Abr','May','Jun','Jul','Ago','Sep','Oct','Nov','Dic'];
 
-interface KeywordSignal { mes: string; indice: number; }
+interface KeywordSignal { mes: string; indice_mercado: number | null; }
 interface GraficaCruceSenalesProps {
   brandColor: string;
   isDark: boolean;
@@ -44,7 +44,10 @@ export function GraficaCruceSenales({ brandColor, isDark, udn, anio }: GraficaCr
       .rpc('get_keywords_signal', { p_udn: udn, p_anio: anioConsulta })
       .then(({ data, error }) => {
         if (error || !data) return;
-        const parsed = data.map((r: { mes: string; indice: number }) => ({ mes: r.mes, indice: Number(r.indice) }));
+        const parsed = data.map((r: { mes: string; indice_mercado: number | null }) => ({
+          mes: r.mes,
+          indice_mercado: r.indice_mercado === null ? null : Number(r.indice_mercado),
+        }));
         cacheRef.current[cacheKey] = parsed;
         setReactiva(parsed);
       });
@@ -58,7 +61,7 @@ export function GraficaCruceSenales({ brandColor, isDark, udn, anio }: GraficaCr
     const textColor = isDark ? 'rgba(255,255,255,0.55)' : '#6B6A8A';
 
     const labels       = reactiva.length > 0 ? reactiva.map(p => MESES_CORTOS[parseInt(p.mes.split('-')[1]) - 1]) : mockSerieTemporal.map(p => p.mes);
-    const reactivaData = reactiva.length > 0 ? reactiva.map(p => p.indice) : mockSerieTemporal.map(p => p.reactiva);
+    const reactivaData = reactiva.length > 0 ? reactiva.map(p => p.indice_mercado) : mockSerieTemporal.map(p => p.reactiva);
     const igaeData     = mockSerieTemporal.map(p => p.igae);
     const contactosData= mockSerieTemporal.map(p => p.contactos);
 
@@ -107,6 +110,7 @@ export function GraficaCruceSenales({ brandColor, isDark, udn, anio }: GraficaCr
             tension: 0.4,
             borderDash: [6, 3],
             fill: false,
+            spanGaps: false,
           },
           {
             label: 'MQLs HubSpot',
