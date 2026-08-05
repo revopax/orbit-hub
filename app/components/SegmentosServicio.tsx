@@ -8,8 +8,8 @@ const supa = createClient(
   'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Ind1d2hjbGplaWdza2Fqam95Z2h2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQ1Njk4MTksImV4cCI6MjA5MDE0NTgxOX0.dDw2ogt3LXEnpKln6zPRUp7Thj5Bs47CPIsZlaE9F_A'
 );
 
-interface Segmento { categoria: string; impresiones: number; keywords_activas: number; keywords_total: number; }
-interface KwDetalle { keyword: string; tipo: string; impresiones: number; }
+interface Segmento { categoria: string; impresiones: number; vol_mercado: number; keywords_activas: number; keywords_total: number; }
+interface KwDetalle { keyword: string; tipo: string; impresiones: number; vol_mercado: number; }
 
 const TIPO_COLOR: Record<string, { bg: string; color: string }> = {
   'Commercial':    { bg: '#FFFBEB', color: '#D97706' },
@@ -44,6 +44,7 @@ function DetalleKeywords({ udn, mes, categoria }: { udn: string; mes: string; ca
             <th style={{ padding:'5px 12px 5px 40px', textAlign:'left', fontWeight:500, color:'#64748B' }}>Keyword</th>
             <th style={{ padding:'5px 12px', textAlign:'left', fontWeight:500, color:'#64748B' }}>Intención</th>
             <th style={{ padding:'5px 12px', textAlign:'right', fontWeight:500, color:'#64748B' }}>Impr.</th>
+              <th style={{ padding:'5px 12px', textAlign:'right', fontWeight:500, color:'#64748B' }}>Vol. mercado</th>
           </tr>
         </thead>
         <tbody>
@@ -53,6 +54,9 @@ function DetalleKeywords({ udn, mes, categoria }: { udn: string; mes: string; ca
               <td style={{ padding:'5px 12px' }}><TipoBadge tipo={r.tipo} /></td>
               <td style={{ padding:'5px 12px', textAlign:'right', fontWeight:600, color: r.impresiones > 0 ? '#534AB7' : '#CBD5E1' }}>
                 {r.impresiones > 0 ? r.impresiones.toLocaleString() : '—'}
+              </td>
+              <td style={{ padding:'5px 12px', textAlign:'right', fontWeight:600, color: r.vol_mercado ? '#059669' : '#CBD5E1' }}>
+                {r.vol_mercado ? r.vol_mercado.toLocaleString() : '—'}
               </td>
             </tr>
           ))}

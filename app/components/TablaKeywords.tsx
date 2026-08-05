@@ -13,6 +13,7 @@ interface KeywordRow {
   es_golden: boolean;
   categoria: string;
   impresiones: number;
+  vol_mercado: number | null;
 }
 
 const TIPO_META: Record<string, { color: string; bg: string; desc: string }> = {
@@ -74,12 +75,13 @@ function SectionTable({ titulo, subtitulo, infoBox, rows, emptyMsg, accentColor 
               <th style={{ padding: '7px 10px', textAlign: 'left', fontWeight: 600, color: '#64748B', fontSize: 10 }}>Término</th>
               <th style={{ padding: '7px 10px', textAlign: 'left', fontWeight: 600, color: '#64748B', fontSize: 10 }}>Intención</th>
               <th style={{ padding: '7px 10px', textAlign: 'right', fontWeight: 600, color: '#64748B', fontSize: 10 }}>Impr.</th>
+              <th style={{ padding: '7px 10px', textAlign: 'right', fontWeight: 600, color: '#64748B', fontSize: 10 }}>Vol. mercado</th>
             </tr>
           </thead>
           <tbody>
             {rows.length === 0 ? (
               <tr>
-                <td colSpan={3} style={{ padding: '16px 10px', color: '#CBD5E1', fontSize: 11, textAlign: 'center' }}>
+                <td colSpan={4} style={{ padding: '16px 10px', color: '#CBD5E1', fontSize: 11, textAlign: 'center' }}>
                   {emptyMsg}
                 </td>
               </tr>
@@ -96,6 +98,12 @@ function SectionTable({ titulo, subtitulo, infoBox, rows, emptyMsg, accentColor 
                   color: r.impresiones > 0 ? accentColor : '#CBD5E1', fontSize: 12,
                 }}>
                   {r.impresiones > 0 ? r.impresiones.toLocaleString() : '—'}
+                </td>
+                <td style={{
+                  padding: '7px 10px', textAlign: 'right', fontWeight: 600,
+                  color: r.vol_mercado ? '#059669' : '#CBD5E1', fontSize: 12,
+                }}>
+                  {r.vol_mercado ? r.vol_mercado.toLocaleString() : '—'}
                 </td>
               </tr>
             ))}
