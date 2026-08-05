@@ -20,6 +20,8 @@ interface KpiData {
   impresiones_total: number;
   keywords_activas: number;
   keywords_total: number;
+  keywords_research_activas: number;
+  keywords_research_total: number;
   competidores_det: number;
   mes_pico: string;
   indice_pico: number;
@@ -62,7 +64,7 @@ export function KpiScoreCards({ udn, mes }: Props) {
       {/* Señal */}
       <div style={{ background:'#fff', borderRadius:12, border:`1.5px solid ${señalBorder}33`, padding:'16px 20px', position:'relative', overflow:'hidden' }}>
         <div style={{ position:'absolute', top:0, left:0, width:`${Math.round(pct*100)}%`, height:3, background:señalColor, borderRadius:'12px 0 0 0' }} />
-        <p style={{ fontSize:11, fontWeight:600, color:'#64748B', textTransform:'uppercase', letterSpacing:'0.06em', margin:'0 0 8px' }}>Señal de búsqueda <InfoTip text="Índice base 100 que mide el volumen de impresiones vs el promedio histórico. 100 = promedio normal. Mayor a 130 = señal alta." /></p>
+        <p style={{ fontSize:11, fontWeight:600, color:'#64748B', textTransform:'uppercase', letterSpacing:'0.06em', margin:'0 0 8px' }}>Señal de búsqueda <InfoTip text="Índice base 100 que mide el volumen de búsqueda real en Google (mercado) vs la mediana histórica. 100 = normal. Mayor a 130 = señal alta." /></p>
         <p style={{ fontSize:36, fontWeight:700, margin:'0 0 4px', color:señalColor, lineHeight:1, fontVariantNumeric:'tabular-nums' }}>{señalVal}</p>
         <div style={{ display:'flex', alignItems:'center', gap:6, marginTop:8 }}>
           <span style={{ fontSize:10, fontWeight:600, padding:'2px 8px', borderRadius:20, background:señalBg, color:señalColor }}>
@@ -85,15 +87,27 @@ export function KpiScoreCards({ udn, mes }: Props) {
 
       {/* Keywords */}
       <div style={{ background:'#fff', borderRadius:12, border:'0.5px solid #E2E8F0', padding:'16px 20px' }}>
-        <p style={{ fontSize:11, fontWeight:600, color:'#64748B', textTransform:'uppercase', letterSpacing:'0.06em', margin:'0 0 8px' }}>Keywords SEO activas <InfoTip text="De las keywords de tu plan SEO, cuántas generaron al menos 1 impresión en Google Ads este mes." /></p>
-        <div style={{ display:'flex', alignItems:'baseline', gap:6, margin:'0 0 4px' }}>
-          <p style={{ fontSize:36, fontWeight:700, margin:0, color:'#1e1b4b', lineHeight:1, fontVariantNumeric:'tabular-nums' }}>{data.keywords_activas}</p>
-          <p style={{ fontSize:18, fontWeight:400, margin:0, color:'#94A3B8' }}>/ {data.keywords_total}</p>
+        <p style={{ fontSize:11, fontWeight:600, color:'#64748B', textTransform:'uppercase', letterSpacing:'0.06em', margin:'0 0 8px' }}>Keywords SEO activas <InfoTip text="Golden: de tus keywords estrella, cuántas generaron al menos 1 impresión en Google Ads este mes. Research: de todo tu plan SEO, cuántas tuvieron demanda real de búsqueda en el mercado." /></p>
+
+        <div style={{ marginBottom:10 }}>
+          <div style={{ display:'flex', alignItems:'baseline', justifyContent:'space-between' }}>
+            <span style={{ fontSize:10, fontWeight:600, color:'#94A3B8', textTransform:'uppercase', letterSpacing:'0.04em' }}>Golden · campaña</span>
+            <span style={{ fontSize:16, fontWeight:700, color:'#1e1b4b', fontVariantNumeric:'tabular-nums' }}>{data.keywords_activas}<span style={{ fontSize:12, fontWeight:400, color:'#94A3B8' }}> / {data.keywords_total}</span></span>
+          </div>
+          <div style={{ height:4, background:'#F1F5F9', borderRadius:2, marginTop:5, overflow:'hidden' }}>
+            <div style={{ width:`${Math.round((data.keywords_activas/Math.max(data.keywords_total,1))*100)}%`, height:'100%', background:'#534AB7', borderRadius:2 }} />
+          </div>
         </div>
-        <div style={{ height:4, background:'#F1F5F9', borderRadius:2, marginTop:10, overflow:'hidden' }}>
-          <div style={{ width:`${Math.round((data.keywords_activas/Math.max(data.keywords_total,1))*100)}%`, height:'100%', background:'#534AB7', borderRadius:2 }} />
+
+        <div>
+          <div style={{ display:'flex', alignItems:'baseline', justifyContent:'space-between' }}>
+            <span style={{ fontSize:10, fontWeight:600, color:'#94A3B8', textTransform:'uppercase', letterSpacing:'0.04em' }}>Research · mercado</span>
+            <span style={{ fontSize:16, fontWeight:700, color:'#059669', fontVariantNumeric:'tabular-nums' }}>{data.keywords_research_activas}<span style={{ fontSize:12, fontWeight:400, color:'#94A3B8' }}> / {data.keywords_research_total}</span></span>
+          </div>
+          <div style={{ height:4, background:'#F1F5F9', borderRadius:2, marginTop:5, overflow:'hidden' }}>
+            <div style={{ width:`${Math.round((data.keywords_research_activas/Math.max(data.keywords_research_total,1))*100)}%`, height:'100%', background:'#059669', borderRadius:2 }} />
+          </div>
         </div>
-        <p style={{ fontSize:11, color:'#94A3B8', margin:'6px 0 0' }}>del plan SEO con actividad este mes</p>
       </div>
 
       {/* Competidores */}
