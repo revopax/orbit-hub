@@ -40,28 +40,38 @@ function DetalleKeywords({ udn, desde, hasta, categoria }: { udn: string; desde:
 
   return (
     <div style={{ borderTop:'0.5px solid #E2E8F0', background:'#FAFBFF' }}>
-      <table style={{ width:'100%', borderCollapse:'collapse', fontSize:11 }}>
+      <table style={{ width:'100%', borderCollapse:'collapse', fontSize:13 }}>
         <thead>
           <tr style={{ background:'#F1F5F9' }}>
-            <th style={{ padding:'5px 12px 5px 40px', textAlign:'left', fontWeight:500, color:'#64748B' }}>Keyword</th>
-            <th style={{ padding:'5px 12px', textAlign:'left', fontWeight:500, color:'#64748B' }}>Intención</th>
-            <th style={{ padding:'5px 12px', textAlign:'right', fontWeight:500, color:'#64748B' }}>Impr.</th>
-              <th style={{ padding:'5px 12px', textAlign:'right', fontWeight:500, color:'#64748B' }}>Vol. mercado</th>
+            <th style={{ padding:'7px 12px 7px 40px', textAlign:'left', fontWeight:600, color:'#475569', fontSize:11 }}>Keyword</th>
+            <th style={{ padding:'7px 12px', textAlign:'left', fontWeight:600, color:'#475569', fontSize:11 }}>Intención</th>
+            <th style={{ padding:'7px 12px', textAlign:'center', fontWeight:600, color:'#475569', fontSize:11 }}>Estado</th>
+            <th style={{ padding:'7px 12px', textAlign:'right', fontWeight:600, color:'#475569', fontSize:11 }}>Impr.</th>
+            <th style={{ padding:'7px 12px', textAlign:'right', fontWeight:600, color:'#475569', fontSize:11 }}>Vol. mercado</th>
           </tr>
         </thead>
         <tbody>
-          {rowsOrdenadas.map((r, i) => (
-            <tr key={r.keyword} style={{ borderTop: i > 0 ? '0.5px solid #F1F5F9' : 'none' }}>
-              <td style={{ padding:'5px 12px 5px 40px', color: r.impresiones > 0 ? '#1e1b4b' : '#94A3B8' }}>{r.keyword}</td>
-              <td style={{ padding:'5px 12px' }}><TipoBadge tipo={r.tipo} /></td>
-              <td style={{ padding:'5px 12px', textAlign:'right', fontWeight:600, color: r.impresiones > 0 ? '#534AB7' : '#CBD5E1' }}>
-                {r.impresiones > 0 ? r.impresiones.toLocaleString() : '—'}
-              </td>
-              <td style={{ padding:'5px 12px', textAlign:'right', fontWeight:600, color: r.impresiones > 0 ? '#059669' : (r.vol_mercado ? '#1e1b4b' : '#CBD5E1') }}>
-                {r.vol_mercado ? r.vol_mercado.toLocaleString() : '—'}
-              </td>
-            </tr>
-          ))}
+          {rowsOrdenadas.map((r, i) => {
+            const activa = r.impresiones > 0;
+            return (
+              <tr key={r.keyword} style={{
+                borderTop: i > 0 ? '0.5px solid #F1F5F9' : 'none',
+                background: activa ? 'rgba(5,150,105,0.06)' : 'transparent',
+              }}>
+                <td style={{ padding:'7px 12px 7px 40px', fontWeight: activa ? 600 : 400, color: activa ? '#1e1b4b' : '#94A3B8' }}>{r.keyword}</td>
+                <td style={{ padding:'7px 12px' }}><TipoBadge tipo={r.tipo} /></td>
+                <td style={{ padding:'7px 12px', textAlign:'center' }}>
+                  {activa && <span style={{ fontSize:10, fontWeight:700, padding:'2px 8px', borderRadius:20, background:'#059669', color:'#fff' }}>ACTIVA</span>}
+                </td>
+                <td style={{ padding:'7px 12px', textAlign:'right', fontWeight:700, color: activa ? '#059669' : '#CBD5E1' }}>
+                  {activa ? r.impresiones.toLocaleString() : '—'}
+                </td>
+                <td style={{ padding:'7px 12px', textAlign:'right', fontWeight:700, color: activa ? '#059669' : (r.vol_mercado ? '#1e1b4b' : '#CBD5E1') }}>
+                  {r.vol_mercado ? r.vol_mercado.toLocaleString() : '—'}
+                </td>
+              </tr>
+            );
+          })}
         </tbody>
       </table>
     </div>
@@ -93,9 +103,14 @@ export function SegmentosServicio({ udn, desde, hasta }: { udn: string; desde: s
           <p style={{ fontSize:11, fontWeight:700, color:'#64748B', textTransform:'uppercase', letterSpacing:'0.06em', margin:0 }}>
             Actividad por segmento de servicio
           </p>
-          <InfoTip text="Volumen de búsqueda en Google agrupado por categoría de servicio del SEO Masterplan. Haz clic en un segmento para ver el detalle de keywords." />
+          <InfoTip text="Basado en tu Keyword Research completo (no en las Golden Keywords). Agrupa todas tus keywords de research por categoría de servicio. Haz clic en un segmento para ver el detalle." />
         </div>
         <p style={{ fontSize:12, color:'#64748B', fontWeight:600, margin:0 }}>Vol. mercado · clic para ver detalle</p>
+      </div>
+      <div style={{ padding:'0 24px 10px' }}>
+        <p style={{ fontSize:11, color:'#94A3B8', margin:0 }}>
+          Desglose de tu <strong style={{ color:'#64748B' }}>Keyword Research</strong> (todas las keywords del plan SEO) — distinto de las 7 Golden Keywords que ves arriba en la scorecard.
+        </p>
       </div>
 
       {loading ? (
