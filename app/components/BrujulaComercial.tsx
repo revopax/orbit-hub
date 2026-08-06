@@ -19,14 +19,9 @@ export default function BrujulaComercial() {
   const [sub, setSub] = useState<SubTab>('comercial');
   const [udnActiva, setUdnActiva] = useState<UDN>(UDNS[0]);
 
-  const MIN_MES = '2024-01';
+  const MIN_MES = '2025-01';
   const MAX_MES = '2026-08';
-  function mesesAtras(mesRef: string, n: number): string {
-    const [y, m] = mesRef.split('-').map(Number);
-    const d = new Date(y, m - 1 - n, 1);
-    return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
-  }
-  const [periodo, setPeriodo] = useState({ desde: mesesAtras(MAX_MES, 11), hasta: MAX_MES });
+  const [periodo, setPeriodo] = useState({ desde: `${MAX_MES.split('-')[0]}-01`, hasta: MAX_MES });
 
   const udnsVisibles = perfil?.rol === 'admin'
     ? UDNS

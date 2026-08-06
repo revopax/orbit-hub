@@ -91,10 +91,11 @@ export function FiltroPeriodoGlobal({ desde, hasta, minMes, maxMes, onChange }: 
 
   useEffect(() => { setSelDesde(desde); setSelHasta(hasta); }, [desde, hasta]);
 
+  const anioActual = maxMes.split('-')[0];
   const presets = [
     { label: 'Últimos 3 meses', desde: mesesAtras(maxMes, 2), hasta: maxMes },
     { label: 'Últimos 6 meses', desde: mesesAtras(maxMes, 5), hasta: maxMes },
-    { label: 'Últimos 12 meses', desde: mesesAtras(maxMes, 11), hasta: maxMes },
+    { label: 'Este año', desde: `${anioActual}-01`, hasta: maxMes },
     { label: 'Todo el historial', desde: minMes, hasta: maxMes },
   ];
 
