@@ -78,12 +78,6 @@ export default function BrujulaComercial() {
             </div>
             <KpiScoreCards udn={udnActiva.nombre} desde={periodo.desde} hasta={periodo.hasta} />
             <div>
-              <p style={{ fontSize: 13, fontWeight: 500, margin: '0 0 4px', color: 'var(--txt-1)' }}>
-                Cruce de señales · {udnActiva.nombre}
-              </p>
-              <p style={{ fontSize: 12, fontWeight: 400, color: '#64748B', lineHeight: 1.5, margin: '0 0 12px', maxWidth: 820 }}>
-                Estas 3 señales funcionan como indicadores del mercado: la <strong style={{ color: '#1e1b4b' }}>Intención de Búsqueda</strong> anticipa cuándo empieza el interés, el <strong style={{ color: '#1e1b4b' }}>Pulso del Mercado</strong> marca el punto de mayor actividad del sector, y los <strong style={{ color: '#1e1b4b' }}>MQLs</strong> confirman cuándo ese interés se convirtió en una oportunidad real de contacto. Llegar temprano con la primera señal aumenta la probabilidad de estar presente cuando el mercado alcanza su punto más activo.
-              </p>
               <GraficaCruceSenales brandColor={udnActiva.color} isDark={false} udn={udnActiva.nombre} desde={periodo.desde} hasta={periodo.hasta} />
             </div>
             <SegmentosServicio udn={udnActiva.nombre} desde={periodo.desde} hasta={periodo.hasta} />
