@@ -36,6 +36,8 @@ function DetalleKeywords({ udn, desde, hasta, categoria }: { udn: string; desde:
 
   if (loading) return <div style={{ padding:'8px 12px', fontSize:11, color:'#94A3B8' }}>Cargando...</div>;
 
+  const rowsOrdenadas = [...rows].sort((a, b) => b.vol_mercado - a.vol_mercado);
+
   return (
     <div style={{ borderTop:'0.5px solid #E2E8F0', background:'#FAFBFF' }}>
       <table style={{ width:'100%', borderCollapse:'collapse', fontSize:11 }}>
@@ -48,14 +50,14 @@ function DetalleKeywords({ udn, desde, hasta, categoria }: { udn: string; desde:
           </tr>
         </thead>
         <tbody>
-          {rows.map((r, i) => (
+          {rowsOrdenadas.map((r, i) => (
             <tr key={r.keyword} style={{ borderTop: i > 0 ? '0.5px solid #F1F5F9' : 'none' }}>
               <td style={{ padding:'5px 12px 5px 40px', color: r.impresiones > 0 ? '#1e1b4b' : '#94A3B8' }}>{r.keyword}</td>
               <td style={{ padding:'5px 12px' }}><TipoBadge tipo={r.tipo} /></td>
               <td style={{ padding:'5px 12px', textAlign:'right', fontWeight:600, color: r.impresiones > 0 ? '#534AB7' : '#CBD5E1' }}>
                 {r.impresiones > 0 ? r.impresiones.toLocaleString() : '—'}
               </td>
-              <td style={{ padding:'5px 12px', textAlign:'right', fontWeight:600, color: r.vol_mercado ? '#059669' : '#CBD5E1' }}>
+              <td style={{ padding:'5px 12px', textAlign:'right', fontWeight:600, color: r.impresiones > 0 ? '#059669' : (r.vol_mercado ? '#1e1b4b' : '#CBD5E1') }}>
                 {r.vol_mercado ? r.vol_mercado.toLocaleString() : '—'}
               </td>
             </tr>
@@ -93,7 +95,7 @@ export function SegmentosServicio({ udn, desde, hasta }: { udn: string; desde: s
           </p>
           <InfoTip text="Volumen de búsqueda en Google agrupado por categoría de servicio del SEO Masterplan. Haz clic en un segmento para ver el detalle de keywords." />
         </div>
-        <p style={{ fontSize:11, color:'#94A3B8', margin:0 }}>Vol. mercado · clic para ver detalle</p>
+        <p style={{ fontSize:12, color:'#64748B', fontWeight:600, margin:0 }}>Vol. mercado · clic para ver detalle</p>
       </div>
 
       {loading ? (
@@ -115,18 +117,21 @@ export function SegmentosServicio({ udn, desde, hasta }: { udn: string; desde: s
                   <p style={{ fontSize:12, fontWeight:600, color: r.vol_mercado > 0 ? '#1e1b4b' : '#94A3B8', margin:0, overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>
                     {r.categoria}
                   </p>
-                  <p style={{ fontSize:10, color:'#94A3B8', margin:'1px 0 0' }}>
-                    {r.keywords_activas}/{r.keywords_total} kws activas · {r.impresiones.toLocaleString()} impr. campaña
+                  <p style={{ fontSize:12, color:'#64748B', fontWeight:500, margin:'2px 0 0' }}>
+                    <span style={{ fontWeight:700, color:'#1e1b4b' }}>{r.keywords_activas}/{r.keywords_total}</span> keywords activadas en campaña · {r.impresiones.toLocaleString()} impr.
                   </p>
                 </div>
                 <div style={{ flex:1, height:8, background:'#F1F5F9', borderRadius:4, overflow:'hidden' }}>
                   <div style={{ width: r.vol_mercado > 0 ? `${Math.max(Math.round((r.vol_mercado/max)*100), 2)}%` : '0%', height:'100%', background: COLORES[i] || '#E2E8F0', borderRadius:4 }} />
                 </div>
-                <div style={{ width:90, display:'flex', alignItems:'center', justifyContent:'flex-end', gap:8, flexShrink:0 }}>
-                  <span style={{ fontSize:13, fontWeight:700, color: r.vol_mercado > 0 ? COLORES[i] : '#CBD5E1' }}>
-                    {r.vol_mercado > 0 ? r.vol_mercado.toLocaleString() : '—'}
-                  </span>
-                  <span style={{ fontSize:10, color:'#94A3B8' }}>{expandido === r.categoria ? '▲' : '▼'}</span>
+                <div style={{ width:130, display:'flex', flexDirection:'column', alignItems:'flex-end', gap:2, flexShrink:0 }}>
+                  <div style={{ display:'flex', alignItems:'center', gap:8 }}>
+                    <span style={{ fontSize:16, fontWeight:700, color: r.vol_mercado > 0 ? COLORES[i] : '#CBD5E1' }}>
+                      {r.vol_mercado > 0 ? r.vol_mercado.toLocaleString() : '—'}
+                    </span>
+                    <span style={{ fontSize:10, color:'#94A3B8' }}>{expandido === r.categoria ? '▲' : '▼'}</span>
+                  </div>
+                  <span style={{ fontSize:9, color:'#94A3B8', fontWeight:600, textTransform:'uppercase', letterSpacing:'0.03em' }}>búsquedas de mercado</span>
                 </div>
               </div>
               {expandido === r.categoria && (
