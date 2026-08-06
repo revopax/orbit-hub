@@ -1,21 +1,15 @@
 'use client';
 import { useState, useEffect } from 'react';
-import { createClient } from '@supabase/supabase-js';
 import { UDNBar } from './UDNBar';
 import { GraficaCruceSenales } from './GraficaCruceSenales';
 import { ScoreCardsConvergencia } from './ScoreCardsConvergencia';
 import { TablaKeywords } from './TablaKeywords';
-import { FiltrosPeriodo } from './FiltrosPeriodo';
+import { FiltroPeriodoGlobal } from './FiltroPeriodoGlobal';
 import { KpiScoreCards } from './KpiScoreCards';
 import { SegmentosServicio } from './SegmentosServicio';
 import { UDNS } from '../lib/data';
 import { useAuth } from '../hooks/useAuth';
 import type { UDN } from '../lib/types';
-
-const supaGads = createClient(
-  'https://wuwhcljeigskajjoyghv.supabase.co',
-  'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Ind1d2hjbGplaWdza2Fqam95Z2h2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQ1Njk4MTksImV4cCI6MjA5MDE0NTgxOX0.dDw2ogt3LXEnpKln6zPRUp7Thj5Bs47CPIsZlaE9F_A'
-);
 
 type SubTab = 'comercial' | 'demanda';
 const ACCENT = '#8C59FE';
@@ -24,19 +18,19 @@ export default function BrujulaComercial() {
   const { perfil } = useAuth();
   const [sub, setSub] = useState<SubTab>('comercial');
   const [udnActiva, setUdnActiva] = useState<UDN>(UDNS[0]);
-  const [anio, setAnio] = useState(2025);
-  const [mes, setMes] = useState<string | null>(null);
-  const [mesResuelto, setMesResuelto] = useState('2025-04');
+
+  const MIN_MES = '2024-01';
+  const MAX_MES = '2026-08';
+  function mesesAtras(mesRef: string, n: number): string {
+    const [y, m] = mesRef.split('-').map(Number);
+    const d = new Date(y, m - 1 - n, 1);
+    return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
+  }
+  const [periodo, setPeriodo] = useState({ desde: mesesAtras(MAX_MES, 11), hasta: MAX_MES });
 
   const udnsVisibles = perfil?.rol === 'admin'
     ? UDNS
     : UDNS.filter(u => (perfil?.udn || '').split(',').map((s: string) => s.trim()).includes(u.id));
-
-  useEffect(() => {
-    if (mes) { setMesResuelto(mes); return; }
-    supaGads.rpc('get_mes_reciente', { p_udn: udnActiva.nombre })
-      .then(({ data }) => { if (data?.[0]?.mes) setMesResuelto(data[0].mes); });
-  }, [udnActiva.nombre, mes]);
 
   return (
     <div style={{ minHeight: '100%', background: 'var(--bg)', fontFamily: 'Inter,-apple-system,sans-serif' }}>
@@ -72,26 +66,34 @@ export default function BrujulaComercial() {
       <UDNBar
         udns={udnsVisibles}
         udnActiva={udnActiva}
-        onSelect={(u) => { setUdnActiva(u); setMes(null); }}
+        onSelect={(u) => setUdnActiva(u)}
         isDark={false}
       />
       {sub === 'comercial' && (
         <div style={{ padding: 20 }}>
           <div style={{ maxWidth: 1400, margin: '0 auto', display: 'flex', flexDirection: 'column', gap: 20 }}>
-            <FiltrosPeriodo anio={anio} mes={mes} onAnio={setAnio} onMes={setMes} />
-            <KpiScoreCards udn={udnActiva.nombre} mes={mesResuelto} />
+            <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
+              <FiltroPeriodoGlobal
+                desde={periodo.desde}
+                hasta={periodo.hasta}
+                minMes={MIN_MES}
+                maxMes={MAX_MES}
+                onChange={(d, h) => setPeriodo({ desde: d, hasta: h })}
+              />
+            </div>
+            <KpiScoreCards udn={udnActiva.nombre} desde={periodo.desde} hasta={periodo.hasta} />
             <div>
               <p style={{ fontSize: 13, fontWeight: 500, margin: '0 0 8px', color: 'var(--txt-1)' }}>
                 Cruce de señales · {udnActiva.nombre}
               </p>
-              <GraficaCruceSenales brandColor={udnActiva.color} isDark={false} udn={udnActiva.nombre} anio={anio} />
+              <GraficaCruceSenales brandColor={udnActiva.color} isDark={false} udn={udnActiva.nombre} desde={periodo.desde} hasta={periodo.hasta} />
             </div>
-            <SegmentosServicio udn={udnActiva.nombre} mes={mesResuelto} />
+            <SegmentosServicio udn={udnActiva.nombre} desde={periodo.desde} hasta={periodo.hasta} />
             <div>
               <p style={{ fontSize: 13, fontWeight: 500, margin: '0 0 8px', color: 'var(--txt-1)' }}>
                 Inteligencia de búsqueda
               </p>
-              <TablaKeywords udn={udnActiva.nombre} mes={mesResuelto} />
+              <TablaKeywords udn={udnActiva.nombre} desde={periodo.desde} hasta={periodo.hasta} />
             </div>
             <div>
               <p style={{ fontSize: 13, fontWeight: 500, margin: '0 0 8px', color: 'var(--txt-1)' }}>

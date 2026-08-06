@@ -27,19 +27,19 @@ interface KpiData {
   indice_pico: number;
 }
 
-interface Props { udn: string; mes: string; }
+interface Props { udn: string; desde: string; hasta: string; }
 
-export function KpiScoreCards({ udn, mes }: Props) {
+export function KpiScoreCards({ udn, desde, hasta }: Props) {
   const [data, setData] = useState<KpiData | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    if (!mes) return;
+    if (!desde || !hasta) return;
     setLoading(true);
-    supa.rpc('get_kpis_udn', { p_udn: udn, p_mes: mes })
+    supa.rpc('get_kpis_udn', { p_udn: udn, p_desde: desde, p_hasta: hasta })
       .then(({ data: d }) => { if (d?.[0]) setData(d[0]); })
       .finally(() => setLoading(false));
-  }, [udn, mes]);
+  }, [udn, desde, hasta]);
 
   if (loading) return (
     <div style={{ display:'grid', gridTemplateColumns:'repeat(auto-fit,minmax(200px,1fr))', gap:12 }}>
@@ -51,7 +51,6 @@ export function KpiScoreCards({ udn, mes }: Props) {
 
   if (!data) return null;
 
-  const esPico = data.mes_pico === mes;
   const señalVal = Math.round(data.indice_senal);
   const señalColor = señalVal >= 130 ? '#059669' : señalVal >= 100 ? '#534AB7' : '#94A3B8';
   const señalBg = señalVal >= 130 ? '#ECFDF5' : señalVal >= 100 ? '#EEEDFE' : '#F8FAFC';
@@ -68,9 +67,9 @@ export function KpiScoreCards({ udn, mes }: Props) {
         <p style={{ fontSize:36, fontWeight:700, margin:'0 0 4px', color:señalColor, lineHeight:1, fontVariantNumeric:'tabular-nums' }}>{señalVal}</p>
         <div style={{ display:'flex', alignItems:'center', gap:6, marginTop:8 }}>
           <span style={{ fontSize:10, fontWeight:600, padding:'2px 8px', borderRadius:20, background:señalBg, color:señalColor }}>
-            {esPico ? '↑ Pico del período' : señalVal >= 100 ? 'Señal activa' : 'Señal baja'}
+            {señalVal >= 100 ? 'Señal activa' : 'Señal baja'}
           </span>
-          {!esPico && <span style={{ fontSize:11, color:'#94A3B8' }}>Pico: {fmtMes(data.mes_pico)} · {Math.round(data.indice_pico)}</span>}
+          <span style={{ fontSize:11, color:'#94A3B8' }}>Pico: {fmtMes(data.mes_pico)} · {Math.round(data.indice_pico)}</span>
         </div>
       </div>
 
@@ -82,7 +81,7 @@ export function KpiScoreCards({ udn, mes }: Props) {
             ? `${(data.impresiones_total/1000).toFixed(1)}K`
             : data.impresiones_total.toLocaleString()}
         </p>
-        <p style={{ fontSize:11, color:'#94A3B8', margin:'8px 0 0' }}>veces apareció tu anuncio · {fmtMes(mes)}</p>
+        <p style={{ fontSize:11, color:'#94A3B8', margin:'8px 0 0' }}>veces apareció tu anuncio · {fmtMes(desde)} – {fmtMes(hasta)}</p>
       </div>
 
       {/* Keywords */}

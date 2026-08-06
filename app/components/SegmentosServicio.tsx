@@ -24,15 +24,15 @@ function TipoBadge({ tipo }: { tipo: string }) {
   return <span style={{ fontSize:10, fontWeight:600, padding:'1px 6px', borderRadius:20, background:meta.bg, color:meta.color }}>{t}</span>;
 }
 
-function DetalleKeywords({ udn, mes, categoria }: { udn: string; mes: string; categoria: string }) {
+function DetalleKeywords({ udn, desde, hasta, categoria }: { udn: string; desde: string; hasta: string; categoria: string }) {
   const [rows, setRows] = useState<KwDetalle[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    supa.rpc('get_keywords_segmento', { p_udn: udn, p_mes: mes, p_categoria: categoria })
+    supa.rpc('get_keywords_segmento', { p_udn: udn, p_desde: desde, p_hasta: hasta, p_categoria: categoria })
       .then(({ data }) => { if (data) setRows(data); })
       .finally(() => setLoading(false));
-  }, [udn, mes, categoria]);
+  }, [udn, desde, hasta, categoria]);
 
   if (loading) return <div style={{ padding:'8px 12px', fontSize:11, color:'#94A3B8' }}>Cargando...</div>;
 
@@ -66,19 +66,19 @@ function DetalleKeywords({ udn, mes, categoria }: { udn: string; mes: string; ca
   );
 }
 
-export function SegmentosServicio({ udn, mes }: { udn: string; mes: string }) {
+export function SegmentosServicio({ udn, desde, hasta }: { udn: string; desde: string; hasta: string }) {
   const [rows, setRows] = useState<Segmento[]>([]);
   const [loading, setLoading] = useState(true);
   const [expandido, setExpandido] = useState<string | null>(null);
 
   useEffect(() => {
-    if (!mes) return;
+    if (!desde || !hasta) return;
     setLoading(true);
     setExpandido(null);
-    supa.rpc('get_segmentos_udn', { p_udn: udn, p_mes: mes })
+    supa.rpc('get_segmentos_udn', { p_udn: udn, p_desde: desde, p_hasta: hasta })
       .then(({ data }) => { if (data) setRows(data); })
       .finally(() => setLoading(false));
-  }, [udn, mes]);
+  }, [udn, desde, hasta]);
 
   const max = Math.max(...rows.map(r => r.impresiones), 1);
   const COLORES = ['#534AB7','#7C3AED','#A78BFA','#C4B5FD','#DDD6FE','#EDE9FE'];
@@ -129,7 +129,7 @@ export function SegmentosServicio({ udn, mes }: { udn: string; mes: string }) {
                 </div>
               </div>
               {expandido === r.categoria && (
-                <DetalleKeywords udn={udn} mes={mes} categoria={r.categoria} />
+                <DetalleKeywords udn={udn} desde={desde} hasta={hasta} categoria={r.categoria} />
               )}
             </div>
           ))}

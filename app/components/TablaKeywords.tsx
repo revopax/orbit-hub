@@ -114,30 +114,30 @@ function SectionTable({ titulo, subtitulo, infoBox, rows, emptyMsg, accentColor 
   );
 }
 
-export function TablaKeywords({ udn }: { udn: string }) {
+export function TablaKeywords({ udn, desde, hasta }: { udn: string; desde: string; hasta: string }) {
   const [rows, setRows]       = useState<KeywordRow[]>([]);
   const [loading, setLoading] = useState(true);
-  const [mes, setMes]         = useState('');
 
   useEffect(() => {
+    if (!desde || !hasta) return;
     setLoading(true);
     setRows([]);
-    supa.rpc('get_mes_reciente', { p_udn: udn })
-      .then(({ data }) => {
-        const m = data?.[0]?.mes ?? '';
-        if (!m) { setLoading(false); return null; }
-        setMes(m);
-        return supa.rpc('get_keywords_table', { p_udn: udn, p_mes: m });
-      })
-      .then((res: any) => { if (res?.data) setRows(res.data); })
+    supa.rpc('get_keywords_table', { p_udn: udn, p_desde: desde, p_hasta: hasta })
+      .then(({ data }) => { if (data) setRows(data); })
       .finally(() => setLoading(false));
-  }, [udn]);
+  }, [udn, desde, hasta]);
 
   const golden      = rows.filter(r => r.categoria === 'golden');
   const competitors = rows.filter(r => r.categoria === 'competitor');
   const emerging    = rows.filter(r => r.categoria === 'emerging').slice(0, 6);
 
-  const mesLabel = mes ? new Date(mes + '-01').toLocaleDateString('es-MX', { month: 'long', year: 'numeric' }) : '';
+  const fmtRangeLabel = (m: string) => {
+    if (!m) return '';
+    const [y, mo] = m.split('-');
+    const meses = ['enero','febrero','marzo','abril','mayo','junio','julio','agosto','septiembre','octubre','noviembre','diciembre'];
+    return `${meses[parseInt(mo)-1]} ${y}`;
+  };
+  const mesLabel = desde && hasta ? (desde === hasta ? fmtRangeLabel(desde) : `${fmtRangeLabel(desde)} – ${fmtRangeLabel(hasta)}`) : '';
 
   return (
     <div style={{ marginBottom: 24 }}>
