@@ -85,9 +85,6 @@ export default function BrujulaComercial() {
             </div>
             <SegmentosServicio udn={udnActiva.nombre} desde={periodo.desde} hasta={periodo.hasta} />
             <div>
-              <p style={{ fontSize: 13, fontWeight: 500, margin: '0 0 8px', color: 'var(--txt-1)' }}>
-                Inteligencia de búsqueda
-              </p>
               <TablaKeywords udn={udnActiva.nombre} desde={periodo.desde} hasta={periodo.hasta} />
             </div>
             <div>

@@ -41,13 +41,14 @@ function TipoBadge({ tipo }: { tipo: string }) {
   );
 }
 
-function SectionTable({ titulo, subtitulo, infoBox, rows, emptyMsg, accentColor }: {
+function SectionTable({ titulo, subtitulo, infoBox, rows, emptyMsg, accentColor, showVolMercado = true }: {
   titulo: string;
   subtitulo: string;
   infoBox?: { icon: string; text: string };
   rows: KeywordRow[];
   emptyMsg: string;
   accentColor: string;
+  showVolMercado?: boolean;
 }) {
   return (
     <div style={{ flex: 1, minWidth: 260 }}>
@@ -68,20 +69,20 @@ function SectionTable({ titulo, subtitulo, infoBox, rows, emptyMsg, accentColor 
         </div>
       )}
 
-      <div style={{ border: '1px solid #E2E8F0', borderRadius: 8, overflow: 'hidden' }}>
+      <div style={{ border: '1px solid #E2E8F0', borderRadius: 8, overflow: 'hidden', background: '#fff', boxShadow: '0 1px 3px rgba(15,23,42,0.05)' }}>
         <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 12 }}>
           <thead>
             <tr style={{ background: '#F8FAFC', borderBottom: '1px solid #E2E8F0' }}>
               <th style={{ padding: '7px 10px', textAlign: 'left', fontWeight: 600, color: '#64748B', fontSize: 10 }}>Término</th>
               <th style={{ padding: '7px 10px', textAlign: 'left', fontWeight: 600, color: '#64748B', fontSize: 10 }}>Intención</th>
               <th style={{ padding: '7px 10px', textAlign: 'right', fontWeight: 600, color: '#64748B', fontSize: 10 }}>Impr.</th>
-              <th style={{ padding: '7px 10px', textAlign: 'right', fontWeight: 600, color: '#64748B', fontSize: 10 }}>Vol. mercado</th>
+              {showVolMercado && <th style={{ padding: '7px 10px', textAlign: 'right', fontWeight: 600, color: '#64748B', fontSize: 10 }}>Vol. mercado</th>}
             </tr>
           </thead>
           <tbody>
             {rows.length === 0 ? (
               <tr>
-                <td colSpan={4} style={{ padding: '16px 10px', color: '#CBD5E1', fontSize: 11, textAlign: 'center' }}>
+                <td colSpan={showVolMercado ? 4 : 3} style={{ padding: '16px 10px', color: '#CBD5E1', fontSize: 11, textAlign: 'center' }}>
                   {emptyMsg}
                 </td>
               </tr>
@@ -99,12 +100,14 @@ function SectionTable({ titulo, subtitulo, infoBox, rows, emptyMsg, accentColor 
                 }}>
                   {r.impresiones > 0 ? r.impresiones.toLocaleString() : '—'}
                 </td>
-                <td style={{
-                  padding: '7px 10px', textAlign: 'right', fontWeight: 600,
-                  color: r.vol_mercado ? '#059669' : '#CBD5E1', fontSize: 12,
-                }}>
-                  {r.vol_mercado ? r.vol_mercado.toLocaleString() : '—'}
-                </td>
+                {showVolMercado && (
+                  <td style={{
+                    padding: '7px 10px', textAlign: 'right', fontWeight: 600,
+                    color: r.vol_mercado ? '#059669' : '#CBD5E1', fontSize: 12,
+                  }}>
+                    {r.vol_mercado ? r.vol_mercado.toLocaleString() : '—'}
+                  </td>
+                )}
               </tr>
             ))}
           </tbody>
@@ -129,7 +132,6 @@ export function TablaKeywords({ udn, desde, hasta }: { udn: string; desde: strin
 
   const golden      = rows.filter(r => r.categoria === 'golden');
   const competitors = rows.filter(r => r.categoria === 'competitor');
-  const emerging    = rows.filter(r => r.categoria === 'emerging').slice(0, 6);
 
   const fmtRangeLabel = (m: string) => {
     if (!m) return '';
@@ -148,20 +150,20 @@ export function TablaKeywords({ udn, desde, hasta }: { udn: string; desde: strin
           <p style={{ fontSize: 13, fontWeight: 700, margin: '0 0 2px', color: '#1e1b4b' }}>
             Inteligencia de búsqueda · {udn}
           </p>
-          <p style={{ fontSize: 11, color: '#94A3B8', margin: 0 }}>
+          <p style={{ fontSize: 13, fontWeight: 600, color: '#475569', margin: 0 }}>
             {mesLabel} · Google Ads Search Terms
           </p>
         </div>
         {/* Leyenda */}
-        <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
+        <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
           {Object.entries(TIPO_META).map(([tipo, meta]) => (
-            <span key={tipo} title={meta.desc} style={{
-              fontSize: 10, fontWeight: 600, padding: '3px 8px', borderRadius: 20,
-              color: meta.color, background: meta.bg, border: `1px solid ${meta.color}33`,
-              cursor: 'help',
+            <div key={tipo} title={meta.desc} style={{
+              display: 'flex', alignItems: 'center', gap: 6, padding: '5px 10px', borderRadius: 20,
+              background: meta.bg, border: `1.5px solid ${meta.color}55`, cursor: 'help',
             }}>
-              {tipo} <span style={{ fontWeight: 400, opacity: 0.8 }}>· {meta.desc}</span>
-            </span>
+              <span style={{ fontSize: 11, fontWeight: 700, color: meta.color }}>{tipo}</span>
+              <span style={{ fontSize: 11, fontWeight: 500, color: '#475569' }}>· {meta.desc}</span>
+            </div>
           ))}
         </div>
       </div>
@@ -189,14 +191,7 @@ export function TablaKeywords({ udn, desde, hasta }: { udn: string; desde: strin
             rows={competitors}
             emptyMsg="No se detectaron competidores este mes"
             accentColor="#DC2626"
-          />
-
-          <SectionTable
-            titulo="Oportunidades no mapeadas"
-            subtitulo="Términos con alto volumen fuera de tu plan SEO"
-            rows={emerging}
-            emptyMsg="Sin oportunidades detectadas"
-            accentColor="#059669"
+            showVolMercado={false}
           />
 
         </div>
