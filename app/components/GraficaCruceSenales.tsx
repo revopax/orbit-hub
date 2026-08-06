@@ -58,7 +58,7 @@ export function GraficaCruceSenales({ brandColor, isDark, udn, desde, hasta }: G
     if (chartRef.current) chartRef.current.destroy();
 
     const gridColor = isDark ? 'rgba(255,255,255,0.06)' : 'rgba(83,74,183,0.06)';
-    const textColor = isDark ? 'rgba(255,255,255,0.55)' : '#6B6A8A';
+    const textColor = isDark ? 'rgba(255,255,255,0.6)' : '#475569';
 
     const labels       = reactiva.length > 0 ? reactiva.map(p => MESES_CORTOS[parseInt(p.mes.split('-')[1]) - 1]) : mockSerieTemporal.map(p => p.mes);
     const reactivaData = reactiva.length > 0 ? reactiva.map(p => p.indice_mercado) : mockSerieTemporal.map(p => p.reactiva);
@@ -68,20 +68,46 @@ export function GraficaCruceSenales({ brandColor, isDark, udn, desde, hasta }: G
     const umbralPlugin = {
       id: 'umbral',
       afterDraw(chart: Chart) {
-        const { ctx, chartArea: { left, right }, scales: { y } } = chart;
+        const { ctx, chartArea: { left, right, top }, scales: { y } } = chart;
         const yPx = y.getPixelForValue(100);
+
         ctx.save();
         ctx.beginPath();
-        ctx.setLineDash([4, 4]);
-        ctx.strokeStyle = isDark ? 'rgba(255,255,255,0.18)' : 'rgba(100,100,160,0.3)';
-        ctx.lineWidth = 1;
+        ctx.setLineDash([5, 4]);
+        ctx.strokeStyle = isDark ? 'rgba(255,255,255,0.4)' : 'rgba(83,74,183,0.4)';
+        ctx.lineWidth = 1.5;
         ctx.moveTo(left, yPx);
         ctx.lineTo(right, yPx);
         ctx.stroke();
         ctx.setLineDash([]);
-        ctx.font = '9px sans-serif';
-        ctx.fillStyle = isDark ? 'rgba(255,255,255,0.35)' : 'rgba(100,100,160,0.6)';
-        ctx.fillText('base 100 · por encima = señal activa', right - 178, yPx - 4);
+        ctx.restore();
+
+        ctx.save();
+        const label = 'Base 100 · por encima = señal activa';
+        ctx.font = '600 10px Inter, sans-serif';
+        const textWidth = ctx.measureText(label).width;
+        const chipPadX = 10, chipH = 20;
+        const chipW = textWidth + chipPadX * 2;
+        const chipX = right - chipW;
+        const chipY = top + 6;
+        const r = 10;
+
+        ctx.fillStyle = isDark ? 'rgba(30,41,59,0.92)' : 'rgba(255,255,255,0.96)';
+        ctx.strokeStyle = isDark ? 'rgba(255,255,255,0.15)' : 'rgba(83,74,183,0.25)';
+        ctx.lineWidth = 1;
+        ctx.beginPath();
+        ctx.moveTo(chipX + r, chipY);
+        ctx.arcTo(chipX + chipW, chipY, chipX + chipW, chipY + chipH, r);
+        ctx.arcTo(chipX + chipW, chipY + chipH, chipX, chipY + chipH, r);
+        ctx.arcTo(chipX, chipY + chipH, chipX, chipY, r);
+        ctx.arcTo(chipX, chipY, chipX + chipW, chipY, r);
+        ctx.closePath();
+        ctx.fill();
+        ctx.stroke();
+
+        ctx.fillStyle = isDark ? 'rgba(255,255,255,0.85)' : '#534AB7';
+        ctx.textBaseline = 'middle';
+        ctx.fillText(label, chipX + chipPadX, chipY + chipH / 2 + 1);
         ctx.restore();
       },
     };
@@ -95,10 +121,16 @@ export function GraficaCruceSenales({ brandColor, isDark, udn, desde, hasta }: G
             label: 'Pulso del Mercado',
             data: igaeData,
             borderColor: brandColor,
-            backgroundColor: brandColor,
+            backgroundColor: `${brandColor}1A`,
+            fill: true,
             borderWidth: 2.5,
             pointRadius: 0,
+            pointHoverRadius: 5,
+            pointHoverBackgroundColor: brandColor,
+            pointHoverBorderColor: '#fff',
+            pointHoverBorderWidth: 2,
             tension: 0.4,
+            cubicInterpolationMode: 'monotone' as const,
           },
           {
             label: 'Intención de Búsqueda',
@@ -107,7 +139,12 @@ export function GraficaCruceSenales({ brandColor, isDark, udn, desde, hasta }: G
             backgroundColor: 'rgba(27,175,122,0.08)',
             borderWidth: 2,
             pointRadius: 0,
+            pointHoverRadius: 5,
+            pointHoverBackgroundColor: '#1baf7a',
+            pointHoverBorderColor: '#fff',
+            pointHoverBorderWidth: 2,
             tension: 0.4,
+            cubicInterpolationMode: 'monotone' as const,
             borderDash: [6, 3],
             fill: false,
             spanGaps: false,
@@ -119,7 +156,12 @@ export function GraficaCruceSenales({ brandColor, isDark, udn, desde, hasta }: G
             backgroundColor: '#eda100',
             borderWidth: 1.5,
             pointRadius: 0,
+            pointHoverRadius: 4,
+            pointHoverBackgroundColor: '#eda100',
+            pointHoverBorderColor: '#fff',
+            pointHoverBorderWidth: 2,
             tension: 0.4,
+            cubicInterpolationMode: 'monotone' as const,
             borderDash: [2, 3],
           },
         ],
@@ -198,8 +240,9 @@ export function GraficaCruceSenales({ brandColor, isDark, udn, desde, hasta }: G
       pulseRef.current.style.top  = `${yPx - 5}px`;
       ringRef.current.style.left  = `${xPx - 5}px`;
       ringRef.current.style.top   = `${yPx - 5}px`;
+      const labelTop = Math.max(yPx - 26, chart.chartArea.top + 4);
       labelRef.current.style.left = `${xPx + 10}px`;
-      labelRef.current.style.top  = `${yPx - 22}px`;
+      labelRef.current.style.top  = `${labelTop}px`;
       // mesPico ya es el label corto del eje X (ej: 'Abr')
       // El año lo tomamos del mes reactivo con mayor índice
       const mesPicoRaw = reactiva.length > 0 ? reactiva[maxIdx]?.mes ?? '' : '';
@@ -214,7 +257,13 @@ export function GraficaCruceSenales({ brandColor, isDark, udn, desde, hasta }: G
   const umbralColor = isDark ? 'rgba(255,255,255,0.15)' : 'rgba(100,100,160,0.25)';
 
   return (
-    <div>
+    <div style={{
+      background: isDark ? '#111827' : '#ffffff',
+      border: isDark ? '1px solid rgba(255,255,255,0.08)' : '1px solid rgba(15,23,42,0.06)',
+      borderRadius: 16,
+      padding: '20px 24px 16px',
+      boxShadow: isDark ? 'none' : '0 1px 3px rgba(15,23,42,0.05), 0 1px 2px rgba(15,23,42,0.03)',
+    }}>
       <style>{`
         @keyframes orbit-pulse {
           0%   { transform: scale(1); opacity: 0.7; }
