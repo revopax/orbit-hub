@@ -64,7 +64,7 @@ export default function BrujulaComercial() {
         onSelect={(u) => setUdnActiva(u)}
         isDark={false}
       />
-      {sub === 'comercial' && (
+      {sub === 'demanda' && (
         <div style={{ padding: 20 }}>
           <div style={{ maxWidth: 1400, margin: '0 auto', display: 'flex', flexDirection: 'column', gap: 20 }}>
             <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
@@ -93,8 +93,8 @@ export default function BrujulaComercial() {
           </div>
         </div>
       )}
-      {sub === 'demanda' && (
-        <div style={{ maxWidth: 1400, margin: '0 auto', color: 'var(--txt-3)' }}>Inteligencia de Demanda — próximo paso.</div>
+      {sub === 'comercial' && (
+        <div style={{ maxWidth: 1400, margin: '0 auto', color: 'var(--txt-3)' }}>Inteligencia Comercial — próximo paso.</div>
       )}
     </div>
   );
