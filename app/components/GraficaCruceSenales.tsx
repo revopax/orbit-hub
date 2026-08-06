@@ -328,7 +328,7 @@ export function GraficaCruceSenales({ brandColor, isDark, udn, desde, hasta }: G
       {/* Leyenda custom */}
       <div style={{ display: 'flex', flexWrap: 'wrap', gap: '16px', marginTop: 14, paddingLeft: 4 }}>
         {[
-          { color: brandColor,  dash: false, label: 'Pulso del Mercado',      desc: 'Dinamismo económico por industria (IGAE · INEGI)' },
+          { color: brandColor,  dash: false, label: 'Pulso del Mercado',      desc: 'Dinamismo económico por industria (INEGI)' },
           { color: '#1baf7a',   dash: true,  label: 'Intención de Búsqueda',  desc: 'Demanda activa de marca en Google Ads' },
           { color: '#eda100',   dash: true,  label: 'MQLs HubSpot',           desc: 'Contactos calificados registrados en CRM' },
         ].map(s => (
@@ -339,8 +339,8 @@ export function GraficaCruceSenales({ brandColor, isDark, udn, desde, hasta }: G
                 strokeDasharray={s.dash ? '5,3' : 'none'} />
             </svg>
             <div>
-              <div style={{ fontSize: 11, fontWeight: 600, color: isDark ? '#fff' : '#1e1b4b' }}>{s.label}</div>
-              <div style={{ fontSize: 10, color: isDark ? 'rgba(255,255,255,0.45)' : '#6B7280', lineHeight: 1.4 }}>{s.desc}</div>
+              <div style={{ fontSize: 12, fontWeight: 700, color: isDark ? '#fff' : '#1e1b4b' }}>{s.label}</div>
+              <div style={{ fontSize: 11, fontWeight: 500, color: isDark ? 'rgba(255,255,255,0.65)' : '#475569', lineHeight: 1.4 }}>{s.desc}</div>
             </div>
           </div>
         ))}
