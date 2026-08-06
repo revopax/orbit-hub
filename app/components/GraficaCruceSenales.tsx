@@ -210,6 +210,20 @@ export function GraficaCruceSenales({ brandColor, isDark, udn, desde, hasta }: G
     const chart = chartRef.current;
     if (!chart || !wrapperRef.current) return;
 
+    const hayDatosReales = reactiva.length > 0 && reactiva.some(p => p.indice_mercado !== null && p.indice_mercado > 0);
+
+    if (!hayDatosReales) {
+      if (bandRef.current) bandRef.current.style.display = 'none';
+      if (pulseRef.current) pulseRef.current.style.display = 'none';
+      if (ringRef.current) ringRef.current.style.display = 'none';
+      if (labelRef.current) labelRef.current.style.display = 'none';
+      return;
+    }
+    if (bandRef.current) bandRef.current.style.display = '';
+    if (pulseRef.current) pulseRef.current.style.display = '';
+    if (ringRef.current) ringRef.current.style.display = '';
+    if (labelRef.current) labelRef.current.style.display = '';
+
     const data      = reactiva.length > 0 ? reactiva.map(p => p.indice_mercado ?? 0) : mockSerieTemporal.map(p => p.reactiva);
     const maxVal    = Math.max(...data);
     const maxIdx    = data.indexOf(maxVal);

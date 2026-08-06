@@ -59,7 +59,9 @@ export function KpiScoreCards({ udn, desde, hasta }: Props) {
       <div style={{ background:'#fff', borderRadius:12, border:'0.5px solid #E2E8F0', padding:'16px 20px' }}>
         <p style={{ fontSize:11, fontWeight:600, color:'#64748B', textTransform:'uppercase', letterSpacing:'0.06em', margin:'0 0 8px' }}>Búsquedas de mercado <InfoTip text="Total de búsquedas reales en Google para las keywords de tu plan SEO, sumadas en el periodo seleccionado. La tendencia e índice base 100 se muestran en la gráfica de abajo." /></p>
         <p style={{ fontSize:36, fontWeight:700, margin:'0 0 4px', color:'#059669', lineHeight:1, fontVariantNumeric:'tabular-nums' }}>
-          {data.busquedas_mercado_total >= 1000
+          {data.busquedas_mercado_total >= 1000000
+            ? `${(data.busquedas_mercado_total/1000000).toFixed(2)}M`
+            : data.busquedas_mercado_total >= 1000
             ? `${(data.busquedas_mercado_total/1000).toFixed(1)}K`
             : data.busquedas_mercado_total.toLocaleString()}
         </p>
