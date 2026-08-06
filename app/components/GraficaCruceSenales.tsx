@@ -179,7 +179,7 @@ export function GraficaCruceSenales({ brandColor, isDark, udn, desde, hasta }: G
 
     // Banda vertical — meses donde intención > 100
     // Banda: desde donde empieza a subir hasta el pico (no después)
-    const activeIdxs = data.reduce<number[]>((acc, v, i) => { if (v > 115 && i <= maxIdx) acc.push(i); return acc; }, []);
+    const activeIdxs = data.reduce<number[]>((acc, v, i) => { if (v > 100 && i <= maxIdx) acc.push(i); return acc; }, []);
     if (bandRef.current && activeIdxs.length > 0) {
       const xStart = chart.scales.x.getPixelForValue(activeIdxs[0]);
       const xEnd   = chart.scales.x.getPixelForValue(activeIdxs[activeIdxs.length - 1]);

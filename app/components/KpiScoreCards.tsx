@@ -16,6 +16,7 @@ function fmtMes(m: string) {
 }
 
 interface KpiData {
+  busquedas_mercado_total: number;
   indice_senal: number;
   impresiones_total: number;
   keywords_activas: number;
@@ -51,26 +52,18 @@ export function KpiScoreCards({ udn, desde, hasta }: Props) {
 
   if (!data) return null;
 
-  const señalVal = Math.round(data.indice_senal);
-  const señalColor = señalVal >= 130 ? '#059669' : señalVal >= 100 ? '#534AB7' : '#94A3B8';
-  const señalBg = señalVal >= 130 ? '#ECFDF5' : señalVal >= 100 ? '#EEEDFE' : '#F8FAFC';
-  const señalBorder = señalVal >= 130 ? '#059669' : señalVal >= 100 ? '#534AB7' : '#CBD5E1';
-  const pct = Math.min(señalVal, 200) / 200;
-
   return (
     <div style={{ display:'grid', gridTemplateColumns:'repeat(auto-fit,minmax(200px,1fr))', gap:12 }}>
 
-      {/* Señal */}
-      <div style={{ background:'#fff', borderRadius:12, border:`1.5px solid ${señalBorder}33`, padding:'16px 20px', position:'relative', overflow:'hidden' }}>
-        <div style={{ position:'absolute', top:0, left:0, width:`${Math.round(pct*100)}%`, height:3, background:señalColor, borderRadius:'12px 0 0 0' }} />
-        <p style={{ fontSize:11, fontWeight:600, color:'#64748B', textTransform:'uppercase', letterSpacing:'0.06em', margin:'0 0 8px' }}>Señal de búsqueda <InfoTip text="Índice base 100 que mide el volumen de búsqueda real en Google (mercado) vs la mediana histórica. 100 = normal. Mayor a 130 = señal alta." /></p>
-        <p style={{ fontSize:36, fontWeight:700, margin:'0 0 4px', color:señalColor, lineHeight:1, fontVariantNumeric:'tabular-nums' }}>{señalVal}</p>
-        <div style={{ display:'flex', alignItems:'center', gap:6, marginTop:8 }}>
-          <span style={{ fontSize:10, fontWeight:600, padding:'2px 8px', borderRadius:20, background:señalBg, color:señalColor }}>
-            {señalVal >= 100 ? 'Señal activa' : 'Señal baja'}
-          </span>
-          <span style={{ fontSize:11, color:'#94A3B8' }}>Pico: {fmtMes(data.mes_pico)} · {Math.round(data.indice_pico)}</span>
-        </div>
+      {/* Búsquedas de mercado */}
+      <div style={{ background:'#fff', borderRadius:12, border:'0.5px solid #E2E8F0', padding:'16px 20px' }}>
+        <p style={{ fontSize:11, fontWeight:600, color:'#64748B', textTransform:'uppercase', letterSpacing:'0.06em', margin:'0 0 8px' }}>Búsquedas de mercado <InfoTip text="Total de búsquedas reales en Google para las keywords de tu plan SEO, sumadas en el periodo seleccionado. La tendencia e índice base 100 se muestran en la gráfica de abajo." /></p>
+        <p style={{ fontSize:36, fontWeight:700, margin:'0 0 4px', color:'#059669', lineHeight:1, fontVariantNumeric:'tabular-nums' }}>
+          {data.busquedas_mercado_total >= 1000
+            ? `${(data.busquedas_mercado_total/1000).toFixed(1)}K`
+            : data.busquedas_mercado_total.toLocaleString()}
+        </p>
+        <p style={{ fontSize:11, color:'#94A3B8', margin:'8px 0 0' }}>búsquedas en Google · {fmtMes(desde)} – {fmtMes(hasta)}</p>
       </div>
 
       {/* Impresiones */}

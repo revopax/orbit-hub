@@ -80,7 +80,8 @@ export function SegmentosServicio({ udn, desde, hasta }: { udn: string; desde: s
       .finally(() => setLoading(false));
   }, [udn, desde, hasta]);
 
-  const max = Math.max(...rows.map(r => r.impresiones), 1);
+  const rowsOrdenadas = [...rows].sort((a, b) => b.vol_mercado - a.vol_mercado);
+  const max = Math.max(...rowsOrdenadas.map(r => r.vol_mercado), 1);
   const COLORES = ['#534AB7','#7C3AED','#A78BFA','#C4B5FD','#DDD6FE','#EDE9FE'];
 
   return (
@@ -90,9 +91,9 @@ export function SegmentosServicio({ udn, desde, hasta }: { udn: string; desde: s
           <p style={{ fontSize:11, fontWeight:700, color:'#64748B', textTransform:'uppercase', letterSpacing:'0.06em', margin:0 }}>
             Actividad por segmento de servicio
           </p>
-          <InfoTip text="Impresiones de Google Ads agrupadas por categoría de servicio del SEO Masterplan. Haz clic en un segmento para ver el detalle de keywords." />
+          <InfoTip text="Volumen de búsqueda en Google agrupado por categoría de servicio del SEO Masterplan. Haz clic en un segmento para ver el detalle de keywords." />
         </div>
-        <p style={{ fontSize:11, color:'#94A3B8', margin:0 }}>Impresiones · clic para ver detalle</p>
+        <p style={{ fontSize:11, color:'#94A3B8', margin:0 }}>Vol. mercado · clic para ver detalle</p>
       </div>
 
       {loading ? (
@@ -103,7 +104,7 @@ export function SegmentosServicio({ udn, desde, hasta }: { udn: string; desde: s
         <p style={{ fontSize:12, color:'#94A3B8', textAlign:'center', padding:'24px' }}>Sin datos este período</p>
       ) : (
         <div>
-          {rows.map((r, i) => (
+          {rowsOrdenadas.map((r, i) => (
             <div key={r.categoria}>
               <div
                 onClick={() => setExpandido(expandido === r.categoria ? null : r.categoria)}
@@ -111,19 +112,19 @@ export function SegmentosServicio({ udn, desde, hasta }: { udn: string; desde: s
               >
                 <div style={{ width:20, fontSize:11, fontWeight:700, color:'#94A3B8', textAlign:'right', flexShrink:0 }}>{i+1}</div>
                 <div style={{ width:200, flexShrink:0 }}>
-                  <p style={{ fontSize:12, fontWeight:600, color: r.impresiones > 0 ? '#1e1b4b' : '#94A3B8', margin:0, overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>
+                  <p style={{ fontSize:12, fontWeight:600, color: r.vol_mercado > 0 ? '#1e1b4b' : '#94A3B8', margin:0, overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>
                     {r.categoria}
                   </p>
                   <p style={{ fontSize:10, color:'#94A3B8', margin:'1px 0 0' }}>
-                    {r.keywords_activas}/{r.keywords_total} kws activas
+                    {r.keywords_activas}/{r.keywords_total} kws activas · {r.impresiones.toLocaleString()} impr. campaña
                   </p>
                 </div>
                 <div style={{ flex:1, height:8, background:'#F1F5F9', borderRadius:4, overflow:'hidden' }}>
-                  <div style={{ width: r.impresiones > 0 ? `${Math.max(Math.round((r.impresiones/max)*100), 2)}%` : '0%', height:'100%', background: COLORES[i] || '#E2E8F0', borderRadius:4 }} />
+                  <div style={{ width: r.vol_mercado > 0 ? `${Math.max(Math.round((r.vol_mercado/max)*100), 2)}%` : '0%', height:'100%', background: COLORES[i] || '#E2E8F0', borderRadius:4 }} />
                 </div>
-                <div style={{ width:80, display:'flex', alignItems:'center', justifyContent:'flex-end', gap:8, flexShrink:0 }}>
-                  <span style={{ fontSize:13, fontWeight:700, color: r.impresiones > 0 ? COLORES[i] : '#CBD5E1' }}>
-                    {r.impresiones > 0 ? r.impresiones.toLocaleString() : '—'}
+                <div style={{ width:90, display:'flex', alignItems:'center', justifyContent:'flex-end', gap:8, flexShrink:0 }}>
+                  <span style={{ fontSize:13, fontWeight:700, color: r.vol_mercado > 0 ? COLORES[i] : '#CBD5E1' }}>
+                    {r.vol_mercado > 0 ? r.vol_mercado.toLocaleString() : '—'}
                   </span>
                   <span style={{ fontSize:10, color:'#94A3B8' }}>{expandido === r.categoria ? '▲' : '▼'}</span>
                 </div>
