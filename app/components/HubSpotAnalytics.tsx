@@ -296,6 +296,11 @@ function GanadosPorFacturarPopover({ dateFrom, dateTo, filtros, onClose }: {
             <div style={{ fontSize: 19, fontWeight: 800, color: '#0f172a' }}>
               {rows ? `${rows.length} negocio${rows.length === 1 ? '' : 's'}` : 'Cargando…'}
             </div>
+            {rows && rows.length > 0 && (
+              <div style={{ fontSize: 13, fontWeight: 700, fontFamily: 'monospace', color: '#16a34a', marginTop: 2 }}>
+                {fmtMoney(rows.reduce((sum, r) => sum + (r.monto || 0), 0))} total
+              </div>
+            )}
           </div>
           <button onClick={onClose} style={{
             border: 'none', background: '#f1f5f9', cursor: 'pointer', fontSize: 18, color: '#64748b',
