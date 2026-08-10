@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { createClient } from '@supabase/supabase-js';
 import { useAuth } from '../hooks/useAuth';
+import { getSupabase } from '../lib/supabase';
 
 const sb = createClient(
   'https://szxdvdbdyuxtvyvxbder.supabase.co',
@@ -138,7 +139,7 @@ export default function IAMPage() {
     if (visitasAbiertas === perfilId) { setVisitasAbiertas(null); return; }
     setVisitasAbiertas(perfilId);
     setVisitasCargando(true);
-    const { data, error } = await sb
+    const { data, error } = await getSupabase()
       .from('module_access_log')
       .select('modulo')
       .eq('perfil_id', perfilId);
