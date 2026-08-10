@@ -1,6 +1,7 @@
 'use client';
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
+import { getSupabase } from '@/app/lib/supabase';
 
 interface SidebarV2Props {
   acento: string;
@@ -115,7 +116,15 @@ export function SidebarV2({ acento, moduloActivo, onModuloChange, nombre, onLogo
           return (
             <div
               key={mod.id}
-              onClick={() => onModuloChange(mod.id)}
+              onClick={() => {
+                onModuloChange(mod.id)
+                const sb = getSupabase()
+                sb.auth.getSession().then(({ data: { session } }) => {
+                  if (!session) return
+                  sb.from('module_access_log').insert({ perfil_id: session.user.id, modulo: mod.id })
+                    .then(({ error }) => { if (error) console.error('Error registrando module_access_log:', error) })
+                })
+              }}
               style={{
                 display: 'flex', alignItems: 'center', gap: 10,
                 padding: '9px 10px', borderRadius: 8, cursor: 'pointer',
