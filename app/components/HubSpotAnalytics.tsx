@@ -216,7 +216,7 @@ async function fetchFunnelTotales(
 }
 
 type GanadoPorFacturarRow = {
-  company: string; udn: string; propietario: string
+  company: string; udn: string; propietario: string; fuente: string
   monto: number; fecha_por_facturar: string; closedate: string | null
 }
 
@@ -259,53 +259,93 @@ function GanadosPorFacturarPopover({ dateFrom, dateTo, filtros, onClose }: {
   }, [dateFrom, dateTo, filtros])
 
   return (
-    <div style={{
-      position: 'absolute', top: 'calc(100% + 8px)', left: 0, right: 0, zIndex: 30,
-      background: '#fff', border: '1px solid #e2e8f0', borderRadius: 12,
-      boxShadow: '0 12px 32px rgba(15,23,42,0.18)', padding: 16,
-      animation: 'ganadosPopoverIn 0.22s ease-out',
-      maxHeight: 360, display: 'flex', flexDirection: 'column',
-    }}>
+    <div
+      onClick={onClose}
+      style={{
+        position: 'fixed', inset: 0, zIndex: 100,
+        background: 'rgba(15,23,42,0.45)', backdropFilter: 'blur(2px)',
+        display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 24,
+        animation: 'ganadosBackdropIn 0.18s ease-out',
+      }}
+    >
       <style>{`
-        @keyframes ganadosPopoverIn {
-          from { opacity: 0; transform: scale(0.92) translateY(-6px); }
+        @keyframes ganadosBackdropIn { from { opacity: 0; } to { opacity: 1; } }
+        @keyframes ganadosModalIn {
+          from { opacity: 0; transform: scale(0.94) translateY(8px); }
           to { opacity: 1; transform: scale(1) translateY(0); }
         }
+        @keyframes ganadosRowIn {
+          from { opacity: 0; transform: translateX(-6px); }
+          to { opacity: 1; transform: translateX(0); }
+        }
       `}</style>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10 }}>
-        <div style={{ fontSize: 11, fontWeight: 700, color: '#94a3b8', letterSpacing: '0.06em', textTransform: 'uppercase' }}>
-          Ganados por facturar {rows ? `(${rows.length})` : ''}
-        </div>
-        <button onClick={onClose} style={{
-          border: 'none', background: 'transparent', cursor: 'pointer', fontSize: 16, color: '#94a3b8', lineHeight: 1, padding: 4,
-        }}>×</button>
-      </div>
-      <div style={{ overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: 6 }}>
-        {loading && <div style={{ fontSize: 12, color: '#94a3b8', padding: '8px 0' }}>Cargando…</div>}
-        {error && <div style={{ fontSize: 12, color: '#dc2626', padding: '8px 0' }}>{error}</div>}
-        {!loading && !error && rows && rows.length === 0 && (
-          <div style={{ fontSize: 12, color: '#94a3b8', padding: '8px 0' }}>Sin negocios ganados pendientes de facturar en este rango.</div>
-        )}
-        {!loading && !error && rows && rows.map((r, i) => (
-          <div key={`${r.company}-${i}`} style={{
-            display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 10,
-            padding: '8px 10px', borderRadius: 8, background: '#f8fafc', border: '1px solid #eef2f7',
-          }}>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 2, minWidth: 0 }}>
-              <span style={{ fontSize: 12.5, fontWeight: 700, color: '#0f172a', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-                {r.company || 'Sin nombre'}
-              </span>
-              <span style={{ fontSize: 10.5, color: '#64748b' }}>{r.propietario || 'Sin asignar'}</span>
+      <div
+        onClick={e => e.stopPropagation()}
+        style={{
+          background: '#fff', borderRadius: 16, padding: 22,
+          boxShadow: '0 24px 60px rgba(15,23,42,0.35)',
+          animation: 'ganadosModalIn 0.24s cubic-bezier(0.16, 1, 0.3, 1)',
+          width: '100%', maxWidth: 620, maxHeight: '78vh', display: 'flex', flexDirection: 'column',
+        }}
+      >
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 14 }}>
+          <div>
+            <div style={{ fontSize: 11, fontWeight: 700, color: '#94a3b8', letterSpacing: '0.06em', textTransform: 'uppercase', marginBottom: 2 }}>
+              Ganados por facturar
             </div>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexShrink: 0 }}>
-              <span style={{
-                fontSize: 9.5, fontWeight: 700, color: '#fff', padding: '2px 7px', borderRadius: 5,
-                background: UDN_COLORS[r.udn] ?? UDN_COLOR_FALLBACK,
-              }}>{r.udn || '—'}</span>
-              <span style={{ fontSize: 12, fontWeight: 700, fontFamily: 'monospace', color: '#0f172a' }}>{fmtMoney(r.monto)}</span>
+            <div style={{ fontSize: 19, fontWeight: 800, color: '#0f172a' }}>
+              {rows ? `${rows.length} negocio${rows.length === 1 ? '' : 's'}` : 'Cargando…'}
             </div>
           </div>
-        ))}
+          <button onClick={onClose} style={{
+            border: 'none', background: '#f1f5f9', cursor: 'pointer', fontSize: 18, color: '#64748b',
+            lineHeight: 1, width: 32, height: 32, borderRadius: 8, flexShrink: 0,
+          }}>×</button>
+        </div>
+
+        {!loading && !error && rows && rows.length > 0 && (
+          <div style={{
+            display: 'grid', gridTemplateColumns: 'minmax(0,1fr) 140px 120px', gap: 8,
+            padding: '0 12px 8px', fontSize: 10, fontWeight: 700, color: '#94a3b8',
+            letterSpacing: '0.04em', textTransform: 'uppercase', borderBottom: '1px solid #e2e8f0',
+          }}>
+            <span>Empresa</span>
+            <span>Fuente</span>
+            <span style={{ textAlign: 'right' }}>Valor</span>
+          </div>
+        )}
+
+        <div style={{ overflowY: 'auto', display: 'flex', flexDirection: 'column' }}>
+          {loading && <div style={{ fontSize: 13, color: '#94a3b8', padding: '24px 12px', textAlign: 'center' }}>Cargando…</div>}
+          {error && <div style={{ fontSize: 13, color: '#dc2626', padding: '24px 12px', textAlign: 'center' }}>{error}</div>}
+          {!loading && !error && rows && rows.length === 0 && (
+            <div style={{ fontSize: 13, color: '#94a3b8', padding: '24px 12px', textAlign: 'center' }}>
+              Sin negocios ganados pendientes de facturar en este rango.
+            </div>
+          )}
+          {!loading && !error && rows && rows.map((r, i) => (
+            <div key={`${r.company}-${i}`} style={{
+              display: 'grid', gridTemplateColumns: 'minmax(0,1fr) 140px 120px', gap: 8, alignItems: 'center',
+              padding: '11px 12px', borderRadius: 8,
+              borderBottom: i === rows.length - 1 ? 'none' : '1px solid #f1f5f9',
+              animation: `ganadosRowIn 0.28s ease-out ${Math.min(i, 12) * 0.03}s both`,
+            }}>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 2, minWidth: 0 }}>
+                <span style={{ fontSize: 13, fontWeight: 700, color: '#0f172a', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                  {r.company || 'Sin nombre'}
+                </span>
+                <span style={{ fontSize: 10.5, color: '#94a3b8' }}>{r.propietario || 'Sin asignar'}</span>
+              </div>
+              <span style={{
+                fontSize: 11, color: '#475569', background: '#f8fafc', border: '1px solid #eef2f7',
+                borderRadius: 6, padding: '3px 8px', width: 'fit-content', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis',
+              }}>{r.fuente || 'Sin fuente'}</span>
+              <span style={{ fontSize: 13, fontWeight: 700, fontFamily: 'monospace', color: '#0f172a', textAlign: 'right' }}>
+                {fmtMoney(r.monto)}
+              </span>
+            </div>
+          ))}
+        </div>
       </div>
     </div>
   )
@@ -384,6 +424,7 @@ function FunnelPanel({ dateFrom, dateTo, filtros }: { dateFrom: string; dateTo: 
       background: '#fff', border: '1px solid #e2e8f0', borderRadius: 12, padding: 20,
       display: 'flex', flexDirection: 'column', gap: 16, flex: '2 1 620px', minWidth: 0,
     }}>
+    <style>{`.ganados-row-hover:hover { background: #f8fafc; }`}</style>
     <div>
       <div style={{ fontSize: 10.5, fontWeight: 700, color: '#94a3b8', letterSpacing: '0.08em', textTransform: 'uppercase', marginBottom: 2 }}>
         Funnel de conversion
@@ -485,13 +526,26 @@ function FunnelPanel({ dateFrom, dateTo, filtros }: { dateFrom: string; dateTo: 
           <div
             key={label as string}
             onClick={clickable ? handleGanadosClick : undefined}
+            className={clickable ? 'ganados-row-hover' : undefined}
             style={{
               display: 'flex', justifyContent: 'space-between', alignItems: 'center',
-              padding: '8px 0', borderTop: i === 0 ? 'none' : '1px solid #e2e8f0',
+              padding: '8px 8px', margin: '0 -8px', borderRadius: 6,
+              borderTop: i === 0 ? 'none' : '1px solid #e2e8f0',
               cursor: clickable ? 'pointer' : 'default',
+              transition: 'background 0.15s ease',
             }}
           >
-            <span style={{ fontSize: 11.5, color: '#334155' }}>{label}{clickable ? ' \u2728' : ''}</span>
+            <span style={{ fontSize: 11.5, color: '#334155', display: 'flex', alignItems: 'center', gap: 5 }}>
+              {label}
+              {clickable && (
+                <span style={{
+                  fontSize: 9, color: '#6366f1', fontWeight: 700, background: '#eef2ff',
+                  borderRadius: 4, padding: '1px 5px', display: 'inline-flex', alignItems: 'center', gap: 2,
+                }}>
+                  Ver detalle <span style={{ fontSize: 11 }}>›</span>
+                </span>
+              )}
+            </span>
             <span style={{ fontWeight: 700, fontFamily: 'monospace', fontSize: 13, color: '#0f172a' }}>{value}</span>
           </div>
         ))}
