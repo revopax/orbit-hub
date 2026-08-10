@@ -382,9 +382,9 @@ export default function IAMPage() {
               <div style={{ position:'relative' }}>
                 <div
                   onClick={() => abrirVisitas(u.id)}
-                  style={{ fontSize:12, color:'var(--txt-4)', fontWeight:600, cursor:'pointer', display:'flex', alignItems:'center', gap:5, width:'fit-content' }}
+                  style={{ cursor:'pointer', display:'flex', flexDirection:'column', alignItems:'flex-start', gap:2, width:'fit-content' }}
                 >
-                  {u.total_visitas ?? 0}
+                  <span style={{ fontSize:12, color:'var(--txt-4)', fontWeight:600 }}>{u.total_visitas ?? 0}</span>
                   <span style={{ fontSize:9, fontWeight:700, color:MAGENTA, background:`${MAGENTA}18`, borderRadius:4, padding:'1px 5px', whiteSpace:'nowrap' }}>
                     Ver detalle
                   </span>
