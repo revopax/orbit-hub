@@ -130,6 +130,25 @@ export default function IAMPage() {
   const [sortAsc, setSortAsc] = useState(false);
   const [colapsados, setColapsados] = useState<Set<string>>(new Set());
   const toggleGrupo = (key: string) => setColapsados(p => { const n = new Set(p); n.has(key) ? n.delete(key) : n.add(key); return n; });
+  const [visitasAbiertas, setVisitasAbiertas] = useState<string|null>(null);
+  const [visitasDetalle, setVisitasDetalle] = useState<{modulo:string; clicks:number}[] | null>(null);
+  const [visitasCargando, setVisitasCargando] = useState(false);
+  const MODULO_LABEL: Record<string,string> = { brujula: 'Brújula Comercial', redes: 'Redes UPAX', hubspot: 'Data & Analytics' };
+  const abrirVisitas = async (perfilId: string) => {
+    if (visitasAbiertas === perfilId) { setVisitasAbiertas(null); return; }
+    setVisitasAbiertas(perfilId);
+    setVisitasCargando(true);
+    const { data, error } = await sb
+      .from('module_access_log')
+      .select('modulo')
+      .eq('perfil_id', perfilId);
+    if (error) { console.error('Error cargando module_access_log:', error); setVisitasDetalle([]); setVisitasCargando(false); return; }
+    const counts: Record<string, number> = {};
+    for (const row of data ?? []) { counts[row.modulo] = (counts[row.modulo] ?? 0) + 1; }
+    const detalle = Object.entries(counts).map(([modulo, clicks]) => ({ modulo, clicks })).sort((a,b) => b.clicks - a.clicks);
+    setVisitasDetalle(detalle);
+    setVisitasCargando(false);
+  };
 
   useEffect(() => { if (!loading && perfil?.rol !== 'admin') router.push('/'); }, [perfil, loading]);
   useEffect(() => { if (perfil?.rol === 'admin') cargar(); }, [perfil]);
@@ -360,7 +379,35 @@ export default function IAMPage() {
                 <div style={{ width:7, height:7, borderRadius:'50%', backgroundColor: u.activo === false ? '#EF4444' : '#22C55E' }}/>
                 <span style={{ fontSize:12, color:'var(--txt-4)' }}>{u.activo === false ? 'Inactivo' : 'Activo'}</span>
               </div>
-              <div style={{ fontSize:12, color:'var(--txt-4)', fontWeight:600 }}>{u.total_visitas ?? 0}</div>
+              <div style={{ position:'relative' }}>
+                <div
+                  onClick={() => abrirVisitas(u.id)}
+                  style={{ fontSize:12, color:'var(--txt-4)', fontWeight:600, cursor:'pointer', textDecoration:'underline', textDecorationStyle:'dotted', textUnderlineOffset:3, width:'fit-content' }}
+                >
+                  {u.total_visitas ?? 0}
+                </div>
+                {visitasAbiertas === u.id && (
+                  <div style={{
+                    position:'absolute', top:'calc(100% + 6px)', left:0, zIndex:50, minWidth:200,
+                    background:'var(--surface,#0f172a)', border:'1px solid var(--border)', borderRadius:10,
+                    boxShadow:'0 12px 32px rgba(0,0,0,0.35)', padding:12,
+                  }}>
+                    <div style={{ fontSize:10, fontWeight:700, color:'var(--txt-5)', letterSpacing:'0.05em', textTransform:'uppercase', marginBottom:8 }}>
+                      Visitas por módulo
+                    </div>
+                    {visitasCargando && <div style={{ fontSize:11, color:'var(--txt-5)' }}>Cargando…</div>}
+                    {!visitasCargando && visitasDetalle && visitasDetalle.length === 0 && (
+                      <div style={{ fontSize:11, color:'var(--txt-5)' }}>Sin registros aún</div>
+                    )}
+                    {!visitasCargando && visitasDetalle && visitasDetalle.map(d => (
+                      <div key={d.modulo} style={{ display:'flex', justifyContent:'space-between', gap:16, fontSize:12, padding:'4px 0', color:'var(--txt-3)' }}>
+                        <span>{MODULO_LABEL[d.modulo] ?? d.modulo}</span>
+                        <span style={{ fontWeight:700, color:'var(--txt-1)' }}>{d.clicks}</span>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
               <div style={{ fontSize:12, color:'var(--txt-5)' }}>{formatFecha(u.created_at)}</div>
               <div style={{ fontSize:12, color: u.ultima_actividad ? 'var(--txt-3)' : 'var(--txt-5)' }} title={u.ultima_actividad ? new Date(u.ultima_actividad).toLocaleString('es-MX') : 'Sin registro'}>
                 {formatActividad(u.ultima_actividad)}
