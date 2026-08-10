@@ -79,7 +79,9 @@ export default function BrujulaComercial() {
             </div>
             <KpiScoreCards udn={udnActiva.nombre} desde={periodo.desde} hasta={periodo.hasta} />
             <div>
-              <GraficaCruceSenales brandColor={udnActiva.color} isDark={false} udn={udnActiva.nombre} desde={periodo.desde} hasta={periodo.hasta} />
+              {tienePermiso(permisos, 'brujula', 'demanda') && (
+                <GraficaCruceSenales brandColor={udnActiva.color} isDark={false} udn={udnActiva.nombre} desde={periodo.desde} hasta={periodo.hasta} />
+              )}
             </div>
             <SegmentosServicio udn={udnActiva.nombre} desde={periodo.desde} hasta={periodo.hasta} />
             <div>

@@ -75,9 +75,9 @@ export default function Page() {
           flex: 1, overflowY: 'auto', overflowX: 'auto',
           background: esClaro ? '#ffffff' : 'var(--bg, #0F172A)',
         }}>
-          {moduloActivo === 'brujula' && <BrujulaComercial />}
-          {moduloActivo === 'redes' && <RedesUPAX />}
-          {moduloActivo === 'hubspot' && <HubSpotAnalytics />}
+          {moduloActivo === 'brujula' && <BrujulaComercial permisos={perfil?.permisos} />}
+          {moduloActivo === 'redes' && <RedesUPAX permisos={perfil?.permisos} />}
+          {moduloActivo === 'hubspot' && <HubSpotAnalytics permisos={perfil?.permisos} />}
         </div>
       </div>
     </div>

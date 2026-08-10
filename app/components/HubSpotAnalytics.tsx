@@ -2928,7 +2928,16 @@ function Placeholder({ label }: { label: string }) {
   )
 }
 
-export default function HubSpotAnalytics() {
+type Permisos = Record<string, 'all' | string[]>;
+function tienePermiso(permisos: Permisos | null | undefined, modulo: string, tabId: string): boolean {
+  if (!permisos || Object.keys(permisos).length === 0) return true;
+  const val = permisos[modulo];
+  if (val === 'all') return true;
+  if (Array.isArray(val)) return val.includes(tabId);
+  return false;
+}
+
+export default function HubSpotAnalytics({ permisos }: { permisos?: Permisos | null }) {
   const [sub, setSub] = useState<SubTab>('home')
   const [ultimaSync, setUltimaSync] = useState<Date | null>(null)
   useEffect(() => {
@@ -2962,18 +2971,28 @@ export default function HubSpotAnalytics() {
           <div style={{ display: 'flex', gap: 4, overflowX: 'auto', flex: 1 }}>
             {SUBTABS.map(t => {
               const active = sub === t.id
+              const permitido = tienePermiso(permisos, 'hubspot', t.id)
               return (
-                <button key={t.id} onClick={() => setSub(t.id)} style={{
+                <button key={t.id} onClick={() => { if (permitido) setSub(t.id); }} style={{
                   background: active ? ACCENT : 'transparent',
                   border: '1px solid ' + (active ? ACCENT : '#e2e8f0'),
                   borderRadius: 9, padding: '5px 12px',
-                  color: active ? '#ffffff' : '#64748b',
+                  color: !permitido ? '#cbd5e1' : (active ? '#ffffff' : '#64748b'),
                   fontSize: 12.5, fontWeight: active ? 700 : 500,
-                  cursor: 'pointer', whiteSpace: 'nowrap', transition: 'all 0.2s',
+                  cursor: permitido ? 'pointer' : 'not-allowed',
+                  whiteSpace: 'nowrap', transition: 'all 0.2s',
                   display: 'flex', alignItems: 'center', gap: 7,
+                  opacity: permitido ? 1 : 0.55,
                 }}>
                   {t.label}
-                  {(t.id === 'mbr' || t.id === 'email') && (
+                  {!permitido ? (
+                    <span style={{
+                      fontSize: 9, fontWeight: 700, padding: '2px 6px', borderRadius: 5,
+                      background: '#f1f5f9', color: '#94a3b8', whiteSpace: 'nowrap',
+                    }}>
+                      Sin acceso
+                    </span>
+                  ) : (t.id === 'mbr' || t.id === 'email') && (
                     <span style={{
                       fontSize: 9, fontWeight: 700, padding: '2px 6px', borderRadius: 5,
                       background: active ? 'rgba(255,255,255,0.25)' : '#f1f5f9',
@@ -3004,10 +3023,18 @@ export default function HubSpotAnalytics() {
         </div>
       </div>
 
-      {sub === 'home'     && <HomeFunnel />}
-      {sub === 'mbr'      && <Placeholder label="MBR (Monthly Business Review)" />}
-      {sub === 'perdidos' && <NegociosPerdidos />}
-      {sub === 'email'    && <Placeholder label="Email marketing" />}
+      {tienePermiso(permisos, 'hubspot', sub) ? (
+        <>
+          {sub === 'home'     && <HomeFunnel />}
+          {sub === 'mbr'      && <Placeholder label="MBR (Monthly Business Review)" />}
+          {sub === 'perdidos' && <NegociosPerdidos />}
+          {sub === 'email'    && <Placeholder label="Email marketing" />}
+        </>
+      ) : (
+        <div style={{ padding: 60, textAlign: 'center', color: '#94a3b8', fontSize: 13 }}>
+          No tienes acceso a esta vista.
+        </div>
+      )}
     </div>
   )
 }

@@ -62,7 +62,16 @@ function NetworkLogo({ color }: { color: string }) {
   )
 }
 
-export default function RedesUPAX() {
+type Permisos = Record<string, 'all' | string[]>;
+function tienePermiso(permisos: Permisos | null | undefined, modulo: string, tabId: string): boolean {
+  if (!permisos || Object.keys(permisos).length === 0) return true;
+  const val = permisos[modulo];
+  if (val === 'all') return true;
+  if (Array.isArray(val)) return val.includes(tabId);
+  return false;
+}
+
+export default function RedesUPAX({ permisos }: { permisos?: Permisos | null }) {
   const [ultimaActualizacion, setUltimaActualizacion] = useState<Date | null>(null)
   useEffect(() => {
     if (!SUPABASE_KEY) return
@@ -96,15 +105,18 @@ export default function RedesUPAX() {
         <div style={{ display:'flex', gap:4, overflowX:'auto', flex:1 }}>
           {TABS.map(t => {
             const active = activeId===t.id
+            const permitido = tienePermiso(permisos, 'redes', t.id)
             return (
-            <button key={t.id} onClick={() => setActiveId(t.id)} style={{
+            <button key={t.id} onClick={() => { if (permitido) setActiveId(t.id); }} style={{
               background: active ? t.primary : 'transparent',
               border: '1px solid '+(active ? t.primary : '#e2e8f0'),
               borderRadius:9, padding:'5px 12px',
-              color: active ? '#ffffff' : '#64748b',
+              color: !permitido ? '#cbd5e1' : (active ? '#ffffff' : '#64748b'),
               fontSize:12.5, fontWeight: active ? 700 : 500,
-              cursor:'pointer', whiteSpace:'nowrap', transition:'all 0.2s',
+              cursor: permitido ? 'pointer' : 'not-allowed',
+              whiteSpace:'nowrap', transition:'all 0.2s',
               display:'flex', alignItems:'center', gap:7,
+              opacity: permitido ? 1 : 0.55,
             }}>
               <span style={{
                 display:'inline-flex', alignItems:'center', justifyContent:'center',
@@ -121,7 +133,14 @@ export default function RedesUPAX() {
                 {t.id==='li-ads'     && <img src="/logos/Linkedin-Ads-logo.png" alt="" style={{width:20,height:20,objectFit:'contain'}}/>}
               </span>
               {t.label}
-              {t.id !== 'meta-org' && (
+              {!permitido ? (
+                <span style={{
+                  fontSize: 9, fontWeight: 700, padding: '2px 6px', borderRadius: 5,
+                  background: '#f1f5f9', color: '#94a3b8', whiteSpace: 'nowrap',
+                }}>
+                  Sin acceso
+                </span>
+              ) : t.id !== 'meta-org' && (
                 <span style={{
                   fontSize: 9, fontWeight: 700, padding: '2px 6px', borderRadius: 5,
                   background: active ? 'rgba(255,255,255,0.25)' : '#f1f5f9',
@@ -157,12 +176,20 @@ export default function RedesUPAX() {
         </div>{/* cierre maxWidth */}
       </div>
       <div>
-        {activeId==='meta-org'   && <MetaOrganico     accent={tab.primary} secondary={tab.secondary} bg={tab.bg}/>}
-        {activeId==='meta-ads'   && <MetaAds          accent={tab.primary} secondary={tab.secondary} bg={tab.bg}/>}
-        {activeId==='google-ads' && <GoogleAds        accent={tab.primary} secondary={tab.secondary} bg={tab.bg}/>}
-        {activeId==='ga4'        && <GA4              accent={tab.primary} secondary={tab.secondary} bg={tab.bg}/>}
-        {activeId==='li-org'     && <LinkedInOrganico accent={tab.primary} secondary={tab.secondary} bg={tab.bg}/>}
-        {activeId==='li-ads'     && <LinkedInAds      accent={tab.primary} secondary={tab.secondary} bg={tab.bg}/>}
+        {tienePermiso(permisos, 'redes', activeId) ? (
+          <>
+            {activeId==='meta-org'   && <MetaOrganico     accent={tab.primary} secondary={tab.secondary} bg={tab.bg}/>}
+            {activeId==='meta-ads'   && <MetaAds          accent={tab.primary} secondary={tab.secondary} bg={tab.bg}/>}
+            {activeId==='google-ads' && <GoogleAds        accent={tab.primary} secondary={tab.secondary} bg={tab.bg}/>}
+            {activeId==='ga4'        && <GA4              accent={tab.primary} secondary={tab.secondary} bg={tab.bg}/>}
+            {activeId==='li-org'     && <LinkedInOrganico accent={tab.primary} secondary={tab.secondary} bg={tab.bg}/>}
+            {activeId==='li-ads'     && <LinkedInAds      accent={tab.primary} secondary={tab.secondary} bg={tab.bg}/>}
+          </>
+        ) : (
+          <div style={{ padding: 60, textAlign: 'center', color: '#94a3b8', fontSize: 13 }}>
+            No tienes acceso a esta vista.
+          </div>
+        )}
       </div>
     </div>
   )

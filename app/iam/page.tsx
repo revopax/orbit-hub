@@ -47,7 +47,7 @@ const MODULOS_PERMISOS: { id: string; label: string; tabs: { val: string; label:
   ]},
   { id: 'redes', label: 'Redes UPAX', tabs: [
     { val: 'meta-org', label: 'META Orgánico' }, { val: 'meta-ads', label: 'META Ads' }, { val: 'google-ads', label: 'Google Ads' },
-    { val: 'ga4', label: 'GA4' }, { val: 'linkedin-org', label: 'LinkedIn Orgánico' }, { val: 'linkedin-ads', label: 'LinkedIn Ads' },
+    { val: 'ga4', label: 'GA4' }, { val: 'li-org', label: 'LinkedIn Orgánico' }, { val: 'li-ads', label: 'LinkedIn Ads' },
   ]},
   { id: 'hubspot', label: 'HubSpot Analytics', tabs: [
     { val: 'home', label: 'Home' }, { val: 'mbr', label: 'MBR' }, { val: 'perdidos', label: 'Negocios perdidos' }, { val: 'email', label: 'Email marketing' },
@@ -382,27 +382,30 @@ export default function IAMPage() {
               <div style={{ position:'relative' }}>
                 <div
                   onClick={() => abrirVisitas(u.id)}
-                  style={{ fontSize:12, color:'var(--txt-4)', fontWeight:600, cursor:'pointer', textDecoration:'underline', textDecorationStyle:'dotted', textUnderlineOffset:3, width:'fit-content' }}
+                  style={{ fontSize:12, color:'var(--txt-4)', fontWeight:600, cursor:'pointer', display:'flex', alignItems:'center', gap:5, width:'fit-content' }}
                 >
                   {u.total_visitas ?? 0}
+                  <span style={{ fontSize:9, fontWeight:700, color:MAGENTA, background:`${MAGENTA}18`, borderRadius:4, padding:'1px 5px', whiteSpace:'nowrap' }}>
+                    Ver detalle
+                  </span>
                 </div>
                 {visitasAbiertas === u.id && (
                   <div style={{
-                    position:'absolute', top:'calc(100% + 6px)', left:0, zIndex:50, minWidth:200,
-                    background:'var(--surface,#0f172a)', border:'1px solid var(--border)', borderRadius:10,
+                    position:'absolute', top:'calc(100% + 6px)', left:0, zIndex:50, minWidth:210,
+                    background:'#ffffff', border:'1px solid #e2e8f0', borderRadius:10,
                     boxShadow:'0 12px 32px rgba(0,0,0,0.35)', padding:12,
                   }}>
-                    <div style={{ fontSize:10, fontWeight:700, color:'var(--txt-5)', letterSpacing:'0.05em', textTransform:'uppercase', marginBottom:8 }}>
+                    <div style={{ fontSize:10, fontWeight:700, color:'#94a3b8', letterSpacing:'0.05em', textTransform:'uppercase', marginBottom:8 }}>
                       Visitas por módulo
                     </div>
-                    {visitasCargando && <div style={{ fontSize:11, color:'var(--txt-5)' }}>Cargando…</div>}
+                    {visitasCargando && <div style={{ fontSize:11, color:'#94a3b8' }}>Cargando…</div>}
                     {!visitasCargando && visitasDetalle && visitasDetalle.length === 0 && (
-                      <div style={{ fontSize:11, color:'var(--txt-5)' }}>Sin registros aún</div>
+                      <div style={{ fontSize:11, color:'#94a3b8' }}>Sin registros aún</div>
                     )}
                     {!visitasCargando && visitasDetalle && visitasDetalle.map(d => (
-                      <div key={d.modulo} style={{ display:'flex', justifyContent:'space-between', gap:16, fontSize:12, padding:'4px 0', color:'var(--txt-3)' }}>
+                      <div key={d.modulo} style={{ display:'flex', justifyContent:'space-between', gap:16, fontSize:12, padding:'4px 0', color:'#334155' }}>
                         <span>{MODULO_LABEL[d.modulo] ?? d.modulo}</span>
-                        <span style={{ fontWeight:700, color:'var(--txt-1)' }}>{d.clicks}</span>
+                        <span style={{ fontWeight:700, color:'#0f172a' }}>{d.clicks}</span>
                       </div>
                     ))}
                   </div>
