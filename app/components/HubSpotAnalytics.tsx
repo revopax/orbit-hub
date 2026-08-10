@@ -2,6 +2,7 @@
 import React, { useState, useRef, useEffect } from 'react'
 import NegociosPerdidos from './hubspot/NegociosPerdidos'
 import { BarChart, Bar, LineChart, Line, XAxis, YAxis, Tooltip, Legend, ResponsiveContainer, CartesianGrid, LabelList } from 'recharts'
+import confetti from 'canvas-confetti'
 
 
 // Shapes SVG personalizados con efecto brilloso (gloss overlay), igual que el funnel.
@@ -214,6 +215,102 @@ async function fetchFunnelTotales(
   }
 }
 
+type GanadoPorFacturarRow = {
+  company: string; udn: string; propietario: string
+  monto: number; fecha_por_facturar: string; closedate: string | null
+}
+
+async function fetchGanadosPorFacturarDetalle(
+  fechaDesde: string | null = null,
+  fechaHasta: string | null = null,
+  filtros: FiltrosHome = FILTROS_VACIOS,
+): Promise<GanadoPorFacturarRow[]> {
+  const url = `${SUPABASE_MBR_URL}/rest/v1/rpc/get_ganados_por_facturar_detalle`
+  const res = await fetch(url, {
+    method: 'POST',
+    headers: {
+      apikey: SUPABASE_MBR_KEY,
+      Authorization: `Bearer ${SUPABASE_MBR_KEY}`,
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({ fecha_desde: fechaDesde, fecha_hasta: fechaHasta, ...filtrosParams3(filtros) }),
+  })
+  if (!res.ok) throw new Error(`Error RPC get_ganados_por_facturar_detalle: ${res.status}`)
+  return res.json()
+}
+
+function GanadosPorFacturarPopover({ dateFrom, dateTo, filtros, onClose }: {
+  dateFrom: string; dateTo: string; filtros: FiltrosHome; onClose: () => void
+}) {
+  const [rows, setRows] = useState<GanadoPorFacturarRow[] | null>(null)
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
+
+  useEffect(() => {
+    let cancelled = false
+    setLoading(true)
+    fetchGanadosPorFacturarDetalle(dateFrom, dateTo, filtros)
+      .then(result => { if (!cancelled) { setRows(result); setLoading(false) } })
+      .catch(err => {
+        console.error('Error cargando ganados_por_facturar_detalle:', err)
+        if (!cancelled) { setError('No se pudo cargar el detalle'); setLoading(false) }
+      })
+    return () => { cancelled = true }
+  }, [dateFrom, dateTo, filtros])
+
+  return (
+    <div style={{
+      position: 'absolute', top: 'calc(100% + 8px)', left: 0, right: 0, zIndex: 30,
+      background: '#fff', border: '1px solid #e2e8f0', borderRadius: 12,
+      boxShadow: '0 12px 32px rgba(15,23,42,0.18)', padding: 16,
+      animation: 'ganadosPopoverIn 0.22s ease-out',
+      maxHeight: 360, display: 'flex', flexDirection: 'column',
+    }}>
+      <style>{`
+        @keyframes ganadosPopoverIn {
+          from { opacity: 0; transform: scale(0.92) translateY(-6px); }
+          to { opacity: 1; transform: scale(1) translateY(0); }
+        }
+      `}</style>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10 }}>
+        <div style={{ fontSize: 11, fontWeight: 700, color: '#94a3b8', letterSpacing: '0.06em', textTransform: 'uppercase' }}>
+          Ganados por facturar {rows ? `(${rows.length})` : ''}
+        </div>
+        <button onClick={onClose} style={{
+          border: 'none', background: 'transparent', cursor: 'pointer', fontSize: 16, color: '#94a3b8', lineHeight: 1, padding: 4,
+        }}>×</button>
+      </div>
+      <div style={{ overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: 6 }}>
+        {loading && <div style={{ fontSize: 12, color: '#94a3b8', padding: '8px 0' }}>Cargando…</div>}
+        {error && <div style={{ fontSize: 12, color: '#dc2626', padding: '8px 0' }}>{error}</div>}
+        {!loading && !error && rows && rows.length === 0 && (
+          <div style={{ fontSize: 12, color: '#94a3b8', padding: '8px 0' }}>Sin negocios ganados pendientes de facturar en este rango.</div>
+        )}
+        {!loading && !error && rows && rows.map((r, i) => (
+          <div key={`${r.company}-${i}`} style={{
+            display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 10,
+            padding: '8px 10px', borderRadius: 8, background: '#f8fafc', border: '1px solid #eef2f7',
+          }}>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 2, minWidth: 0 }}>
+              <span style={{ fontSize: 12.5, fontWeight: 700, color: '#0f172a', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                {r.company || 'Sin nombre'}
+              </span>
+              <span style={{ fontSize: 10.5, color: '#64748b' }}>{r.propietario || 'Sin asignar'}</span>
+            </div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexShrink: 0 }}>
+              <span style={{
+                fontSize: 9.5, fontWeight: 700, color: '#fff', padding: '2px 7px', borderRadius: 5,
+                background: UDN_COLORS[r.udn] ?? UDN_COLOR_FALLBACK,
+              }}>{r.udn || '—'}</span>
+              <span style={{ fontSize: 12, fontWeight: 700, fontFamily: 'monospace', color: '#0f172a' }}>{fmtMoney(r.monto)}</span>
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  )
+}
+
 function calcularTasas(t: FunnelTotales) {
   const pct = (a: number, b: number) => (b > 0 ? (a / b) * 100 : 0)
   return [
@@ -273,6 +370,15 @@ function FunnelPanel({ dateFrom, dateTo, filtros }: { dateFrom: string; dateTo: 
   const metaClientesCount = metas?.clientes?.meta_total ?? null
   const pctIngresos = metaClientesMoney && metaClientesMoney > 0 ? (total.clientesValorFacturadoRango / metaClientesMoney) * 100 : null
   const pctProyectos = metaClientesCount && metaClientesCount > 0 ? (total.clientesFacturadosRango / metaClientesCount) * 100 : null
+
+  const [popoverGanadosOpen, setPopoverGanadosOpen] = useState(false)
+  const handleGanadosClick = (e: React.MouseEvent) => {
+    const x = e.clientX / window.innerWidth
+    const y = e.clientY / window.innerHeight
+    confetti({ particleCount: 90, spread: 70, origin: { x, y } })
+    setPopoverGanadosOpen(true)
+  }
+
   return (
     <div style={{
       background: '#fff', border: '1px solid #e2e8f0', borderRadius: 12, padding: 20,
@@ -365,25 +471,38 @@ function FunnelPanel({ dateFrom, dateTo, filtros }: { dateFrom: string; dateTo: 
 
       <div style={{
         background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: 10,
-        padding: '14px 16px', display: 'flex', flexDirection: 'column',
+        padding: '14px 16px', display: 'flex', flexDirection: 'column', position: 'relative',
       }}>
         <div style={{ fontSize: 10, fontWeight: 700, color: '#94a3b8', letterSpacing: '0.06em', textTransform: 'uppercase', marginBottom: 8 }}>
           Calidad y perdidas
         </div>
         {[
-          ['MQL descalificados', fmtNum(total.mqlDescalificados)],
-          ['SQL objetadas', fmtNum(total.sqlObjetadas)],
-          ['Opps perdidas', fmtNum(total.oppsPerdidas)],
-          ['Ganados por facturar', fmtNum(total.ganadosPorFacturarCount)],
-        ].map(([label, value], i) => (
-          <div key={label} style={{
-            display: 'flex', justifyContent: 'space-between', alignItems: 'center',
-            padding: '8px 0', borderTop: i === 0 ? 'none' : '1px solid #e2e8f0',
-          }}>
-            <span style={{ fontSize: 11.5, color: '#334155' }}>{label}</span>
+          ['MQL descalificados', fmtNum(total.mqlDescalificados), false],
+          ['SQL objetadas', fmtNum(total.sqlObjetadas), false],
+          ['Opps perdidas', fmtNum(total.oppsPerdidas), false],
+          ['Ganados por facturar', fmtNum(total.ganadosPorFacturarCount), true],
+        ].map(([label, value, clickable], i) => (
+          <div
+            key={label as string}
+            onClick={clickable ? handleGanadosClick : undefined}
+            style={{
+              display: 'flex', justifyContent: 'space-between', alignItems: 'center',
+              padding: '8px 0', borderTop: i === 0 ? 'none' : '1px solid #e2e8f0',
+              cursor: clickable ? 'pointer' : 'default',
+            }}
+          >
+            <span style={{ fontSize: 11.5, color: '#334155' }}>{label}{clickable ? ' \u2728' : ''}</span>
             <span style={{ fontWeight: 700, fontFamily: 'monospace', fontSize: 13, color: '#0f172a' }}>{value}</span>
           </div>
         ))}
+        {popoverGanadosOpen && (
+          <GanadosPorFacturarPopover
+            dateFrom={dateFrom}
+            dateTo={dateTo}
+            filtros={filtros}
+            onClose={() => setPopoverGanadosOpen(false)}
+          />
+        )}
       </div>
 
     </div>
