@@ -15,7 +15,16 @@ import InteligenciaComercial from './brujula-comercial/InteligenciaComercial';
 type SubTab = 'comercial' | 'demanda';
 const ACCENT = '#8C59FE';
 
-export default function BrujulaComercial() {
+type Permisos = Record<string, 'all' | string[]>;
+function tienePermiso(permisos: Permisos | null | undefined, modulo: string, tabId: string): boolean {
+  if (!permisos || Object.keys(permisos).length === 0) return true;
+  const val = permisos[modulo];
+  if (val === 'all') return true;
+  if (Array.isArray(val)) return val.includes(tabId);
+  return false;
+}
+
+export default function BrujulaComercial({ permisos }: { permisos?: Permisos | null }) {
   const { perfil } = useAuth();
   const [sub, setSub] = useState<SubTab>('comercial');
   const [udnActiva, setUdnActiva] = useState<UDN>(UDNS[0]);
@@ -41,21 +50,35 @@ export default function BrujulaComercial() {
             Brújula <span style={{ color: ACCENT }}>Comercial</span>
           </span>
           <div style={{ display: 'flex', gap: 4, overflowX: 'auto', flex: 1 }}>
-            {(['comercial', 'demanda'] as SubTab[]).map(t => (
+            {(['comercial', 'demanda'] as SubTab[]).map(t => {
+              const permitido = tienePermiso(permisos, 'brujula', t);
+              return (
               <button
                 key={t}
-                onClick={() => setSub(t)}
+                onClick={() => { if (permitido) setSub(t); }}
                 style={{
-                  padding: '6px 16px', borderRadius: 8, border: 'none', cursor: 'pointer',
+                  padding: '6px 16px', borderRadius: 8, border: 'none',
+                  cursor: permitido ? 'pointer' : 'not-allowed',
                   fontSize: 13, fontWeight: sub === t ? 700 : 500,
                   background: sub === t ? ACCENT : 'transparent',
-                  color: sub === t ? '#fff' : 'var(--txt-2)',
+                  color: !permitido ? 'var(--txt-5)' : (sub === t ? '#fff' : 'var(--txt-2)'),
                   whiteSpace: 'nowrap',
+                  display: 'flex', alignItems: 'center', gap: 6,
+                  opacity: permitido ? 1 : 0.6,
                 }}
               >
                 {t === 'comercial' ? 'Inteligencia Comercial' : 'Inteligencia de Demanda'}
+                {!permitido && (
+                  <span style={{
+                    fontSize: 9, fontWeight: 700, padding: '2px 6px', borderRadius: 5,
+                    background: '#f1f5f9', color: '#94a3b8', whiteSpace: 'nowrap',
+                  }}>
+                    Sin acceso
+                  </span>
+                )}
               </button>
-            ))}
+              );
+            })}
           </div>
         </div>
       </div>
@@ -96,7 +119,7 @@ export default function BrujulaComercial() {
           </div>
         </div>
       )}
-      {sub === 'comercial' && (
+      {sub === 'comercial' && tienePermiso(permisos, 'brujula', 'comercial') && (
         <InteligenciaComercial udnId={udnActiva.id} brandColor={udnActiva.color} />
       )}
     </div>
