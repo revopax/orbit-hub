@@ -10,6 +10,7 @@ import { SegmentosServicio } from './SegmentosServicio';
 import { UDNS } from '../lib/data';
 import { useAuth } from '../hooks/useAuth';
 import type { UDN } from '../lib/types';
+import InteligenciaComercial from './brujula-comercial/InteligenciaComercial';
 
 type SubTab = 'comercial' | 'demanda';
 const ACCENT = '#8C59FE';
@@ -94,7 +95,7 @@ export default function BrujulaComercial() {
         </div>
       )}
       {sub === 'comercial' && (
-        <div style={{ maxWidth: 1400, margin: '0 auto', color: 'var(--txt-3)' }}>Inteligencia Comercial — próximo paso.</div>
+        <InteligenciaComercial udnId={udnActiva.id} brandColor={udnActiva.color} />
       )}
     </div>
   );
