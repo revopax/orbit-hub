@@ -1,9 +1,7 @@
 'use client';
-import { useState } from 'react';
+import { useState, use } from 'react';
 import { FunnelPanel, TeamsPanel, type FiltrosHome } from '../../components/HubSpotAnalytics';
 
-// Mapeo slug de URL -> nombre real de UDN (tal como vive en mbr.udn)
-// Mañana para Marketing United, agregar aquí su slug igual que HOF.
 const UDN_SLUGS: Record<string, string> = {
   'house-of-films': 'House Of Films',
   'marketing-united': 'Marketing United',
@@ -15,8 +13,9 @@ const UDN_SLUGS: Record<string, string> = {
   'neracode': 'Neracode',
 };
 
-export default function EmbedUdnPage({ params }: { params: { udn: string } }) {
-  const udnNombre = UDN_SLUGS[params.udn];
+export default function EmbedUdnPage({ params }: { params: Promise<{ udn: string }> }) {
+  const { udn } = use(params);
+  const udnNombre = UDN_SLUGS[udn];
 
   const [dateFrom] = useState(new Date().getFullYear() + '-01-01');
   const [dateTo] = useState(new Date().toISOString().slice(0, 10));
@@ -24,7 +23,7 @@ export default function EmbedUdnPage({ params }: { params: { udn: string } }) {
   if (!udnNombre) {
     return (
       <div style={{ padding: 40, fontFamily: 'Inter,-apple-system,sans-serif', color: '#64748b' }}>
-        UDN no reconocida: {params.udn}
+        UDN no reconocida: {udn}
       </div>
     );
   }
