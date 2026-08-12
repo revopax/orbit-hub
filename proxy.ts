@@ -21,7 +21,8 @@ export async function proxy(request: NextRequest) {
 
   const { data: { session } } = await supabase.auth.getSession()
 
-  if (!session && request.nextUrl.pathname !== '/login') {
+  const isPublic = request.nextUrl.pathname === '/login' || request.nextUrl.pathname.startsWith('/embed')
+  if (!session && !isPublic) {
     return NextResponse.redirect(new URL('/login', request.url))
   }
   if (session && request.nextUrl.pathname === '/login') {
