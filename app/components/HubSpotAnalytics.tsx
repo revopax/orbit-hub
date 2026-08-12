@@ -74,7 +74,7 @@ const DUMMY = {
 
 const UDNS_LIST = ['Upax', 'Promo Espacio', 'Marketing United', 'Research Land', 'Mexa Creativa', 'House Of Films', 'UIX', 'Zeus', 'Neracode']
 const FUENTES_LIST = ['Chatflow', 'Content Nurturing', 'Evento', 'Inbound', 'Paid Media', 'Prospección', 'RRSS', 'RRSS Paid', 'Referido IA', 'Referidos', 'Sin fuente', 'Website']
-type FiltrosHome = {
+export type FiltrosHome = {
   udn: string[]; origen: string[]; conversion: string[]; fuente: string[]; fuenteConversion: string[]
 }
 const FILTROS_VACIOS: FiltrosHome = { udn: [], origen: [], conversion: [], fuente: [], fuenteConversion: [] }
@@ -383,7 +383,7 @@ function ScoreCardKPI({ label, value, pct, metaLabel }: { label: string; value: 
   )
 }
 
-function FunnelPanel({ dateFrom, dateTo, filtros }: { dateFrom: string; dateTo: string; filtros: FiltrosHome }) {
+export function FunnelPanel({ dateFrom, dateTo, filtros }: { dateFrom: string; dateTo: string; filtros: FiltrosHome }) {
   const [data, setData] = useState<FunnelTotales | null>(null)
   useEffect(() => {
     let cancelled = false
@@ -635,7 +635,7 @@ async function fetchMetasForecast(fechaDesde: string, fechaHasta: string, udn: s
   return map
 }
 
-function TeamsPanel({ dateFrom, dateTo, filtros }: { dateFrom: string; dateTo: string; filtros: FiltrosHome }) {
+export function TeamsPanel({ dateFrom, dateTo, filtros }: { dateFrom: string; dateTo: string; filtros: FiltrosHome }) {
   const [data, setData] = useState<{ marketing: TeamTotales; comercial: TeamTotales } | null>(null)
   const [metas, setMetas] = useState<Record<string, MetaEtapa> | null>(null)
   useEffect(() => {
