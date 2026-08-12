@@ -1,3 +1,42 @@
+## [v2.5.0] - 2026-08-12
+### Permisos y visibilidad por UDN
+- Fix de IDs desalineados: LinkedIn Orgánico/Ads en IAM usaban `linkedin-org`/`linkedin-ads`, corregido a `li-org`/`li-ads` (coincide con `RedesUPAX.tsx`).
+- `page.tsx` ahora pasa `perfil?.permisos` a los 3 módulos (Brújula Comercial, Redes UPAX, Data & Analytics) — antes no llegaba a ninguno.
+- Sub-tabs sin permiso ahora se muestran atenuados con badge "Sin acceso", click bloqueado, sin ocultarlos (a diferencia del badge "En proceso" que indica falta de construcción, no de permiso).
+- UDNs visibles separadas por tab en Brújula Comercial: "Inteligencia Comercial" respeta `udn` asignada del usuario (vía `perfil.udn`), "Inteligencia de Demanda" siempre muestra las 8 UDNs completas — estado independiente por tab (`udnsVisiblesComercial` vs `udnsVisiblesDemanda`), con `useEffect` que reubica `udnActiva` al cambiar de tab si queda fuera de rango.
+- Bug corregido: `tienePermiso` y la firma `{ permisos }` de `BrujulaComercial.tsx` se perdieron por un `assert` fallido a medio escribir en una edición previa — restaurado completo.
+
+### Tracking de uso (module_access_log)
+- Tabla nueva `module_access_log` en Supabase (`szxdvdbdyuxtvyvxbder`) con RLS: policy de insert (`perfil_id = auth.uid()`) y policy de lectura (`true`, cualquier autenticado).
+- `SidebarV2.tsx`: cada click en un módulo del sidebar dispara un insert a `module_access_log` (fire-and-forget, no bloquea navegación).
+- IAM: columna "Visitas" ahora clickeable ("Ver detalle"), abre popover con desglose de clicks por módulo por usuario.
+- Bug corregido: el popover leía `module_access_log` con un cliente Supabase sin sesión (`createClient()` genérico en `iam/page.tsx`, rol `anon`), bloqueado silenciosamente por RLS sin error visible. Fix: usar `getSupabase()` (cliente autenticado con sesión) para esa query específica.
+- Fix de contraste (texto oscuro sobre fondo oscuro) y overlap visual del badge "Ver detalle" (apilado debajo del número en vez de al lado).
+
+### Migración Inteligencia Comercial (legacy → ORBIT)
+- 4 componentes migrados de `BRUJULA-COMERCIAL-UPAX` a `app/components/brujula-comercial/`: `BloqueDENUE.tsx`, `CalendarioGrid.tsx`, `PicosEmpresasTable.tsx`, `IcpChips.tsx`.
+- Nuevo componente orquestador `InteligenciaComercial.tsx` — lee `public/data/brujula_data.json` (mismo patrón `fetch` que ya usaba el proyecto legacy), arma props para los 3 componentes según `udnId` activo.
+- Cableado en el placeholder "Inteligencia Comercial — próximo paso" de `BrujulaComercial.tsx`.
+- Fix de imports: `CalendarioGrid`/`PicosEmpresasTable` son named exports (no default, a diferencia de `BloqueDENUE`); import de tipos ajustado a `../../lib/types` (un nivel extra de carpeta).
+- `UDN_COLORS` no duplicado — se reusa el existente (indexado por nombre completo de UDN: `'Marketing United'`, `'House Of Films'`, etc., no por código corto).
+
+### Popover "Ganados por facturar" (Data & Analytics)
+- RPC nueva `get_ganados_por_facturar_detalle(fecha_desde, fecha_hasta, p_udn, p_origen, p_fuente)` en `wuwhcljeigskajjoyghv` (misma base que `mbr`, requerido por Postgres al no permitir queries cross-database) — devuelve `company, udn, propietario, fuente, monto, fecha_por_facturar, closedate`.
+- Popover rediseñado como modal centrado con backdrop (no popover angosto anclado a la card), columnas Empresa | Fuente | Valor, total sumado en el header, animación stagger por fila.
+- Trigger visible con badge "Ver detalle ›" y hover, en vez de solo un ícono ✨ pequeño.
+- Confetti (`canvas-confetti`) al hacer click.
+
+### Compartir sin login — embed por UDN
+- Nueva ruta `/embed/[udn]` — sin autenticación, muestra `FunnelPanel` + `TeamsPanel` (funnel de conversión + tablas Marketing/Comercial) filtrado por una sola UDN vía slug de URL.
+- `FunnelPanel`, `TeamsPanel`, y el tipo `FiltrosHome` exportados desde `HubSpotAnalytics.tsx` (antes privados al archivo) para poder reusarlos en la página embed sin duplicar código.
+- `next.config.ts`: header `Content-Security-Policy: frame-ancestors` restringido a `/embed/:path*` únicamente — autoriza iframe solo desde `https://mktcorp-estatus.vercel.app`. El resto de la app no lleva este header.
+- Mapeo de slugs ya preparado para las 8 UDNs en `UDN_SLUGS` (`app/embed/[udn]/page.tsx`) — agregar una UDN nueva no requiere tocar código, solo usar la URL correcta.
+- Vivo hoy: `https://orbit-hub-fgap.vercel.app/embed/house-of-films` (compartido con el director de Marketing Corporativo). Pendiente mañana: `marketing-united`, mismo patrón, sin cambios de código.
+- Nota técnica: `params` en Next.js 15+/16 es una `Promise`, no un objeto plano — usar `use(params)`, no acceso directo (`params.udn` sin `use()` causaba 404 silencioso en producción aunque compilaba bien local, porque `next.config.ts` tiene `ignoreBuildErrors: true`).
+
+### Deuda técnica / pendiente
+- Bloque de debug temporal en `app/embed/[udn]/page.tsx` (mensaje "UDN no reconocida...") — revisar si conviene quitarlo o dejarlo como manejo de error real para slugs inválidos.
+
 ## [v2.4.0] - 2026-08-06
 
 ### Brújula Comercial 2.0 — Inteligencia de Demanda (cruce con volumen de mercado de Google)
