@@ -5,6 +5,7 @@ export type Perfil = {
   nombre: string
   rol: 'admin' | 'director' | 'operativo'
   udn: string | null
+  udn_madre?: string | null
   password_changed?: boolean
   permisos?: Record<string, 'all' | string[]> | null
 }

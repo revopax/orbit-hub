@@ -841,9 +841,10 @@ function MultiSelect({ label, opciones, selected, onChange }: {
   )
 }
 
-function FiltrosBar({ dateFrom, dateTo, onDateChange, filtros, onFiltroChange }: {
+function FiltrosBar({ dateFrom, dateTo, onDateChange, filtros, onFiltroChange, udnOpciones }: {
   dateFrom: string; dateTo: string; onDateChange: (from: string, to: string, preset: string) => void
   filtros: FiltrosHome; onFiltroChange: (key: keyof FiltrosHome, value: string[]) => void
+  udnOpciones?: string[]
 }) {
   const [activePreset, setActivePreset] = useState('Este año')
   const [tempFrom, setTempFrom] = useState(dateFrom)
@@ -877,7 +878,7 @@ function FiltrosBar({ dateFrom, dateTo, onDateChange, filtros, onFiltroChange }:
       display: 'flex', gap: 10, flexWrap: 'wrap', alignItems: 'center',
     }}>
       {([
-        { key: 'udn' as const, label: 'Unidad de negocio', opciones: UDNS_LIST },
+        { key: 'udn' as const, label: 'Unidad de negocio', opciones: udnOpciones ?? UDNS_LIST },
         { key: 'origen' as const, label: 'Generado por', opciones: ['Marketing', 'Comercial'] },
         { key: 'conversion' as const, label: 'Contacto convertido', opciones: ['Marketing', 'Comercial'] },
         { key: 'fuente' as const, label: 'Fuente adquisición', opciones: FUENTES_LIST },
@@ -2887,10 +2888,16 @@ function TimelinePanel({
   )
 }
 
-function HomeFunnel() {
+function HomeFunnel({ perfil }: { perfil?: { rol?: string; udn?: string | null; udn_madre?: string | null } | null }) {
+  const esMkt = perfil?.rol === 'admin' || perfil?.udn_madre === 'MKT'
+  const udnsPropias = (perfil?.udn || '').split(',').map((s: string) => s.trim()).filter(Boolean)
+  const udnsPermitidas = esMkt ? UDNS_LIST : UDNS_LIST.filter(u => udnsPropias.includes(u))
   const [dateFrom, setDateFrom] = useState(new Date().getFullYear() + '-01-01')
   const [dateTo, setDateTo] = useState(toDateStr(new Date()))
-  const [filtros, setFiltros] = useState<FiltrosHome>(FILTROS_VACIOS)
+  const [filtros, setFiltros] = useState<FiltrosHome>(() => ({
+    ...FILTROS_VACIOS,
+    udn: esMkt ? [] : udnsPropias,
+  }))
   function handleDateChange(from, to, _preset) {
     setDateFrom(from)
     setDateTo(to)
@@ -2900,7 +2907,7 @@ function HomeFunnel() {
   }
   return (
     <div>
-      <FiltrosBar dateFrom={dateFrom} dateTo={dateTo} onDateChange={handleDateChange} filtros={filtros} onFiltroChange={handleFiltroChange} />
+      <FiltrosBar dateFrom={dateFrom} dateTo={dateTo} onDateChange={handleDateChange} filtros={filtros} onFiltroChange={handleFiltroChange} udnOpciones={udnsPermitidas} />
       <div style={{ maxWidth: 1400, margin: '0 auto', width: '100%', padding: 20, display: 'flex', flexDirection: 'column', gap: 20 }}>
         <div style={{ display: 'flex', gap: 16, alignItems: 'stretch', flexWrap: 'wrap' }}>
           <FunnelPanel dateFrom={dateFrom} dateTo={dateTo} filtros={filtros} />
@@ -2937,7 +2944,7 @@ function tienePermiso(permisos: Permisos | null | undefined, modulo: string, tab
   return false;
 }
 
-export default function HubSpotAnalytics({ permisos }: { permisos?: Permisos | null }) {
+export default function HubSpotAnalytics({ permisos, perfil }: { permisos?: Permisos | null; perfil?: { rol?: string; udn?: string | null; udn_madre?: string | null } | null }) {
   const [sub, setSub] = useState<SubTab>('home')
   const [ultimaSync, setUltimaSync] = useState<Date | null>(null)
   useEffect(() => {
@@ -3025,7 +3032,7 @@ export default function HubSpotAnalytics({ permisos }: { permisos?: Permisos | n
 
       {tienePermiso(permisos, 'hubspot', sub) ? (
         <>
-          {sub === 'home'     && <HomeFunnel />}
+          {sub === 'home'     && <HomeFunnel perfil={perfil} />}
           {sub === 'mbr'      && <Placeholder label="MBR (Monthly Business Review)" />}
           {sub === 'perdidos' && <NegociosPerdidos />}
           {sub === 'email'    && <Placeholder label="Email marketing" />}

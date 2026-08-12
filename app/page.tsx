@@ -24,7 +24,7 @@ export default function Page() {
       const saved = window.localStorage.getItem('orbit-modulo-activo');
       if (saved === 'brujula' || saved === 'redes' || saved === 'hubspot') return saved;
     }
-    return 'brujula';
+    return 'hubspot';
   });
   const [isDark, setIsDark] = useState(false);
 
@@ -77,7 +77,7 @@ export default function Page() {
         }}>
           {moduloActivo === 'brujula' && <BrujulaComercial permisos={perfil?.permisos} />}
           {moduloActivo === 'redes' && <RedesUPAX permisos={perfil?.permisos} />}
-          {moduloActivo === 'hubspot' && <HubSpotAnalytics permisos={perfil?.permisos} />}
+          {moduloActivo === 'hubspot' && <HubSpotAnalytics permisos={perfil?.permisos} perfil={perfil} />}
         </div>
       </div>
     </div>

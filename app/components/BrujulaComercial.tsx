@@ -33,10 +33,14 @@ export default function BrujulaComercial({ permisos }: { permisos?: Permisos | n
   const MAX_MES = '2026-08';
   const [periodo, setPeriodo] = useState({ desde: `${MAX_MES.split('-')[0]}-01`, hasta: MAX_MES });
 
-  const udnsVisiblesComercial = perfil?.rol === 'admin'
+  const esMkt = perfil?.udn_madre === 'MKT';
+  const udnsPropias = UDNS.filter(u => (perfil?.udn || '').split(',').map((s: string) => s.trim()).includes(u.id));
+  const udnsVisiblesComercial = perfil?.rol === 'admin' || esMkt
     ? UDNS
-    : UDNS.filter(u => (perfil?.udn || '').split(',').map((s: string) => s.trim()).includes(u.id));
-  const udnsVisiblesDemanda = UDNS;
+    : udnsPropias;
+  const udnsVisiblesDemanda = perfil?.rol === 'admin' || esMkt
+    ? UDNS
+    : udnsPropias;
   const udnsVisibles = sub === 'comercial' ? udnsVisiblesComercial : udnsVisiblesDemanda;
 
   useEffect(() => {
