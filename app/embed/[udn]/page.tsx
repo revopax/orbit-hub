@@ -23,7 +23,8 @@ export default function EmbedUdnPage({ params }: { params: Promise<{ udn: string
   if (!udnNombre) {
     return (
       <div style={{ padding: 40, fontFamily: 'Inter,-apple-system,sans-serif', color: '#64748b' }}>
-        UDN no reconocida: {udn}
+        <p>UDN no reconocida. Valor recibido: [{udn}] (longitud: {udn?.length ?? 'undefined'})</p>
+        <p>Claves disponibles: {Object.keys(UDN_SLUGS).join(', ')}</p>
       </div>
     );
   }
