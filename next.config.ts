@@ -11,7 +11,7 @@ const nextConfig: NextConfig = {
         headers: [
           {
             key: 'Content-Security-Policy',
-            value: "frame-ancestors 'self' https://mktcorp-estatus.vercel.app",
+            value: "frame-ancestors 'self' https://mktcorp-estatus.vercel.app https://mktcorp-upax.vercel.app",
           },
         ],
       },
