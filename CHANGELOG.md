@@ -1,3 +1,46 @@
+## [v2.4.0] - 2026-08-06
+
+### Brújula Comercial 2.0 — Inteligencia de Demanda (cruce con volumen de mercado de Google)
+- Bug raíz resuelto: `keyword_market_volumes` tenía RLS activado sin ninguna policy, bloqueando lectura del rol `anon` — causaba que la gráfica y el marcador de pico no cargaran datos reales. Fix: `CREATE POLICY "anon_read" ... FOR SELECT TO anon USING (true)`.
+- `get_keywords_signal` migrada a `(p_udn, p_desde, p_hasta)`; base del índice cambiada de `AVG` a `percentile_cont(0.5)` (mediana) para no distorsionarse con outliers de keywords genéricas de alto volumen estacional (ej. "customer journey", "design thinking", "ab testing" en UIX).
+- Índice trigram (`pg_trgm`) en `gads_search_terms(search_term)`: resuelto timeout (`57014`) en `get_segmentos_udn` causado por `JOIN ... LIKE '%...%'` sin índice contra 685K filas/mes.
+- `vol_mercado` agregado a `get_segmentos_udn`, `get_keywords_table`, `get_keywords_segmento` (join exacto por texto contra `keyword_market_volumes`).
+- `get_kpis_udn`, `get_segmentos_udn`, `get_keywords_table`, `get_keywords_segmento` migradas de `p_mes` único a `p_desde/p_hasta` (rango de meses), con agregación por suma/promedio según corresponda.
+- `get_kpis_udn`: nueva columna `busquedas_mercado_total` (suma cruda sin normalizar); `indice_senal` ahora lee `indice_mercado` (antes leía `indice_campana`, duplicando info con "Impresiones Google Ads"); nuevas columnas `keywords_research_activas/total`.
+
+### Filtro de periodo unificado
+- Componente nuevo `FiltroPeriodoGlobal.tsx`: botón único arriba a la derecha con presets (Últimos 3/6 meses, Este año, Todo el historial) + rango personalizado limitado a meses con datos reales — mismo patrón visual que Redes UPAX / HubSpot Analytics.
+- Reemplaza `FiltrosPeriodo.tsx` y `SelectorRangoMeses.tsx` (quedan huérfanos en el repo, pendientes de limpieza).
+- Estado `{desde, hasta}` levantado a `BrujulaComercial.tsx`, controla scorecards + gráfica + tablas desde un solo punto. Default: año actual (Ene–Ago 2026).
+
+### Scorecards (`KpiScoreCards.tsx`)
+- "Señal de Búsqueda" corregida a índice de mercado real (antes duplicaba el índice de campaña).
+- Nueva scorecard "Búsquedas de mercado" (total crudo, formato K/M corregido para números en millones).
+- "Keywords SEO Activas" rediseñada a 2 niveles: Golden · Campaña (7 keywords curadas) vs. Research · Mercado (universo completo del plan SEO) — evita confusión entre ambas listas.
+
+### Tabla "Actividad por segmento de servicio" (`SegmentosServicio.tsx`)
+- Indicador principal cambiado de impresiones a volumen de mercado, ordenado de mayor a menor.
+- Detalle expandido con badge "ACTIVA" y resaltado visual para keywords con actividad real de campaña.
+- Texto clarificador agregado: distingue explícitamente Golden Keywords (7) de Keyword Research completo (171, en 6 categorías).
+
+### Tabla "Inteligencia de búsqueda" (`TablaKeywords.tsx`)
+- Eliminada la sección "Oportunidades no mapeadas" (nunca tenía volumen de mercado asociado, generaba confusión).
+- "Competidores detectados": límite subido de 8 a 10 resultados; columna Vol. mercado ocultada (no aplica a search terms sin research asociado).
+- Título duplicado eliminado; leyenda de intención y fecha con mejor contraste/tamaño.
+
+### Gráfica "Cruce de señales" (`GraficaCruceSenales.tsx`)
+- Rediseño visual: card con fondo propio, chip legible para el umbral base-100, curvas suavizadas (`monotone`), relleno sutil y hover states.
+- Bug resuelto: UDNs sin ningún dato real de mercado (ej. Zeus, sin research cargado) rompían la posición del marcador de pico y dejaban una banda "fantasma" — ahora se ocultan los overlays completos cuando no hay datos reales.
+- Umbral de la banda de "señal activa" recalibrado de 115 a 100 (consistente con la base de mediana).
+- Nuevo subtítulo explicativo del propósito de cruzar las 3 señales (Intención de Búsqueda anticipa, Pulso del Mercado marca el pico del sector, MQLs confirman).
+
+### Pendiente
+- Ocultar la pestaña de UDN "Zeus" del selector (sin Keyword Research cargado en Supabase).
+- Scorecard de correlación Spearman (índice de mercado vs. índice de campaña) y tarjeta "Atención prioritaria" — no construidas aún.
+- Ventanas visuales de "despertar / pico económico / confirmación" en la gráfica, y análisis de lag (anticipación en meses) entre Intención de Búsqueda y Pulso del Mercado — en diseño conceptual, pendiente de implementar (requiere más historia para el análisis estadístico).
+- Limpieza de `FiltrosPeriodo.tsx` y `SelectorRangoMeses.tsx` (ya no se usan).
+- Refrescar `keyword_market_volumes` corriendo de nuevo `gads_keyword_volumes.py` (histórico actual solo cubre hasta 2026-06).
+
 ## [v2.3.0] - 2026-07-31
 
 ### HubSpot Analytics — Filtros multi-selección
