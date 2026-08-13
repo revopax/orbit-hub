@@ -213,6 +213,7 @@ export default function SDR() {
   const [dateTo, setDateTo] = useState(toDateStr(new Date()))
   const [activePreset, setActivePreset] = useState('Este año')
   const [sdrSel, setSdrSel] = useState<string>('todos')
+  const sdrsAMostrar = sdrSel === 'todos' ? SDRS_VIGENTES : [sdrSel]
   const [udnSel, setUdnSel] = useState<string>('todas')
   const [actividad, setActividad] = useState<RowActividad[]>([])
   const [mqlsUdn, setMqlsUdn] = useState<RowMqlUdn[]>([])
@@ -308,7 +309,6 @@ export default function SDR() {
   }, [mqlsFiltrados])
 
   const udnsPresentes = useMemo(() => Array.from(new Set(mqlsFiltrados.map(r => r.udn))), [mqlsFiltrados])
-  const sdrsAMostrar = sdrSel === 'todos' ? SDRS_VIGENTES : [sdrSel]
   const udnsDisponibles = useMemo(() => {
     const base = sdrSel === 'todos' ? mqlsUdn : mqlsUdn.filter(r => r.sdr === sdrSel)
     return Array.from(new Set(base.map(r => r.udn))).sort()
