@@ -52,6 +52,7 @@ function mesLabel(mes: string | null | undefined) {
   return `${nombres[parseInt(m, 10) - 1]} ${y.slice(2)}`
 }
 function fmtNum(v: number) { return v.toLocaleString('es-MX') }
+function toDateOnly(d: Date) { return d.toISOString().slice(0, 10) }
 
 const RoundedTopBar = (props: any) => {
   const { x, y, width, height, fill } = props
@@ -66,15 +67,18 @@ const GlossyBar = (props: any) => {
   return <rect x={x} y={y} width={width} height={height} fill={fill} />
 }
 
-function ChartLegend({ items, colors }: { items: string[]; colors: Record<string, string> }) {
+function ChartLegend({ items, colors, historicos }: { items: string[]; colors: Record<string, string>; historicos?: Set<string> }) {
   return (
     <div style={{ display: 'flex', flexWrap: 'wrap', gap: 14, fontSize: 11, marginBottom: 12 }}>
-      {items.map(item => (
-        <div key={item} style={{ display: 'flex', alignItems: 'center', gap: 5 }}>
-          <span style={{ width: 9, height: 9, borderRadius: '50%', background: colors[item] || '#94a3b8', display: 'inline-block', flexShrink: 0 }} />
-          <span style={{ color: '#475569' }}>{item}</span>
-        </div>
-      ))}
+      {items.map(item => {
+        const esHistorico = historicos?.has(item)
+        return (
+          <div key={item} style={{ display: 'flex', alignItems: 'center', gap: 5, opacity: esHistorico ? 0.55 : 1 }}>
+            <span style={{ width: 9, height: 9, borderRadius: '50%', background: colors[item] || '#94a3b8', display: 'inline-block', flexShrink: 0 }} />
+            <span style={{ color: '#475569' }}>{item}{esHistorico && ' (anterior)'}</span>
+          </div>
+        )
+      })}
     </div>
   )
 }
@@ -104,19 +108,17 @@ function MetricCard({ label, value, sub }: { label: string; value: string | numb
   )
 }
 
-function FunnelEtapa({ label, valor, pct, base }: { label: string; valor: number; pct: string | null; base?: string }) {
+function FunnelEtapa({ label, valor, pct, tooltip }: { label: string; valor: number; pct: string | null; tooltip: string }) {
   return (
-    <div style={{ display: 'flex', alignItems: 'center', gap: 12, flex: 1 }}>
-      <div style={{ textAlign: 'center', flex: 1 }}>
-        <div style={{ fontSize: 11, color: '#64748b', fontWeight: 600 }}>{label}</div>
-        <div style={{ fontSize: 28, fontWeight: 800, color: ACCENT }}>{valor.toLocaleString()}</div>
+    <div style={{
+      flex: 1, textAlign: 'center', border: '1px solid #e2e8f0', borderRadius: 10, padding: '14px 10px',
+      background: '#fafbff',
+    }} title={tooltip}>
+      <div style={{ fontSize: 11, color: '#64748b', fontWeight: 600, marginBottom: 4 }}>{label}</div>
+      <div style={{ fontSize: 26, fontWeight: 800, color: ACCENT }}>{valor.toLocaleString()}</div>
+      <div style={{ fontSize: 11, fontWeight: 700, color: pct ? '#16a34a' : 'transparent', marginTop: 4, minHeight: 15 }}>
+        {pct || '—'}
       </div>
-      {pct && (
-        <div style={{ fontSize: 10.5, color: '#94a3b8', fontWeight: 700, flexShrink: 0, background: '#f8fafc', borderRadius: 8, padding: '4px 8px', textAlign: 'center', maxWidth: 78 }}>
-          <div style={{ fontSize: 13, color: '#475569' }}>{pct}</div>
-          {base && <div style={{ fontSize: 9, fontWeight: 500, marginTop: 1 }}>{base}</div>}
-        </div>
-      )}
     </div>
   )
 }
@@ -250,17 +252,33 @@ export default function SDR() {
     return { totalActividad, contactosConectados, mqls, reunionesCompletadas }
   }, [actividadFiltrada, mqlsFiltrados])
 
-  const comparativoMensual = useMemo(() => {
-    const meses = Array.from(new Set(actividadFiltrada.map(r => r.mes))).sort()
-    if (meses.length < 2) return null
-    const mesActual = meses[meses.length - 1]
-    const mesAnterior = meses[meses.length - 2]
-    const sum = (mes: string) => actividadFiltrada.filter(r => r.mes === mes).reduce((s, r) => s + r.total_actividad, 0)
-    const actual = sum(mesActual)
-    const anterior = sum(mesAnterior)
-    const delta = anterior > 0 ? (((actual - anterior) / anterior) * 100).toFixed(1) : null
-    return { mesActual: mesLabel(mesActual), mesAnterior: mesLabel(mesAnterior), actual, anterior, delta }
-  }, [actividadFiltrada])
+  const [comparativoDinamico, setComparativoDinamico] = useState<{
+    actual: number; anterior: number; delta: string | null; labelActual: string; labelAnterior: string
+  } | null>(null)
+  useEffect(() => {
+    const hoy = new Date()
+    const diaHoy = hoy.getDate()
+    const inicioMesActual = new Date(hoy.getFullYear(), hoy.getMonth(), 1)
+    const finRangoActual = hoy
+    const inicioMesAnterior = new Date(hoy.getFullYear(), hoy.getMonth() - 1, 1)
+    const finRangoAnterior = new Date(hoy.getFullYear(), hoy.getMonth() - 1, diaHoy)
+    const nombresLargos = ['ene', 'feb', 'mar', 'abr', 'may', 'jun', 'jul', 'ago', 'sep', 'oct', 'nov', 'dic']
+    const sdrParam = sdrSel === 'todos' ? null : sdrSel
+    rpc<{ total: number }[]>('sdr_actividad_rango_diario', {
+      p_desde_actual: toDateOnly(inicioMesActual), p_hasta_actual: toDateOnly(finRangoActual),
+      p_desde_anterior: toDateOnly(inicioMesAnterior), p_hasta_anterior: toDateOnly(finRangoAnterior),
+      p_sdr: sdrParam,
+    }).then((rows: any) => {
+      const actual = rows?.[0]?.total_actual ?? 0
+      const anterior = rows?.[0]?.total_anterior ?? 0
+      const delta = anterior > 0 ? (((actual - anterior) / anterior) * 100).toFixed(1) : null
+      setComparativoDinamico({
+        actual, anterior, delta,
+        labelActual: `${diaHoy} ${nombresLargos[hoy.getMonth()]}`,
+        labelAnterior: `${diaHoy} ${nombresLargos[inicioMesAnterior.getMonth()]}`,
+      })
+    }).catch(() => setComparativoDinamico(null))
+  }, [sdrSel])
 
   const leaderboard = useMemo(() => {
     return SDRS_VIGENTES.map(sdr => {
@@ -298,6 +316,17 @@ export default function SDR() {
     if (udnSel !== 'todas' && !udnsDisponibles.includes(udnSel)) setUdnSel('todas')
   }, [udnsDisponibles, udnSel])
 
+  // UDNs que el SDR tuvo en el pasado pero ya no aparecen en el ultimo mes con datos (cambio de cartera)
+  const udnsHistoricas = useMemo(() => {
+    if (sdrSel === 'todos') return new Set<string>()
+    const base = mqlsUdn.filter(r => r.sdr === sdrSel)
+    if (base.length === 0) return new Set<string>()
+    const ultimoMes = Array.from(new Set(base.map(r => r.mes))).sort().slice(-1)[0]
+    const udnsUltimoMes = new Set(base.filter(r => r.mes === ultimoMes).map(r => r.udn))
+    const todasUdns = new Set(base.map(r => r.udn))
+    return new Set([...todasUdns].filter(u => !udnsUltimoMes.has(u)))
+  }, [mqlsUdn, sdrSel])
+
   const chartDataReuniones = useMemo(() => {
     const meses = Array.from(new Set(actividad.map(r => r.mes))).sort()
     return meses.map(mes => {
@@ -322,9 +351,7 @@ export default function SDR() {
           <h2 style={{ fontSize: 18, fontWeight: 800, color: '#172033', margin: 0 }}>Gestión SDR</h2>
           <p style={{ fontSize: 12, color: '#64748b', margin: '2px 0 0' }}>Rendimiento de prospección · hasta antes de SQL</p>
         </div>
-        <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
-          <PeriodoPicker dateFrom={dateFrom} dateTo={dateTo} activePreset={activePreset}
-            onChange={(f, t, label) => { setDateFrom(f); setDateTo(t); setActivePreset(label) }} />
+        <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', alignItems: 'center' }}>
           <select value={udnSel} onChange={e => setUdnSel(e.target.value)} style={{
             padding: '7px 12px', borderRadius: 8, border: '1px solid #e2e8f0', fontSize: 12.5, color: '#172033', background: '#fff',
           }}>
@@ -337,6 +364,17 @@ export default function SDR() {
             <option value="todos">Todos los SDR</option>
             {SDRS_VIGENTES.map(s => <option key={s} value={s}>{s}</option>)}
           </select>
+          <PeriodoPicker dateFrom={dateFrom} dateTo={dateTo} activePreset={activePreset}
+            onChange={(f, t, label) => { setDateFrom(f); setDateTo(t); setActivePreset(label) }} />
+          {(udnSel !== 'todas' || sdrSel !== 'todos' || activePreset !== 'Este año') && (
+            <button onClick={() => { setUdnSel('todas'); setSdrSel('todos'); setDateFrom(`${anioActual}-01-01`); setDateTo(toDateOnly(new Date())); setActivePreset('Este año') }}
+              style={{
+                padding: '7px 12px', borderRadius: 8, border: '1px solid #e2e8f0', background: '#fff', color: '#64748b',
+                fontSize: 12.5, cursor: 'pointer', fontWeight: 600, display: 'flex', alignItems: 'center', gap: 5,
+              }}>
+              ✕ Limpiar filtros
+            </button>
+          )}
         </div>
       </div>
 
@@ -357,42 +395,39 @@ export default function SDR() {
       )}
 
       <div style={{ background: '#fff', border: '1px solid #e2e8f0', borderRadius: 12, padding: 20, marginBottom: 20 }}>
-        <div style={{ fontSize: 12, fontWeight: 700, color: '#64748b', marginBottom: 4, textTransform: 'uppercase', letterSpacing: '0.03em' }}>
-          Funnel de prospección
+        <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 16 }}>
+          <div style={{ fontSize: 12, fontWeight: 700, color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.03em' }}>
+            Funnel de prospección
+          </div>
+          <span title="Actividad: llamadas, mensajes y WhatsApp gestionados. Contacto conectado: llamadas donde la persona contestó. MQL calificado: contactos que cumplieron BANT. Reunión completada: reunión de credenciales con el Comercial ya realizada. El % bajo cada número es la conversión respecto a la etapa anterior."
+            style={{ fontSize: 11, color: '#94a3b8', cursor: 'help', border: '1px solid #cbd5e1', borderRadius: '50%', width: 14, height: 14, display: 'inline-flex', alignItems: 'center', justifyContent: 'center' }}>
+            ⓘ
+          </span>
         </div>
-        <div style={{ fontSize: 11.5, color: '#94a3b8', marginBottom: 16, lineHeight: 1.5 }}>
-          Cada etapa muestra cuántos avanzaron desde la anterior. Actividad = llamadas, mensajes y WhatsApp gestionados.
-          Contacto conectado = llamadas donde la persona sí contestó. MQL calificado = contactos que cumplieron BANT (necesidad, presupuesto, autoridad, tiempo).
-          Reunión completada = reunión de credenciales con el Comercial que sí se llevó a cabo.
-        </div>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-          <FunnelEtapa label="Actividad" valor={totales.totalActividad} pct={null} />
+        <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+          <FunnelEtapa label="Actividad" valor={totales.totalActividad} pct={null} tooltip="Llamadas, mensajes y WhatsApp gestionados en el periodo" />
+          <span style={{ color: '#cbd5e1', fontSize: 18, flexShrink: 0 }}>→</span>
           <FunnelEtapa
             label="Contacto conectado"
             valor={totales.contactosConectados}
-            pct={totales.totalActividad > 0 ? `${((totales.contactosConectados / totales.totalActividad) * 100).toFixed(1)}%` : null}
-            base="de la actividad"
+            pct={totales.totalActividad > 0 ? `${((totales.contactosConectados / totales.totalActividad) * 100).toFixed(1)}% de la actividad` : null}
+            tooltip="Llamadas donde la persona sí contestó"
           />
+          <span style={{ color: '#cbd5e1', fontSize: 18, flexShrink: 0 }}>→</span>
           <FunnelEtapa
             label="MQL calificado"
             valor={totales.mqls}
-            pct={totales.contactosConectados > 0 ? `${((totales.mqls / totales.contactosConectados) * 100).toFixed(1)}%` : null}
-            base="de conectados"
+            pct={totales.contactosConectados > 0 ? `${((totales.mqls / totales.contactosConectados) * 100).toFixed(1)}% de conectados` : null}
+            tooltip="Contactos que cumplieron BANT (necesidad, presupuesto, autoridad, tiempo)"
           />
+          <span style={{ color: '#cbd5e1', fontSize: 18, flexShrink: 0 }}>→</span>
           <FunnelEtapa
             label="Reunión completada"
             valor={totales.reunionesCompletadas}
-            pct={totales.mqls > 0 ? `${((totales.reunionesCompletadas / totales.mqls) * 100).toFixed(1)}%` : null}
-            base="de MQLs"
+            pct={totales.mqls > 0 ? `${((totales.reunionesCompletadas / totales.mqls) * 100).toFixed(1)}% de MQLs` : null}
+            tooltip="Reunión de credenciales con el Comercial que ya se llevó a cabo"
           />
         </div>
-      </div>
-
-      <div style={{ display: 'flex', gap: 12, marginBottom: 20, flexWrap: 'wrap' }}>
-        <MetricCard label="Actividad total" value={totales.totalActividad.toLocaleString()} />
-        <MetricCard label="Contactos conectados" value={totales.contactosConectados.toLocaleString()} />
-        <MetricCard label="MQLs calificados" value={totales.mqls.toLocaleString()} />
-        <MetricCard label="Reuniones completadas" value={totales.reunionesCompletadas.toLocaleString()} />
       </div>
 
       <div style={{ background: '#fff', border: '1px solid #e2e8f0', borderRadius: 12, padding: 20, marginBottom: 20 }}>
