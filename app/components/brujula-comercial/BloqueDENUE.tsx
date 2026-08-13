@@ -133,9 +133,13 @@ export default function BloqueDENUE() {
               Clasificación oficial de actividades económicas según el DENUE · Úsala como referencia para nombrar correctamente el sector de tu prospecto y alinear el lenguaje comercial con la nomenclatura del mercado mexicano.
             </p>
           </div>
-          <span style={{ fontSize: 11, color: 'var(--txt-4)', flexShrink: 0, marginLeft: 16 }}>{collapsed ? '+ Ver sectores' : '− Colapsar'}</span>
+          <span style={{ display: 'flex', alignItems: 'center', gap: 4, fontSize: 11, color: 'var(--txt-4)', flexShrink: 0, marginLeft: 16 }}>
+            Ver sectores
+            <span style={{ display: 'inline-flex', transition: 'transform 0.2s', transform: collapsed ? 'rotate(0deg)' : 'rotate(180deg)' }}>▾</span>
+          </span>
         </button>
       </div>
+      <div style={{ height: 3, background: 'linear-gradient(90deg, #E4007C, #8C59FE, #3274FC)' }} />
       {!collapsed && (
         <div style={{ borderTop: '1px solid var(--border)', position: 'relative', background: 'rgba(255,255,255,0.03)' }}>
           {/* Mapa de México como fondo estilo DENUE */}
