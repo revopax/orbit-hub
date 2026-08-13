@@ -68,6 +68,9 @@ export default function MetaOrganico({ accent, secondary, perfil }:Props) {
   const [segs,    setSegs]    = useState<Seguidor[]>([])
   const [loading, setLoading] = useState(true)
   const [filtUDN,  setFiltUDN]  = useState<string[]>(esMktMO ? [] : udnsPropiasMO)
+  useEffect(() => {
+    if (!esMktMO && udnsPropiasMO.length > 0) setFiltUDN(udnsPropiasMO)
+  }, [perfil?.udn, perfil?.udn_madre])
   const [filtRed,  setFiltRed]  = useState<string[]>([])
   const [filtTipo, setFiltTipo] = useState<string[]>([])
   const [openFiltro, setOpenFiltro] = useState<string|null>(null)
