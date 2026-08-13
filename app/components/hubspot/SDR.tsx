@@ -222,14 +222,12 @@ export default function SDR() {
 
   useEffect(() => {
     setLoading(true)
-    Promise.all([
-      rpc<RowActividad[]>('sdr_actividad_mensual', { p_desde: desde, p_hasta: hasta }),
-      rpc<RowMqlUdn[]>('sdr_mqls_por_udn_mensual', { p_desde: desde, p_hasta: hasta }),
-      rpc<RowActividadTipo[]>('sdr_actividad_por_tipo', { p_desde: desde, p_hasta: hasta }),
-    ]).then(([a, m, t]) => {
-      setActividad(a)
-      setMqlsUdn(m)
-      setActividadTipo(t)
+    rpc<{ actividad: RowActividad[]; actividad_tipo: RowActividadTipo[]; mqls_udn: RowMqlUdn[] }>(
+      'sdr_dashboard_data', { p_desde: desde, p_hasta: hasta }
+    ).then(data => {
+      setActividad(data.actividad || [])
+      setActividadTipo(data.actividad_tipo || [])
+      setMqlsUdn(data.mqls_udn || [])
     }).catch(() => {}).finally(() => setLoading(false))
   }, [desde, hasta])
 

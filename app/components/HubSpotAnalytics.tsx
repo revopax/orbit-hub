@@ -2952,11 +2952,11 @@ function tienePermiso(permisos: Permisos | null | undefined, modulo: string, tab
 }
 
 export default function HubSpotAnalytics({ permisos, perfil }: { permisos?: Permisos | null; perfil?: { rol?: string; udn?: string | null; udn_madre?: string | null } | null }) {
-  const [sub, setSub] = useState<SubTab>('home')
-  useEffect(() => {
+  const [sub, setSub] = useState<SubTab>(() => {
+    if (typeof window === 'undefined') return 'home'
     const saved = window.localStorage.getItem('data-analytics-subtab') as SubTab | null
-    if (saved && SUBTABS.some(t => t.id === saved)) setSub(saved)
-  }, [])
+    return saved && SUBTABS.some(t => t.id === saved) ? saved : 'home'
+  })
   useEffect(() => {
     window.localStorage.setItem('data-analytics-subtab', sub)
   }, [sub])
