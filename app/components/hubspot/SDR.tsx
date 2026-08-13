@@ -1,5 +1,5 @@
 'use client';
-import React, { useState, useEffect, useMemo } from 'react'
+import React, { useState, useEffect, useMemo, useRef } from 'react'
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid, LabelList } from 'recharts'
 
 const ACCENT = '#7038E5'
@@ -103,7 +103,7 @@ function MetricCard({ label, value, sub }: { label: string; value: string | numb
   )
 }
 
-function FunnelEtapa({ label, valor, pct }: { label: string; valor: number; pct: string | null }) {
+function FunnelEtapa({ label, valor, pct, base }: { label: string; valor: number; pct: string | null; base?: string }) {
   return (
     <div style={{ display: 'flex', alignItems: 'center', gap: 12, flex: 1 }}>
       <div style={{ textAlign: 'center', flex: 1 }}>
@@ -111,8 +111,94 @@ function FunnelEtapa({ label, valor, pct }: { label: string; valor: number; pct:
         <div style={{ fontSize: 28, fontWeight: 800, color: ACCENT }}>{valor.toLocaleString()}</div>
       </div>
       {pct && (
-        <div style={{ fontSize: 11, color: '#94a3b8', fontWeight: 700, flexShrink: 0, background: '#f8fafc', borderRadius: 8, padding: '4px 8px' }}>
-          {pct}
+        <div style={{ fontSize: 10.5, color: '#94a3b8', fontWeight: 700, flexShrink: 0, background: '#f8fafc', borderRadius: 8, padding: '4px 8px', textAlign: 'center', maxWidth: 78 }}>
+          <div style={{ fontSize: 13, color: '#475569' }}>{pct}</div>
+          {base && <div style={{ fontSize: 9, fontWeight: 500, marginTop: 1 }}>{base}</div>}
+        </div>
+      )}
+    </div>
+  )
+}
+
+function toDateStr(d: Date) { return d.toISOString().slice(0, 10) }
+
+const PRESETS_SDR = [
+  { label: 'Últimos 30 días',   fn: () => { const d = new Date(), s = new Date(); s.setDate(s.getDate() - 30); return [toDateStr(s), toDateStr(d)] as [string, string] } },
+  { label: 'Últimos 90 días',   fn: () => { const d = new Date(), s = new Date(); s.setDate(s.getDate() - 90); return [toDateStr(s), toDateStr(d)] as [string, string] } },
+  { label: 'Este año',          fn: () => [`${new Date().getFullYear()}-01-01`, toDateStr(new Date())] as [string, string] },
+  { label: 'Todo el historial', fn: () => ['2025-01-01', toDateStr(new Date())] as [string, string] },
+]
+
+function PeriodoPicker({ dateFrom, dateTo, activePreset, onChange }: {
+  dateFrom: string; dateTo: string; activePreset: string
+  onChange: (from: string, to: string, preset: string) => void
+}) {
+  const [tempFrom, setTempFrom] = useState(dateFrom)
+  const [tempTo, setTempTo] = useState(dateTo)
+  const [showPicker, setShowPicker] = useState(false)
+  const pickerRef = useRef<HTMLDivElement>(null)
+
+  useEffect(() => {
+    function onClickOutside(e: MouseEvent) {
+      if (pickerRef.current && !pickerRef.current.contains(e.target as Node)) setShowPicker(false)
+    }
+    document.addEventListener('mousedown', onClickOutside)
+    return () => document.removeEventListener('mousedown', onClickOutside)
+  }, [])
+
+  function applyPreset(label: string, fn: () => [string, string]) {
+    const [f, t] = fn()
+    onChange(f, t, label); setShowPicker(false)
+  }
+  function applyCustom() {
+    onChange(tempFrom, tempTo, 'Personalizado'); setShowPicker(false)
+  }
+  const periodLabel = activePreset === 'Personalizado' ? `${dateFrom} → ${dateTo}` : activePreset
+
+  return (
+    <div style={{ position: 'relative' }} ref={pickerRef}>
+      <button onClick={() => setShowPicker(!showPicker)} style={{
+        background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: 9,
+        color: '#334155', padding: '7px 14px', fontSize: 12.5, cursor: 'pointer',
+        display: 'flex', alignItems: 'center', gap: 8, fontWeight: 500,
+      }}>
+        📅 {periodLabel}
+      </button>
+      {showPicker && (
+        <div style={{
+          position: 'absolute', right: 0, top: 'calc(100% + 8px)', background: '#fff',
+          borderRadius: 16, boxShadow: '0 8px 40px rgba(0,0,0,0.18)', padding: 20, zIndex: 100, minWidth: 280,
+        }}>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 4, marginBottom: 16 }}>
+            {PRESETS_SDR.map(p => (
+              <button key={p.label} onClick={() => applyPreset(p.label, p.fn)} style={{
+                padding: '8px 12px', borderRadius: 8, border: 'none', textAlign: 'left', cursor: 'pointer',
+                fontSize: 13, fontWeight: 600,
+                background: activePreset === p.label ? `${ACCENT}18` : 'transparent',
+                color: activePreset === p.label ? ACCENT : '#374151',
+              }}>
+                {p.label}
+              </button>
+            ))}
+          </div>
+          <div style={{ borderTop: '1px solid #f1f5f9', paddingTop: 14 }}>
+            <div style={{ fontSize: 11, color: '#94a3b8', fontWeight: 600, marginBottom: 10 }}>RANGO PERSONALIZADO</div>
+            <div style={{ display: 'flex', gap: 8, alignItems: 'center', marginBottom: 12 }}>
+              <input type="date" value={tempFrom} onChange={e => setTempFrom(e.target.value)}
+                style={{ flex: 1, padding: '6px 10px', borderRadius: 8, border: '1px solid #e2e8f0', fontSize: 12 }} />
+              <span style={{ color: '#94a3b8', fontSize: 12 }}>→</span>
+              <input type="date" value={tempTo} onChange={e => setTempTo(e.target.value)}
+                style={{ flex: 1, padding: '6px 10px', borderRadius: 8, border: '1px solid #e2e8f0', fontSize: 12 }} />
+            </div>
+            <div style={{ display: 'flex', gap: 8 }}>
+              <button onClick={() => setShowPicker(false)} style={{ flex: 1, padding: 8, borderRadius: 8, border: '1px solid #e2e8f0', background: '#fff', color: '#64748b', fontSize: 12, cursor: 'pointer' }}>
+                Cancelar
+              </button>
+              <button onClick={applyCustom} style={{ flex: 1, padding: 8, borderRadius: 8, border: 'none', background: ACCENT, color: '#fff', fontSize: 12, fontWeight: 700, cursor: 'pointer' }}>
+                Aplicar
+              </button>
+            </div>
+          </div>
         </div>
       )}
     </div>
@@ -120,8 +206,9 @@ function FunnelEtapa({ label, valor, pct }: { label: string; valor: number; pct:
 }
 
 export default function SDR() {
-  const anioActual = new Date().getFullYear()
-  const [anio, setAnio] = useState(anioActual)
+  const [dateFrom, setDateFrom] = useState(`${new Date().getFullYear()}-01-01`)
+  const [dateTo, setDateTo] = useState(toDateStr(new Date()))
+  const [activePreset, setActivePreset] = useState('Este año')
   const [sdrSel, setSdrSel] = useState<string>('todos')
   const [udnSel, setUdnSel] = useState<string>('todas')
   const [actividad, setActividad] = useState<RowActividad[]>([])
@@ -130,8 +217,8 @@ export default function SDR() {
   const [loading, setLoading] = useState(true)
   const [filaExpandida, setFilaExpandida] = useState<string | null>(null)
 
-  const desde = `${anio}-01`
-  const hasta = anio === anioActual ? `${anio}-${String(new Date().getMonth() + 1).padStart(2, '0')}` : `${anio}-12`
+  const desde = dateFrom.slice(0, 7)
+  const hasta = dateTo.slice(0, 7)
 
   useEffect(() => {
     setLoading(true)
@@ -204,7 +291,13 @@ export default function SDR() {
   }, [mqlsFiltrados])
 
   const udnsPresentes = useMemo(() => Array.from(new Set(mqlsFiltrados.map(r => r.udn))), [mqlsFiltrados])
-  const udnsDisponibles = useMemo(() => Array.from(new Set(mqlsUdn.map(r => r.udn))).sort(), [mqlsUdn])
+  const udnsDisponibles = useMemo(() => {
+    const base = sdrSel === 'todos' ? mqlsUdn : mqlsUdn.filter(r => r.sdr === sdrSel)
+    return Array.from(new Set(base.map(r => r.udn))).sort()
+  }, [mqlsUdn, sdrSel])
+  useEffect(() => {
+    if (udnSel !== 'todas' && !udnsDisponibles.includes(udnSel)) setUdnSel('todas')
+  }, [udnsDisponibles, udnSel])
 
   const chartDataReuniones = useMemo(() => {
     const meses = Array.from(new Set(actividad.map(r => r.mes))).sort()
@@ -231,12 +324,8 @@ export default function SDR() {
           <p style={{ fontSize: 12, color: '#64748b', margin: '2px 0 0' }}>Rendimiento de prospección · hasta antes de SQL</p>
         </div>
         <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
-          <select value={anio} onChange={e => setAnio(parseInt(e.target.value, 10))} style={{
-            padding: '7px 12px', borderRadius: 8, border: '1px solid #e2e8f0', fontSize: 12.5, color: '#172033', background: '#fff',
-          }}>
-            <option value={anioActual}>{anioActual}</option>
-            <option value={anioActual - 1}>{anioActual - 1}</option>
-          </select>
+          <PeriodoPicker dateFrom={dateFrom} dateTo={dateTo} activePreset={activePreset}
+            onChange={(f, t, label) => { setDateFrom(f); setDateTo(t); setActivePreset(label) }} />
           <select value={udnSel} onChange={e => setUdnSel(e.target.value)} style={{
             padding: '7px 12px', borderRadius: 8, border: '1px solid #e2e8f0', fontSize: 12.5, color: '#172033', background: '#fff',
           }}>
@@ -269,8 +358,13 @@ export default function SDR() {
       )}
 
       <div style={{ background: '#fff', border: '1px solid #e2e8f0', borderRadius: 12, padding: 20, marginBottom: 20 }}>
-        <div style={{ fontSize: 12, fontWeight: 700, color: '#64748b', marginBottom: 14, textTransform: 'uppercase', letterSpacing: '0.03em' }}>
+        <div style={{ fontSize: 12, fontWeight: 700, color: '#64748b', marginBottom: 4, textTransform: 'uppercase', letterSpacing: '0.03em' }}>
           Funnel de prospección
+        </div>
+        <div style={{ fontSize: 11.5, color: '#94a3b8', marginBottom: 16, lineHeight: 1.5 }}>
+          Cada etapa muestra cuántos avanzaron desde la anterior. Actividad = llamadas, mensajes y WhatsApp gestionados.
+          Contacto conectado = llamadas donde la persona sí contestó. MQL calificado = contactos que cumplieron BANT (necesidad, presupuesto, autoridad, tiempo).
+          Reunión completada = reunión de credenciales con el Comercial que sí se llevó a cabo.
         </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
           <FunnelEtapa label="Actividad" valor={totales.totalActividad} pct={null} />
@@ -278,16 +372,19 @@ export default function SDR() {
             label="Contacto conectado"
             valor={totales.contactosConectados}
             pct={totales.totalActividad > 0 ? `${((totales.contactosConectados / totales.totalActividad) * 100).toFixed(1)}%` : null}
+            base="de la actividad"
           />
           <FunnelEtapa
             label="MQL calificado"
             valor={totales.mqls}
             pct={totales.contactosConectados > 0 ? `${((totales.mqls / totales.contactosConectados) * 100).toFixed(1)}%` : null}
+            base="de conectados"
           />
           <FunnelEtapa
             label="Reunión completada"
             valor={totales.reunionesCompletadas}
             pct={totales.mqls > 0 ? `${((totales.reunionesCompletadas / totales.mqls) * 100).toFixed(1)}%` : null}
+            base="de MQLs"
           />
         </div>
       </div>
@@ -369,7 +466,7 @@ export default function SDR() {
               <th style={{ padding: '8px 12px', textAlign: 'right' }}>Conectados</th>
               <th style={{ padding: '8px 12px', textAlign: 'right' }}>MQLs</th>
               <th style={{ padding: '8px 12px', textAlign: 'right' }}>Reuniones</th>
-              <th style={{ padding: '8px 20px', textAlign: 'right' }}>Actividad → MQL</th>
+              <th style={{ padding: '8px 20px', textAlign: 'right' }} title="De cada 100 actividades registradas, cuantas terminaron en un MQL calificado. Es una referencia de eficiencia, comparala entre SDRs con contexto (cartera, UDN, antiguedad).">Actividad → MQL ⓘ</th>
             </tr>
           </thead>
           <tbody>

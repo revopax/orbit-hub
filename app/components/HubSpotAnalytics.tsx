@@ -49,12 +49,12 @@ const UDN_COLOR_FALLBACK = '#94a3b8'
 
 type SubTab = 'home' | 'mbr' | 'perdidos' | 'email' | 'sdr'
 
-const SUBTABS: { id: SubTab; label: string }[] = [
+const SUBTABS: { id: SubTab; label: string; esNuevo?: boolean }[] = [
   { id: 'home',     label: 'Home' },
   { id: 'mbr',      label: 'MBR' },
   { id: 'perdidos', label: 'Negocios perdidos' },
   { id: 'email',    label: 'Email marketing' },
-  { id: 'sdr',      label: 'Gestión SDR' },
+  { id: 'sdr',      label: 'Gestión SDR', esNuevo: true },
 ]
 
 const ACCENT = '#7038E5'
@@ -3007,6 +3007,15 @@ export default function HubSpotAnalytics({ permisos, perfil }: { permisos?: Perm
                   opacity: permitido ? 1 : 0.55,
                 }}>
                   {t.label}
+                  {t.esNuevo && !proximamente && (
+                    <span style={{
+                      fontSize: 9, fontWeight: 700, padding: '2px 6px', borderRadius: 5,
+                      background: active ? 'rgba(255,255,255,0.35)' : 'linear-gradient(135deg, #22c55e, #16a34a)',
+                      color: '#ffffff', whiteSpace: 'nowrap',
+                    }}>
+                      Nuevo
+                    </span>
+                  )}
                   {proximamente ? (
                     <span style={{
                       fontSize: 9, fontWeight: 700, padding: '2px 6px', borderRadius: 5,
