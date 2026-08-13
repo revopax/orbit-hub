@@ -378,17 +378,17 @@ export default function SDR() {
         </div>
       </div>
 
-      {comparativoMensual && (
+      {comparativoDinamico && (
         <div style={{
           display: 'flex', alignItems: 'center', gap: 10, marginBottom: 16, fontSize: 12, color: '#64748b',
           background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: 10, padding: '8px 14px', width: 'fit-content',
         }}>
-          <span>Actividad {comparativoMensual.mesActual}: <strong style={{ color: '#172033' }}>{comparativoMensual.actual.toLocaleString()}</strong></span>
+          <span>Actividad al {comparativoDinamico.labelActual}: <strong style={{ color: '#172033' }}>{comparativoDinamico.actual.toLocaleString()}</strong></span>
           <span style={{ color: '#cbd5e1' }}>vs</span>
-          <span>{comparativoMensual.mesAnterior}: <strong style={{ color: '#172033' }}>{comparativoMensual.anterior.toLocaleString()}</strong></span>
-          {comparativoMensual.delta !== null && (
-            <span style={{ fontWeight: 700, color: parseFloat(comparativoMensual.delta) >= 0 ? '#22c55e' : '#ef4444' }}>
-              {parseFloat(comparativoMensual.delta) >= 0 ? '▲' : '▼'} {Math.abs(parseFloat(comparativoMensual.delta))}%
+          <span>al {comparativoDinamico.labelAnterior}: <strong style={{ color: '#172033' }}>{comparativoDinamico.anterior.toLocaleString()}</strong></span>
+          {comparativoDinamico.delta !== null && (
+            <span style={{ fontWeight: 700, color: parseFloat(comparativoDinamico.delta) >= 0 ? '#22c55e' : '#ef4444' }}>
+              {parseFloat(comparativoDinamico.delta) >= 0 ? '▲' : '▼'} {Math.abs(parseFloat(comparativoDinamico.delta))}%
             </span>
           )}
         </div>
