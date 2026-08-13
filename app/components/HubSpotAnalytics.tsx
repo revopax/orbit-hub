@@ -2890,7 +2890,12 @@ function TimelinePanel({
 
 function HomeFunnel({ perfil }: { perfil?: { rol?: string; udn?: string | null; udn_madre?: string | null } | null }) {
   const esMkt = perfil?.rol === 'admin' || perfil?.udn_madre === 'MKT'
+  const CODIGO_A_NOMBRE: Record<string, string> = {
+    UIX: 'UIX', MU: 'Marketing United', PE: 'Promo Espacio', ZU: 'Zeus',
+    NC: 'Neracode', HOF: 'House Of Films', RL: 'Research Land', MEXA: 'Mexa Creativa',
+  }
   const udnsPropias = (perfil?.udn || '').split(',').map((s: string) => s.trim()).filter(Boolean)
+    .map((codigo: string) => CODIGO_A_NOMBRE[codigo] ?? codigo)
   const udnsPermitidas = esMkt ? UDNS_LIST : UDNS_LIST.filter(u => udnsPropias.includes(u))
   const [dateFrom, setDateFrom] = useState(new Date().getFullYear() + '-01-01')
   const [dateTo, setDateTo] = useState(toDateStr(new Date()))
@@ -3002,8 +3007,8 @@ export default function HubSpotAnalytics({ permisos, perfil }: { permisos?: Perm
                   ) : (t.id === 'mbr' || t.id === 'email') && (
                     <span style={{
                       fontSize: 9, fontWeight: 700, padding: '2px 6px', borderRadius: 5,
-                      background: active ? 'rgba(255,255,255,0.35)' : 'linear-gradient(135deg, #ede9fe, #fef3c7)',
-                      color: active ? '#ffffff' : '#7c3aed',
+                      background: active ? 'rgba(255,255,255,0.35)' : 'linear-gradient(135deg, #a78bfa, #f59e0b)',
+                      color: '#ffffff',
                       whiteSpace: 'nowrap',
                       display: 'inline-flex', alignItems: 'center', gap: 3,
                     }}>

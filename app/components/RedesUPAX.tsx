@@ -71,7 +71,7 @@ function tienePermiso(permisos: Permisos | null | undefined, modulo: string, tab
   return false;
 }
 
-export default function RedesUPAX({ permisos }: { permisos?: Permisos | null }) {
+export default function RedesUPAX({ permisos, perfil }: { permisos?: Permisos | null; perfil?: { rol?: string; udn?: string | null; udn_madre?: string | null } | null }) {
   const [ultimaActualizacion, setUltimaActualizacion] = useState<Date | null>(null)
   useEffect(() => {
     if (!SUPABASE_KEY) return
@@ -143,8 +143,8 @@ export default function RedesUPAX({ permisos }: { permisos?: Permisos | null }) 
               ) : t.id !== 'meta-org' && (
                 <span style={{
                   fontSize: 9, fontWeight: 700, padding: '2px 6px', borderRadius: 5,
-                  background: active ? 'rgba(255,255,255,0.35)' : 'linear-gradient(135deg, #ede9fe, #fef3c7)',
-                  color: active ? '#ffffff' : '#7c3aed',
+                  background: active ? 'rgba(255,255,255,0.35)' : 'linear-gradient(135deg, #a78bfa, #f59e0b)',
+                  color: '#ffffff',
                   whiteSpace: 'nowrap',
                   display: 'inline-flex', alignItems: 'center', gap: 3,
                 }}>
@@ -179,7 +179,7 @@ export default function RedesUPAX({ permisos }: { permisos?: Permisos | null }) 
       <div>
         {tienePermiso(permisos, 'redes', activeId) ? (
           <>
-            {activeId==='meta-org'   && <MetaOrganico     accent={tab.primary} secondary={tab.secondary} bg={tab.bg}/>}
+            {activeId==='meta-org'   && <MetaOrganico     accent={tab.primary} secondary={tab.secondary} bg={tab.bg} perfil={perfil}/>}
             {activeId==='meta-ads'   && <MetaAds          accent={tab.primary} secondary={tab.secondary} bg={tab.bg}/>}
             {activeId==='google-ads' && <GoogleAds        accent={tab.primary} secondary={tab.secondary} bg={tab.bg}/>}
             {activeId==='ga4'        && <GA4              accent={tab.primary} secondary={tab.secondary} bg={tab.bg}/>}

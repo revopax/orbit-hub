@@ -12,7 +12,7 @@ interface Post {
   link_imagen: string; link_post: string
 }
 interface Seguidor { fecha: string; fuente: string; udn: string; seguidores: number }
-interface Props { accent: string; secondary: string; bg?: string }
+interface Props { accent: string; secondary: string; bg?: string; perfil?: { rol?: string; udn?: string | null; udn_madre?: string | null } | null }
 interface Tooltip { mes: string; v1: number; l1: string; v2: number; l2: string; x: number; y: number }
 type SortDir = 'asc'|'desc'
 interface SortState { col: string; dir: SortDir }
@@ -56,11 +56,18 @@ const PRESETS = [
   { label:'Todo el historial', fn:()=>['2025-01-01', toDateStr(new Date())] as [string,string] },
 ]
 
-export default function MetaOrganico({ accent, secondary }:Props) {
+export default function MetaOrganico({ accent, secondary, perfil }:Props) {
+  const CODIGO_A_NOMBRE_MO: Record<string, string> = {
+    UIX: 'UiX', MU: 'Marketing United', PE: 'Promo Espacio', ZU: 'Zeus',
+    NC: 'Neracode', HOF: 'House Of Films', RL: 'ResearchLand', MEXA: 'Mexa Creativa',
+  }
+  const esMktMO = perfil?.rol === 'admin' || perfil?.udn_madre === 'MKT'
+  const udnsPropiasMO = (perfil?.udn || '').split(',').map((s: string) => s.trim()).filter(Boolean)
+    .map((codigo: string) => CODIGO_A_NOMBRE_MO[codigo] ?? codigo)
   const [posts,   setPosts]   = useState<Post[]>([])
   const [segs,    setSegs]    = useState<Seguidor[]>([])
   const [loading, setLoading] = useState(true)
-  const [filtUDN,  setFiltUDN]  = useState<string[]>([])
+  const [filtUDN,  setFiltUDN]  = useState<string[]>(esMktMO ? [] : udnsPropiasMO)
   const [filtRed,  setFiltRed]  = useState<string[]>([])
   const [filtTipo, setFiltTipo] = useState<string[]>([])
   const [openFiltro, setOpenFiltro] = useState<string|null>(null)
