@@ -281,7 +281,7 @@ export default function SDR() {
   }, [sdrSel])
 
   const leaderboard = useMemo(() => {
-    return SDRS_VIGENTES.map(sdr => {
+    return sdrsAMostrar.map(sdr => {
       const act = actividad.filter(r => r.sdr === sdr)
       const mqlRows = mqlsUdn.filter(r => r.sdr === sdr && (udnSel === 'todas' || r.udn === udnSel))
       const tipos = actividadTipo.filter(r => r.sdr === sdr)
@@ -292,7 +292,7 @@ export default function SDR() {
       const tasaConversion = totalActividad > 0 ? ((mqls / totalActividad) * 100).toFixed(1) : '0.0'
       return { sdr, totalActividad, contactosConectados, mqls, reunionesCompletadas, tasaConversion, tipos }
     }).sort((a, b) => b.mqls - a.mqls)
-  }, [actividad, mqlsUdn, actividadTipo, udnSel])
+  }, [actividad, mqlsUdn, actividadTipo, udnSel, sdrsAMostrar])
 
   const chartDataUdn = useMemo(() => {
     const meses = Array.from(new Set(mqlsFiltrados.map(r => r.mes))).sort()
@@ -308,6 +308,7 @@ export default function SDR() {
   }, [mqlsFiltrados])
 
   const udnsPresentes = useMemo(() => Array.from(new Set(mqlsFiltrados.map(r => r.udn))), [mqlsFiltrados])
+  const sdrsAMostrar = sdrSel === 'todos' ? SDRS_VIGENTES : [sdrSel]
   const udnsDisponibles = useMemo(() => {
     const base = sdrSel === 'todos' ? mqlsUdn : mqlsUdn.filter(r => r.sdr === sdrSel)
     return Array.from(new Set(base.map(r => r.udn))).sort()
@@ -328,17 +329,18 @@ export default function SDR() {
   }, [mqlsUdn, sdrSel])
 
   const chartDataReuniones = useMemo(() => {
-    const meses = Array.from(new Set(actividad.map(r => r.mes))).sort()
+    const base = sdrSel === 'todos' ? actividad : actividad.filter(r => r.sdr === sdrSel)
+    const meses = Array.from(new Set(base.map(r => r.mes))).sort()
     return meses.map(mes => {
       const fila: Record<string, string | number> = { mes: mesLabel(mes) }
-      SDRS_VIGENTES.forEach(sdr => {
-        const row = actividad.find(r => r.mes === mes && r.sdr === sdr)
+      sdrsAMostrar.forEach(sdr => {
+        const row = base.find(r => r.mes === mes && r.sdr === sdr)
         fila[sdr] = row?.reuniones_completadas || 0
       })
-      fila.total = SDRS_VIGENTES.reduce((s, sd) => s + (fila[sd] as number || 0), 0)
+      fila.total = sdrsAMostrar.reduce((s, sd) => s + (fila[sd] as number || 0), 0)
       return fila
     })
-  }, [actividad])
+  }, [actividad, sdrSel, sdrsAMostrar])
 
   if (loading) {
     return <div style={{ padding: 60, textAlign: 'center', color: '#94a3b8', fontSize: 13 }}>Cargando datos de SDR...</div>
@@ -434,7 +436,7 @@ export default function SDR() {
         <div style={{ fontSize: 12, fontWeight: 700, color: '#64748b', marginBottom: 14, textTransform: 'uppercase', letterSpacing: '0.03em' }}>
           MQLs por UDN a lo largo del tiempo
         </div>
-        <ChartLegend items={udnsPresentes} colors={UDN_COLORS} />
+        <ChartLegend items={udnsPresentes} colors={UDN_COLORS} historicos={udnsHistoricas} />
         <ResponsiveContainer width="100%" height={300}>
           <BarChart data={chartDataUdn} margin={{ top: 24, right: 8, left: 0, bottom: 8 }} barCategoryGap="20%" maxBarSize={96}>
             <CartesianGrid vertical={false} stroke="#f1f5f9" />
@@ -463,23 +465,23 @@ export default function SDR() {
         <div style={{ fontSize: 12, fontWeight: 700, color: '#64748b', marginBottom: 14, textTransform: 'uppercase', letterSpacing: '0.03em' }}>
           Reuniones completadas por SDR
         </div>
-        <ChartLegend items={SDRS_VIGENTES} colors={SDR_COLORS} />
+        <ChartLegend items={sdrsAMostrar} colors={SDR_COLORS} />
         <ResponsiveContainer width="100%" height={300}>
           <BarChart data={chartDataReuniones} margin={{ top: 24, right: 8, left: 0, bottom: 8 }} barCategoryGap="20%" maxBarSize={96}>
             <CartesianGrid vertical={false} stroke="#f1f5f9" />
             <XAxis dataKey="mes" tick={{ fontSize: 11, fill: '#64748b' }} axisLine={false} tickLine={false} />
             <YAxis tick={{ fontSize: 11, fill: '#64748b' }} axisLine={false} tickLine={false} />
             <Tooltip cursor={{ fill: 'rgba(0,0,0,0.03)' }} content={<CustomTooltip />} />
-            {SDRS_VIGENTES.map((sdr, i) => (
+            {sdrsAMostrar.map((sdr, i) => (
               <Bar
                 key={sdr} dataKey={sdr} stackId="b" fill={SDR_COLORS[sdr]} name={sdr}
                 shape={(props: any) => {
                   const row = props.payload || {}
-                  const lastConValor = [...SDRS_VIGENTES].reverse().find(s => (row[s] || 0) > 0)
+                  const lastConValor = [...sdrsAMostrar].reverse().find(s => (row[s] || 0) > 0)
                   return lastConValor === sdr ? <RoundedTopBar {...props} /> : <GlossyBar {...props} />
                 }}
               >
-                {i === SDRS_VIGENTES.length - 1 && (
+                {i === sdrsAMostrar.length - 1 && (
                   <LabelList dataKey="total" position="top" formatter={(v: number) => fmtNum(v)} style={{ fontSize: 11, fontWeight: 700, fill: '#0f172a' }} />
                 )}
               </Bar>

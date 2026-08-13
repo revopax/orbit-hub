@@ -51,7 +51,7 @@ const MODULOS_PERMISOS: { id: string; label: string; tabs: { val: string; label:
     { val: 'ga4', label: 'GA4' }, { val: 'li-org', label: 'LinkedIn Orgánico' }, { val: 'li-ads', label: 'LinkedIn Ads' },
   ]},
   { id: 'hubspot', label: 'HubSpot Analytics', tabs: [
-    { val: 'home', label: 'Home' }, { val: 'mbr', label: 'MBR' }, { val: 'perdidos', label: 'Negocios perdidos' }, { val: 'email', label: 'Email marketing' },
+    { val: 'home', label: 'Home' }, { val: 'mbr', label: 'MBR' }, { val: 'perdidos', label: 'Negocios perdidos' }, { val: 'email', label: 'Email marketing' }, { val: 'sdr', label: 'Gestión SDR' },
   ]},
 ];
 
