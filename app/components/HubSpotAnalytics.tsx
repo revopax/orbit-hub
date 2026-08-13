@@ -3002,11 +3002,12 @@ export default function HubSpotAnalytics({ permisos, perfil }: { permisos?: Perm
                   ) : (t.id === 'mbr' || t.id === 'email') && (
                     <span style={{
                       fontSize: 9, fontWeight: 700, padding: '2px 6px', borderRadius: 5,
-                      background: active ? 'rgba(255,255,255,0.25)' : '#f1f5f9',
-                      color: active ? '#ffffff' : '#94a3b8',
+                      background: active ? 'rgba(255,255,255,0.35)' : 'linear-gradient(135deg, #ede9fe, #fef3c7)',
+                      color: active ? '#ffffff' : '#7c3aed',
                       whiteSpace: 'nowrap',
+                      display: 'inline-flex', alignItems: 'center', gap: 3,
                     }}>
-                      En proceso
+                      ✨ Próximamente
                     </span>
                   )}
                 </button>
