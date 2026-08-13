@@ -1,6 +1,7 @@
 'use client'
 import React, { useState, useRef, useEffect } from 'react'
 import NegociosPerdidos from './hubspot/NegociosPerdidos'
+import SDR from './hubspot/SDR'
 import { BarChart, Bar, LineChart, Line, XAxis, YAxis, Tooltip, Legend, ResponsiveContainer, CartesianGrid, LabelList } from 'recharts'
 import confetti from 'canvas-confetti'
 
@@ -46,13 +47,14 @@ const UDN_COLORS: Record<string, string> = {
 }
 const UDN_COLOR_FALLBACK = '#94a3b8'
 
-type SubTab = 'home' | 'mbr' | 'perdidos' | 'email'
+type SubTab = 'home' | 'mbr' | 'perdidos' | 'email' | 'sdr'
 
 const SUBTABS: { id: SubTab; label: string }[] = [
   { id: 'home',     label: 'Home' },
   { id: 'mbr',      label: 'MBR' },
   { id: 'perdidos', label: 'Negocios perdidos' },
   { id: 'email',    label: 'Email marketing' },
+  { id: 'sdr',      label: 'Gestión SDR' },
 ]
 
 const ACCENT = '#7038E5'
@@ -3043,6 +3045,7 @@ export default function HubSpotAnalytics({ permisos, perfil }: { permisos?: Perm
           {sub === 'mbr'      && <Placeholder label="MBR (Monthly Business Review)" />}
           {sub === 'perdidos' && <NegociosPerdidos perfil={perfil} />}
           {sub === 'email'    && <Placeholder label="Email marketing" />}
+          {sub === 'sdr'      && <SDR />}
         </>
       ) : (
         <div style={{ padding: 60, textAlign: 'center', color: '#94a3b8', fontSize: 13 }}>
