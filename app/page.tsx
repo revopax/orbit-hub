@@ -76,7 +76,7 @@ export default function Page() {
           background: esClaro ? '#ffffff' : 'var(--bg, #0F172A)',
         }}>
           {moduloActivo === 'brujula' && <BrujulaComercial permisos={perfil?.permisos} />}
-          {moduloActivo === 'redes' && <RedesUPAX permisos={perfil?.permisos} />}
+          {moduloActivo === 'redes' && <RedesUPAX permisos={perfil?.permisos} perfil={perfil} />}
           {moduloActivo === 'hubspot' && <HubSpotAnalytics permisos={perfil?.permisos} perfil={perfil} />}
         </div>
       </div>
