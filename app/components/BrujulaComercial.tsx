@@ -2,7 +2,6 @@
 import { useState, useEffect } from 'react';
 import { UDNBar } from './UDNBar';
 import { GraficaCruceSenales } from './GraficaCruceSenales';
-import { ScoreCardsConvergencia } from './ScoreCardsConvergencia';
 import { TablaKeywords } from './TablaKeywords';
 import { FiltroPeriodoGlobal } from './FiltroPeriodoGlobal';
 import { KpiScoreCards } from './KpiScoreCards';
@@ -121,12 +120,6 @@ export default function BrujulaComercial({ permisos }: { permisos?: Permisos | n
             <SegmentosServicio udn={udnActiva.nombre} desde={periodo.desde} hasta={periodo.hasta} />
             <div>
               <TablaKeywords udn={udnActiva.nombre} desde={periodo.desde} hasta={periodo.hasta} />
-            </div>
-            <div>
-              <p style={{ fontSize: 13, fontWeight: 500, margin: '0 0 8px', color: 'var(--txt-1)' }}>
-                Empresas en convergencia
-              </p>
-              <ScoreCardsConvergencia />
             </div>
           </div>
         </div>
