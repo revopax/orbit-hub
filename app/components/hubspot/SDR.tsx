@@ -1,6 +1,6 @@
 'use client';
 import React, { useState, useEffect, useMemo } from 'react'
-import { BarChart, Bar, XAxis, YAxis, Tooltip, Legend, ResponsiveContainer, CartesianGrid } from 'recharts'
+import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid, LabelList } from 'recharts'
 
 const ACCENT = '#7038E5'
 const SUPABASE_MBR_URL = process.env.NEXT_PUBLIC_SUPABASE_URL_MBR!
@@ -33,17 +33,24 @@ const SDR_COLORS: Record<string, string> = {
 
 const SDRS_VIGENTES = Object.keys(SDR_COLORS)
 
+const TIPO_LABELS: Record<string, string> = {
+  'llamada': 'Llamadas', 'whatsapp': 'WhatsApp', 'mensaje de texto': 'Mensajes',
+  'nota': 'Notas', 'tarea': 'Tareas',
+}
+
 interface RowActividad {
   sdr: string; mes: string; total_actividad: number; contactos_conectados: number
   reuniones_agendadas: number; reuniones_completadas: number
 }
 interface RowMqlUdn { sdr: string; mes: string; udn: string; mqls: number }
+interface RowActividadTipo { sdr: string; tipo: string; total: number }
 
 function mesLabel(mes: string) {
   const [y, m] = mes.split('-')
   const nombres = ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic']
   return `${nombres[parseInt(m, 10) - 1]} ${y.slice(2)}`
 }
+function fmtNum(v: number) { return v.toLocaleString('es-MX') }
 
 const RoundedTopBar = (props: any) => {
   const { x, y, width, height, fill } = props
@@ -56,6 +63,34 @@ const GlossyBar = (props: any) => {
   const { x, y, width, height, fill } = props
   if (!height || height <= 0) return null
   return <rect x={x} y={y} width={width} height={height} fill={fill} />
+}
+
+function ChartLegend({ items, colors }: { items: string[]; colors: Record<string, string> }) {
+  return (
+    <div style={{ display: 'flex', flexWrap: 'wrap', gap: 14, fontSize: 11, marginBottom: 12 }}>
+      {items.map(item => (
+        <div key={item} style={{ display: 'flex', alignItems: 'center', gap: 5 }}>
+          <span style={{ width: 9, height: 9, borderRadius: '50%', background: colors[item] || '#94a3b8', display: 'inline-block', flexShrink: 0 }} />
+          <span style={{ color: '#475569' }}>{item}</span>
+        </div>
+      ))}
+    </div>
+  )
+}
+
+function CustomTooltip({ active, payload, label }: any) {
+  if (!active || !payload || !payload.length) return null
+  return (
+    <div style={{ background: '#fff', border: '1px solid #e2e8f0', borderRadius: 10, boxShadow: '0 4px 12px rgba(0,0,0,0.08)', padding: '10px 14px', fontSize: 12 }}>
+      <div style={{ fontWeight: 700, color: '#0f172a', marginBottom: 6 }}>{label}</div>
+      {payload.slice().reverse().filter((p: any) => p.dataKey !== 'total').map((p: any) => (
+        <div key={p.dataKey} style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '2px 0' }}>
+          <span style={{ width: 9, height: 9, borderRadius: 2, background: p.color, flexShrink: 0 }} />
+          <span style={{ color: '#0f172a' }}>{p.name}: {fmtNum(p.value as number)}</span>
+        </div>
+      ))}
+    </div>
+  )
 }
 
 function MetricCard({ label, value, sub }: { label: string; value: string | number; sub?: string }) {
@@ -91,7 +126,9 @@ export default function SDR() {
   const [udnSel, setUdnSel] = useState<string>('todas')
   const [actividad, setActividad] = useState<RowActividad[]>([])
   const [mqlsUdn, setMqlsUdn] = useState<RowMqlUdn[]>([])
+  const [actividadTipo, setActividadTipo] = useState<RowActividadTipo[]>([])
   const [loading, setLoading] = useState(true)
+  const [filaExpandida, setFilaExpandida] = useState<string | null>(null)
 
   const desde = `${anio}-01`
   const hasta = anio === anioActual ? `${anio}-${String(new Date().getMonth() + 1).padStart(2, '0')}` : `${anio}-12`
@@ -101,9 +138,11 @@ export default function SDR() {
     Promise.all([
       rpc<RowActividad[]>('sdr_actividad_mensual', { p_desde: desde, p_hasta: hasta }),
       rpc<RowMqlUdn[]>('sdr_mqls_por_udn_mensual', { p_desde: desde, p_hasta: hasta }),
-    ]).then(([a, m]) => {
+      rpc<RowActividadTipo[]>('sdr_actividad_por_tipo', { p_desde: desde, p_hasta: hasta }),
+    ]).then(([a, m, t]) => {
       setActividad(a)
       setMqlsUdn(m)
+      setActividadTipo(t)
     }).catch(() => {}).finally(() => setLoading(false))
   }, [desde, hasta])
 
@@ -141,14 +180,15 @@ export default function SDR() {
     return SDRS_VIGENTES.map(sdr => {
       const act = actividad.filter(r => r.sdr === sdr)
       const mqlRows = mqlsUdn.filter(r => r.sdr === sdr && (udnSel === 'todas' || r.udn === udnSel))
+      const tipos = actividadTipo.filter(r => r.sdr === sdr)
       const totalActividad = act.reduce((s, r) => s + r.total_actividad, 0)
       const contactosConectados = act.reduce((s, r) => s + r.contactos_conectados, 0)
       const mqls = mqlRows.reduce((s, r) => s + r.mqls, 0)
       const reunionesCompletadas = act.reduce((s, r) => s + r.reuniones_completadas, 0)
       const tasaConversion = totalActividad > 0 ? ((mqls / totalActividad) * 100).toFixed(1) : '0.0'
-      return { sdr, totalActividad, contactosConectados, mqls, reunionesCompletadas, tasaConversion }
+      return { sdr, totalActividad, contactosConectados, mqls, reunionesCompletadas, tasaConversion, tipos }
     }).sort((a, b) => b.mqls - a.mqls)
-  }, [actividad, mqlsUdn, udnSel])
+  }, [actividad, mqlsUdn, actividadTipo, udnSel])
 
   const chartDataUdn = useMemo(() => {
     const meses = Array.from(new Set(mqlsFiltrados.map(r => r.mes))).sort()
@@ -158,6 +198,7 @@ export default function SDR() {
       udns.forEach(udn => {
         fila[udn] = mqlsFiltrados.filter(r => r.mes === mes && r.udn === udn).reduce((s, r) => s + r.mqls, 0)
       })
+      fila.total = udns.reduce((s, u) => s + (fila[u] as number || 0), 0)
       return fila
     })
   }, [mqlsFiltrados])
@@ -173,6 +214,7 @@ export default function SDR() {
         const row = actividad.find(r => r.mes === mes && r.sdr === sdr)
         fila[sdr] = row?.reuniones_completadas || 0
       })
+      fila.total = SDRS_VIGENTES.reduce((s, sd) => s + (fila[sd] as number || 0), 0)
       return fila
     })
   }, [actividad])
@@ -261,15 +303,26 @@ export default function SDR() {
         <div style={{ fontSize: 12, fontWeight: 700, color: '#64748b', marginBottom: 14, textTransform: 'uppercase', letterSpacing: '0.03em' }}>
           MQLs por UDN a lo largo del tiempo
         </div>
-        <ResponsiveContainer width="100%" height={280}>
-          <BarChart data={chartDataUdn}>
-            <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" />
-            <XAxis dataKey="mes" tick={{ fontSize: 11 }} />
-            <YAxis tick={{ fontSize: 11 }} />
-            <Tooltip />
-            <Legend wrapperStyle={{ fontSize: 11 }} />
+        <ChartLegend items={udnsPresentes} colors={UDN_COLORS} />
+        <ResponsiveContainer width="100%" height={300}>
+          <BarChart data={chartDataUdn} margin={{ top: 24, right: 8, left: 0, bottom: 8 }} barCategoryGap="20%" maxBarSize={96}>
+            <CartesianGrid vertical={false} stroke="#f1f5f9" />
+            <XAxis dataKey="mes" tick={{ fontSize: 11, fill: '#64748b' }} axisLine={false} tickLine={false} />
+            <YAxis tick={{ fontSize: 11, fill: '#64748b' }} axisLine={false} tickLine={false} />
+            <Tooltip cursor={{ fill: 'rgba(0,0,0,0.03)' }} content={<CustomTooltip />} />
             {udnsPresentes.map((udn, i) => (
-              <Bar key={udn} dataKey={udn} stackId="a" fill={UDN_COLORS[udn] || '#94a3b8'} shape={i === udnsPresentes.length - 1 ? RoundedTopBar : GlossyBar} />
+              <Bar
+                key={udn} dataKey={udn} stackId="a" fill={UDN_COLORS[udn] || '#94a3b8'} name={udn}
+                shape={(props: any) => {
+                  const row = props.payload || {}
+                  const lastConValor = [...udnsPresentes].reverse().find(u => (row[u] || 0) > 0)
+                  return lastConValor === udn ? <RoundedTopBar {...props} /> : <GlossyBar {...props} />
+                }}
+              >
+                {i === udnsPresentes.length - 1 && (
+                  <LabelList dataKey="total" position="top" formatter={(v: number) => fmtNum(v)} style={{ fontSize: 11, fontWeight: 700, fill: '#0f172a' }} />
+                )}
+              </Bar>
             ))}
           </BarChart>
         </ResponsiveContainer>
@@ -279,15 +332,26 @@ export default function SDR() {
         <div style={{ fontSize: 12, fontWeight: 700, color: '#64748b', marginBottom: 14, textTransform: 'uppercase', letterSpacing: '0.03em' }}>
           Reuniones completadas por SDR
         </div>
-        <ResponsiveContainer width="100%" height={280}>
-          <BarChart data={chartDataReuniones}>
-            <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" />
-            <XAxis dataKey="mes" tick={{ fontSize: 11 }} />
-            <YAxis tick={{ fontSize: 11 }} />
-            <Tooltip />
-            <Legend wrapperStyle={{ fontSize: 11 }} />
+        <ChartLegend items={SDRS_VIGENTES} colors={SDR_COLORS} />
+        <ResponsiveContainer width="100%" height={300}>
+          <BarChart data={chartDataReuniones} margin={{ top: 24, right: 8, left: 0, bottom: 8 }} barCategoryGap="20%" maxBarSize={96}>
+            <CartesianGrid vertical={false} stroke="#f1f5f9" />
+            <XAxis dataKey="mes" tick={{ fontSize: 11, fill: '#64748b' }} axisLine={false} tickLine={false} />
+            <YAxis tick={{ fontSize: 11, fill: '#64748b' }} axisLine={false} tickLine={false} />
+            <Tooltip cursor={{ fill: 'rgba(0,0,0,0.03)' }} content={<CustomTooltip />} />
             {SDRS_VIGENTES.map((sdr, i) => (
-              <Bar key={sdr} dataKey={sdr} stackId="b" fill={SDR_COLORS[sdr]} shape={i === SDRS_VIGENTES.length - 1 ? RoundedTopBar : GlossyBar} />
+              <Bar
+                key={sdr} dataKey={sdr} stackId="b" fill={SDR_COLORS[sdr]} name={sdr}
+                shape={(props: any) => {
+                  const row = props.payload || {}
+                  const lastConValor = [...SDRS_VIGENTES].reverse().find(s => (row[s] || 0) > 0)
+                  return lastConValor === sdr ? <RoundedTopBar {...props} /> : <GlossyBar {...props} />
+                }}
+              >
+                {i === SDRS_VIGENTES.length - 1 && (
+                  <LabelList dataKey="total" position="top" formatter={(v: number) => fmtNum(v)} style={{ fontSize: 11, fontWeight: 700, fill: '#0f172a' }} />
+                )}
+              </Bar>
             ))}
           </BarChart>
         </ResponsiveContainer>
@@ -309,21 +373,54 @@ export default function SDR() {
             </tr>
           </thead>
           <tbody>
-            {leaderboard.map(row => (
-              <tr key={row.sdr} style={{ borderBottom: '1px solid #f1f5f9' }}>
-                <td style={{ padding: '10px 20px', fontWeight: 600, color: '#172033' }}>
-                  <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}>
-                    <span style={{ width: 8, height: 8, borderRadius: '50%', background: SDR_COLORS[row.sdr], flexShrink: 0 }} />
-                    {row.sdr}
-                  </span>
-                </td>
-                <td style={{ padding: '10px 12px', textAlign: 'right', color: '#64748b' }}>{row.totalActividad.toLocaleString()}</td>
-                <td style={{ padding: '10px 12px', textAlign: 'right', color: '#64748b' }}>{row.contactosConectados.toLocaleString()}</td>
-                <td style={{ padding: '10px 12px', textAlign: 'right', fontWeight: 700, color: ACCENT }}>{row.mqls.toLocaleString()}</td>
-                <td style={{ padding: '10px 12px', textAlign: 'right', color: '#64748b' }}>{row.reunionesCompletadas.toLocaleString()}</td>
-                <td style={{ padding: '10px 20px', textAlign: 'right', color: '#64748b' }}>{row.tasaConversion}%</td>
-              </tr>
-            ))}
+            {leaderboard.map(row => {
+              const abierto = filaExpandida === row.sdr
+              return (
+                <React.Fragment key={row.sdr}>
+                  <tr style={{ borderBottom: abierto ? 'none' : '1px solid #f1f5f9' }}>
+                    <td style={{ padding: '10px 20px', fontWeight: 600, color: '#172033' }}>
+                      <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}>
+                        <span style={{ width: 8, height: 8, borderRadius: '50%', background: SDR_COLORS[row.sdr], flexShrink: 0 }} />
+                        {row.sdr}
+                      </span>
+                    </td>
+                    <td
+                      onClick={() => setFilaExpandida(abierto ? null : row.sdr)}
+                      style={{ padding: '10px 12px', textAlign: 'right', color: '#64748b', cursor: 'pointer', userSelect: 'none' }}
+                    >
+                      <span style={{ display: 'inline-flex', alignItems: 'center', gap: 5 }}>
+                        <svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="#94a3b8" strokeWidth="3"
+                          style={{ transform: abierto ? 'rotate(90deg)' : 'rotate(0deg)', transition: 'transform 0.15s' }}>
+                          <polyline points="9 18 15 12 9 6" />
+                        </svg>
+                        {row.totalActividad.toLocaleString()}
+                      </span>
+                    </td>
+                    <td style={{ padding: '10px 12px', textAlign: 'right', color: '#64748b' }}>{row.contactosConectados.toLocaleString()}</td>
+                    <td style={{ padding: '10px 12px', textAlign: 'right', fontWeight: 700, color: ACCENT }}>{row.mqls.toLocaleString()}</td>
+                    <td style={{ padding: '10px 12px', textAlign: 'right', color: '#64748b' }}>{row.reunionesCompletadas.toLocaleString()}</td>
+                    <td style={{ padding: '10px 20px', textAlign: 'right', color: '#64748b' }}>{row.tasaConversion}%</td>
+                  </tr>
+                  {abierto && (
+                    <tr style={{ borderBottom: '1px solid #f1f5f9' }}>
+                      <td colSpan={6} style={{ padding: '0 20px 12px 44px', background: '#f8fafc' }}>
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: 4, paddingTop: 8 }}>
+                          {row.tipos.length === 0 && (
+                            <div style={{ fontSize: 11.5, color: '#94a3b8' }}>Sin desglose disponible</div>
+                          )}
+                          {row.tipos.map(t => (
+                            <div key={t.tipo} style={{ display: 'flex', justifyContent: 'space-between', fontSize: 11.5, color: '#64748b', maxWidth: 260 }}>
+                              <span>{TIPO_LABELS[t.tipo] || t.tipo}</span>
+                              <span style={{ fontWeight: 600, color: '#334155' }}>{t.total.toLocaleString()}</span>
+                            </div>
+                          ))}
+                        </div>
+                      </td>
+                    </tr>
+                  )}
+                </React.Fragment>
+              )
+            })}
           </tbody>
         </table>
       </div>
