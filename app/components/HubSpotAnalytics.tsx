@@ -3041,7 +3041,7 @@ export default function HubSpotAnalytics({ permisos, perfil }: { permisos?: Perm
         <>
           {sub === 'home'     && <HomeFunnel perfil={perfil} />}
           {sub === 'mbr'      && <Placeholder label="MBR (Monthly Business Review)" />}
-          {sub === 'perdidos' && <NegociosPerdidos />}
+          {sub === 'perdidos' && <NegociosPerdidos perfil={perfil} />}
           {sub === 'email'    && <Placeholder label="Email marketing" />}
         </>
       ) : (

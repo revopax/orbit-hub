@@ -227,10 +227,21 @@ function DatePickerBtn({ dateFrom, dateTo, onDateChange }: { dateFrom: string; d
   )
 }
 
-export default function NegociosPerdidos() {
+export default function NegociosPerdidos({ perfil }: { perfil?: { rol?: string; udn?: string | null; udn_madre?: string | null } | null }) {
+  const CODIGO_A_NOMBRE_NP: Record<string, string> = {
+    UIX: 'UIX', MU: 'Marketing United', PE: 'Promo Espacio', ZU: 'Zeus',
+    NC: 'Neracode', HOF: 'House Of Films', RL: 'Research Land', MEXA: 'Mexa Creativa',
+  }
+  const esMktNP = perfil?.rol === 'admin' || perfil?.udn_madre === 'MKT'
+  const udnsPropiasNP = (perfil?.udn || '').split(',').map((s: string) => s.trim()).filter(Boolean)
+    .map((codigo: string) => CODIGO_A_NOMBRE_NP[codigo] ?? codigo)
+  const udnFijaNP = !esMktNP && udnsPropiasNP.length === 1 ? udnsPropiasNP[0] : ''
   const [dateFrom, setDateFrom] = useState(`${new Date().getFullYear()}-01-01`)
   const [dateTo, setDateTo] = useState(toDateStr(new Date()))
-  const [fUdn, setFUdn] = useState('')
+  const [fUdn, setFUdn] = useState(udnFijaNP)
+  useEffect(() => {
+    if (udnFijaNP) setFUdn(udnFijaNP)
+  }, [udnFijaNP])
   const [fOrigen, setFOrigen] = useState('')
   const [fFuente, setFFuente] = useState('')
   const [fMotivo, setFMotivo] = useState('')
@@ -263,7 +274,7 @@ export default function NegociosPerdidos() {
       rpc<RowFuente[]>('propuestas_perdidas_por_fuente', params),
       rpc<RowMotivo[]>('propuestas_perdidas_por_motivo', params),
     ]).then(([u, f, m]) => {
-      setOpcUdn(u.map(r => r.udn).filter(Boolean).sort())
+      setOpcUdn(esMktNP ? u.map(r => r.udn).filter(Boolean).sort() : udnsPropiasNP)
       setOpcFuente(f.map(r => r.fuente).filter(Boolean).sort())
       setOpcMotivo(m.map(r => r.motivo).filter(Boolean).sort())
     }).catch(() => {})
