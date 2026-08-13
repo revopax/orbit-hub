@@ -105,15 +105,16 @@ export default function RedesUPAX({ permisos, perfil }: { permisos?: Permisos | 
         <div style={{ display:'flex', gap:4, overflowX:'auto', flex:1 }}>
           {TABS.map(t => {
             const active = activeId===t.id
-            const permitido = tienePermiso(permisos, 'redes', t.id)
+            const proximamenteRed = t.id !== 'meta-org'
+            const permitido = proximamenteRed || tienePermiso(permisos, 'redes', t.id)
             return (
-            <button key={t.id} onClick={() => { if (permitido) setActiveId(t.id); }} style={{
+            <button key={t.id} onClick={() => { if (permitido && !proximamenteRed) setActiveId(t.id); }} style={{
               background: active ? t.primary : 'transparent',
               border: '1px solid '+(active ? t.primary : '#e2e8f0'),
               borderRadius:9, padding:'5px 12px',
               color: !permitido ? '#cbd5e1' : (active ? '#ffffff' : '#64748b'),
               fontSize:12.5, fontWeight: active ? 700 : 500,
-              cursor: permitido ? 'pointer' : 'not-allowed',
+              cursor: proximamenteRed ? 'default' : (permitido ? 'pointer' : 'not-allowed'),
               whiteSpace:'nowrap', transition:'all 0.2s',
               display:'flex', alignItems:'center', gap:7,
               opacity: permitido ? 1 : 0.55,
@@ -133,14 +134,7 @@ export default function RedesUPAX({ permisos, perfil }: { permisos?: Permisos | 
                 {t.id==='li-ads'     && <img src="/logos/Linkedin-Ads-logo.png" alt="" style={{width:20,height:20,objectFit:'contain'}}/>}
               </span>
               {t.label}
-              {!permitido ? (
-                <span style={{
-                  fontSize: 9, fontWeight: 700, padding: '2px 6px', borderRadius: 5,
-                  background: '#f1f5f9', color: '#94a3b8', whiteSpace: 'nowrap',
-                }}>
-                  Sin acceso
-                </span>
-              ) : t.id !== 'meta-org' && (
+              {proximamenteRed ? (
                 <span style={{
                   fontSize: 9, fontWeight: 700, padding: '2px 6px', borderRadius: 5,
                   background: active ? 'rgba(255,255,255,0.35)' : 'linear-gradient(135deg, #a78bfa, #f59e0b)',
@@ -149,6 +143,13 @@ export default function RedesUPAX({ permisos, perfil }: { permisos?: Permisos | 
                   display: 'inline-flex', alignItems: 'center', gap: 3,
                 }}>
                   ✨ Próximamente
+                </span>
+              ) : !permitido && (
+                <span style={{
+                  fontSize: 9, fontWeight: 700, padding: '2px 6px', borderRadius: 5,
+                  background: '#f1f5f9', color: '#94a3b8', whiteSpace: 'nowrap',
+                }}>
+                  Sin acceso
                 </span>
               )}
             </button>

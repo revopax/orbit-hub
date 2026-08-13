@@ -2983,28 +2983,22 @@ export default function HubSpotAnalytics({ permisos, perfil }: { permisos?: Perm
           <div style={{ display: 'flex', gap: 4, overflowX: 'auto', flex: 1 }}>
             {SUBTABS.map(t => {
               const active = sub === t.id
-              const permitido = tienePermiso(permisos, 'hubspot', t.id)
+              const proximamente = t.id === 'mbr' || t.id === 'email'
+              const permitido = proximamente || tienePermiso(permisos, 'hubspot', t.id)
               return (
-                <button key={t.id} onClick={() => { if (permitido) setSub(t.id); }} style={{
+                <button key={t.id} onClick={() => { if (permitido && !proximamente) setSub(t.id); }} style={{
                   background: active ? ACCENT : 'transparent',
                   border: '1px solid ' + (active ? ACCENT : '#e2e8f0'),
                   borderRadius: 9, padding: '5px 12px',
                   color: !permitido ? '#cbd5e1' : (active ? '#ffffff' : '#64748b'),
                   fontSize: 12.5, fontWeight: active ? 700 : 500,
-                  cursor: permitido ? 'pointer' : 'not-allowed',
+                  cursor: proximamente ? 'default' : (permitido ? 'pointer' : 'not-allowed'),
                   whiteSpace: 'nowrap', transition: 'all 0.2s',
                   display: 'flex', alignItems: 'center', gap: 7,
                   opacity: permitido ? 1 : 0.55,
                 }}>
                   {t.label}
-                  {!permitido ? (
-                    <span style={{
-                      fontSize: 9, fontWeight: 700, padding: '2px 6px', borderRadius: 5,
-                      background: '#f1f5f9', color: '#94a3b8', whiteSpace: 'nowrap',
-                    }}>
-                      Sin acceso
-                    </span>
-                  ) : (t.id === 'mbr' || t.id === 'email') && (
+                  {proximamente ? (
                     <span style={{
                       fontSize: 9, fontWeight: 700, padding: '2px 6px', borderRadius: 5,
                       background: active ? 'rgba(255,255,255,0.35)' : 'linear-gradient(135deg, #a78bfa, #f59e0b)',
@@ -3013,6 +3007,13 @@ export default function HubSpotAnalytics({ permisos, perfil }: { permisos?: Perm
                       display: 'inline-flex', alignItems: 'center', gap: 3,
                     }}>
                       ✨ Próximamente
+                    </span>
+                  ) : !permitido && (
+                    <span style={{
+                      fontSize: 9, fontWeight: 700, padding: '2px 6px', borderRadius: 5,
+                      background: '#f1f5f9', color: '#94a3b8', whiteSpace: 'nowrap',
+                    }}>
+                      Sin acceso
                     </span>
                   )}
                 </button>

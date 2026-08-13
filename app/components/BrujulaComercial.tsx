@@ -47,7 +47,7 @@ export default function BrujulaComercial({ permisos }: { permisos?: Permisos | n
     if (!udnsVisibles.find(u => u.id === udnActiva.id) && udnsVisibles.length > 0) {
       setUdnActiva(udnsVisibles[0]);
     }
-  }, [sub]);
+  }, [sub, perfil?.udn, perfil?.udn_madre, perfil?.rol]);
 
   return (
     <div style={{ minHeight: '100%', background: 'var(--bg)', fontFamily: 'Inter,-apple-system,sans-serif' }}>

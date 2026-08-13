@@ -110,12 +110,16 @@ export default function MetaOrganico({ accent, secondary, perfil }:Props) {
     ]).then(([p,s])=>{ setPosts(p); setSegs(s) }).finally(()=>setLoading(false))
   },[])
 
+  const filtUDNEfectivo = esMktMO
+    ? filtUDN
+    : (filtUDN.length > 0 ? filtUDN.filter(u => udnsPropiasMO.includes(u)) : udnsPropiasMO)
+
   const filtered = useMemo(()=>posts.filter(p=>
     p.fecha>=dateFrom && p.fecha<=dateTo &&
-    (filtUDN.length===0  || filtUDN.includes(p.udn)) &&
+    (filtUDNEfectivo.length===0  || filtUDNEfectivo.includes(p.udn)) &&
     (filtRed.length===0  || filtRed.includes(p.fuente)) &&
     (filtTipo.length===0 || filtTipo.includes(p.tipo))
-  ),[posts,dateFrom,dateTo,filtUDN,filtRed,filtTipo])
+  ),[posts,dateFrom,dateTo,filtUDNEfectivo,filtRed,filtTipo])
 
   const isFiltered = filtUDN.length>0 || filtRed.length>0 || filtTipo.length>0 || activePreset!=='Este año'
   function resetFilters(){
@@ -131,7 +135,7 @@ export default function MetaOrganico({ accent, secondary, perfil }:Props) {
   const totComp    = filtered.reduce((s,p)=>s+p.compartidos,0)
   const er         = calcER(filtered)
 
-  const segFiltered = segs.filter(s=>s.fecha>=dateFrom&&s.fecha<=dateTo&&(filtUDN.length===0||filtUDN.includes(s.udn))&&(filtRed.length===0||filtRed.includes(s.fuente)))
+  const segFiltered = segs.filter(s=>s.fecha>=dateFrom&&s.fecha<=dateTo&&(filtUDNEfectivo.length===0||filtUDNEfectivo.includes(s.udn))&&(filtRed.length===0||filtRed.includes(s.fuente)))
   const latestSeg:Record<string,number>={}
   for(const s of [...segFiltered].sort((a,b)=>a.fecha<b.fecha?-1:1)) latestSeg[`${s.udn}_${s.fuente}`]=s.seguidores
   const totSeg = Object.values(latestSeg).reduce((a,b)=>a+b,0)
@@ -195,7 +199,7 @@ export default function MetaOrganico({ accent, secondary, perfil }:Props) {
         </div>
         <div style={{marginLeft:'auto',display:'flex',gap:10,flexWrap:'wrap',alignItems:'center'}}>
           <div ref={filtroRef} style={{display:'flex',gap:10}}>
-          {([['UDN',UDNS.slice(1),filtUDN,setFiltUDN],['Red',REDES.slice(1),filtRed,setFiltRed],['Tipo',TIPOS.slice(1),filtTipo,setFiltTipo]] as [string,string[],string[],(v:string[])=>void][]).map(([l,opts,val,set])=>(
+          {([['UDN',esMktMO ? UDNS.slice(1) : udnsPropiasMO,filtUDNEfectivo,setFiltUDN],['Red',REDES.slice(1),filtRed,setFiltRed],['Tipo',TIPOS.slice(1),filtTipo,setFiltTipo]] as [string,string[],string[],(v:string[])=>void][]).map(([l,opts,val,set])=>(
             <div key={l} style={{position:'relative'}}>
               <button onClick={()=>setOpenFiltro(openFiltro===l?null:l)}
                 style={{background:'rgba(255,255,255,0.2)',border:'1px solid rgba(255,255,255,0.4)',borderRadius:9,color:'#fff',padding:'7px 12px',fontSize:12,cursor:'pointer',display:'flex',alignItems:'center',gap:6,whiteSpace:'nowrap'}}>
