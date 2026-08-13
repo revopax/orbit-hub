@@ -45,7 +45,8 @@ interface RowActividad {
 interface RowMqlUdn { sdr: string; mes: string; udn: string; mqls: number }
 interface RowActividadTipo { sdr: string; tipo: string; total: number }
 
-function mesLabel(mes: string) {
+function mesLabel(mes: string | null | undefined) {
+  if (!mes) return '—'
   const [y, m] = mes.split('-')
   const nombres = ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic']
   return `${nombres[parseInt(m, 10) - 1]} ${y.slice(2)}`
