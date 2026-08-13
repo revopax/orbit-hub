@@ -4,6 +4,8 @@ import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGri
 
 const ACCENT = '#7038E5'
 const SUPABASE_MBR_URL = process.env.NEXT_PUBLIC_SUPABASE_URL_MBR!
+const SUPABASE_IAM_URL = process.env.NEXT_PUBLIC_SUPABASE_URL!
+const SUPABASE_IAM_KEY = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
 const SUPABASE_MBR_KEY = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY_MBR!
 
 async function rpc<T>(fn: string, params: Record<string, unknown>): Promise<T> {
@@ -15,6 +17,28 @@ async function rpc<T>(fn: string, params: Record<string, unknown>): Promise<T> {
   if (!res.ok) throw new Error(`Error RPC ${fn}: ${res.status}`)
   return res.json()
 }
+async function rpcIam<T>(fn: string): Promise<T> {
+  const res = await fetch(`${SUPABASE_IAM_URL}/rest/v1/rpc/${fn}`, {
+    method: 'POST',
+    headers: { apikey: SUPABASE_IAM_KEY, Authorization: `Bearer ${SUPABASE_IAM_KEY}`, 'Content-Type': 'application/json' },
+    body: JSON.stringify({}),
+  })
+  if (!res.ok) throw new Error(`Error RPC IAM ${fn}: ${res.status}`)
+  return res.json()
+}
+const NOMBRE_CORTO_A_LARGO: Record<string, string> = {
+  'Elizabeth Gomez': 'Elizabeth Gomez',
+  'Jennifer Silva': 'Jennifer Dessire Silva Trejo',
+  'Antonio Vargas': 'Antonio Leodegario Vargas Ochoa',
+  'Neyby Ruiz': 'Neyby Ruiz',
+  'Edna Gonzalez': 'Edna González',
+  'Otniel Sedano': 'Otniel Sedano Ugalde',
+}
+const CODIGO_UDN_A_NOMBRE: Record<string, string> = {
+  UIX: 'UIX', MU: 'Marketing United', PE: 'Promo Espacio', ZU: 'Zeus',
+  NC: 'Neracode', HOF: 'House Of Films', RL: 'Research Land', MEXA: 'Mexa Creativa',
+}
+interface RowSdrUdn { nombre: string; udn: string }
 
 const UDN_COLORS: Record<string, string> = {
   'Mexa Creativa': '#FD00C7', 'House Of Films': '#000000', 'Marketing United': '#dcff00',
@@ -220,6 +244,7 @@ export default function SDR() {
   const [actividadTipo, setActividadTipo] = useState<RowActividadTipo[]>([])
   const [loading, setLoading] = useState(true)
   const [filaExpandida, setFilaExpandida] = useState<string | null>(null)
+  const [udnActualPorSdr, setUdnActualPorSdr] = useState<Record<string, string[]>>({})
 
   const desde = dateFrom.slice(0, 7)
   const hasta = dateTo.slice(0, 7)
@@ -234,6 +259,18 @@ export default function SDR() {
       setMqlsUdn(data.mqls_udn || [])
     }).catch(() => {}).finally(() => setLoading(false))
   }, [desde, hasta])
+
+  useEffect(() => {
+    rpcIam<RowSdrUdn[]>('sdr_udn_actual').then(rows => {
+      const mapa: Record<string, string[]> = {}
+      rows.forEach(r => {
+        const nombreLargo = NOMBRE_CORTO_A_LARGO[r.nombre]
+        if (!nombreLargo) return
+        mapa[nombreLargo] = r.udn.split(',').map(c => CODIGO_UDN_A_NOMBRE[c.trim()] || c.trim())
+      })
+      setUdnActualPorSdr(mapa)
+    }).catch(() => {})
+  }, [])
 
   const actividadFiltrada = useMemo(() =>
     sdrSel === 'todos' ? actividad : actividad.filter(r => r.sdr === sdrSel)
@@ -317,16 +354,15 @@ export default function SDR() {
     if (udnSel !== 'todas' && !udnsDisponibles.includes(udnSel)) setUdnSel('todas')
   }, [udnsDisponibles, udnSel])
 
-  // UDNs que el SDR tuvo en el pasado pero ya no aparecen en el ultimo mes con datos (cambio de cartera)
+  // UDNs que el SDR tiene registradas en el sistema (mbr) pero NO forman parte de su cartera actual segun IAM
   const udnsHistoricas = useMemo(() => {
     if (sdrSel === 'todos') return new Set<string>()
+    const actuales = udnActualPorSdr[sdrSel]
+    if (!actuales) return new Set<string>()
     const base = mqlsUdn.filter(r => r.sdr === sdrSel)
-    if (base.length === 0) return new Set<string>()
-    const ultimoMes = Array.from(new Set(base.map(r => r.mes))).sort().slice(-1)[0]
-    const udnsUltimoMes = new Set(base.filter(r => r.mes === ultimoMes).map(r => r.udn))
     const todasUdns = new Set(base.map(r => r.udn))
-    return new Set([...todasUdns].filter(u => !udnsUltimoMes.has(u)))
-  }, [mqlsUdn, sdrSel])
+    return new Set([...todasUdns].filter(u => !actuales.includes(u)))
+  }, [mqlsUdn, sdrSel, udnActualPorSdr])
 
   const chartDataReuniones = useMemo(() => {
     const base = sdrSel === 'todos' ? actividad : actividad.filter(r => r.sdr === sdrSel)
