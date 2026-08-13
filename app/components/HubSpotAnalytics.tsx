@@ -2953,6 +2953,13 @@ function tienePermiso(permisos: Permisos | null | undefined, modulo: string, tab
 
 export default function HubSpotAnalytics({ permisos, perfil }: { permisos?: Permisos | null; perfil?: { rol?: string; udn?: string | null; udn_madre?: string | null } | null }) {
   const [sub, setSub] = useState<SubTab>('home')
+  useEffect(() => {
+    const saved = window.localStorage.getItem('data-analytics-subtab') as SubTab | null
+    if (saved && SUBTABS.some(t => t.id === saved)) setSub(saved)
+  }, [])
+  useEffect(() => {
+    window.localStorage.setItem('data-analytics-subtab', sub)
+  }, [sub])
   const [ultimaSync, setUltimaSync] = useState<Date | null>(null)
   useEffect(() => {
     fetch(`${SUPABASE_MBR_URL}/rest/v1/rpc/mbr_ultima_sincronizacion`, {

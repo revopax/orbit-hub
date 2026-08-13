@@ -22,10 +22,16 @@ const UDN_COLORS: Record<string, string> = {
   'Promo Espacio': '#FF7600', 'Upax': '#323644', 'Sin UDN': '#94a3b8',
 }
 
-const SDRS_VIGENTES = [
-  'Elizabeth Gomez', 'Jennifer Dessire Silva Trejo', 'Antonio Leodegario Vargas Ochoa',
-  'Neyby Ruiz', 'Edna González', 'Otniel Sedano Ugalde',
-]
+const SDR_COLORS: Record<string, string> = {
+  'Elizabeth Gomez': '#FF6B6B',
+  'Jennifer Dessire Silva Trejo': '#4ECDC4',
+  'Antonio Leodegario Vargas Ochoa': '#A78BFA',
+  'Neyby Ruiz': '#6EE7B7',
+  'Edna González': '#FBBF24',
+  'Otniel Sedano Ugalde': '#60A5FA',
+}
+
+const SDRS_VIGENTES = Object.keys(SDR_COLORS)
 
 interface RowActividad {
   sdr: string; mes: string; total_actividad: number; contactos_conectados: number
@@ -37,6 +43,19 @@ function mesLabel(mes: string) {
   const [y, m] = mes.split('-')
   const nombres = ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic']
   return `${nombres[parseInt(m, 10) - 1]} ${y.slice(2)}`
+}
+
+const RoundedTopBar = (props: any) => {
+  const { x, y, width, height, fill } = props
+  if (!height || height <= 0) return null
+  const r = Math.min(6, width / 2, height)
+  const d = `M${x},${y + r} A${r},${r} 0 0 1 ${x + r},${y} L${x + width - r},${y} A${r},${r} 0 0 1 ${x + width},${y + r} L${x + width},${y + height} L${x},${y + height} Z`
+  return <path d={d} fill={fill} />
+}
+const GlossyBar = (props: any) => {
+  const { x, y, width, height, fill } = props
+  if (!height || height <= 0) return null
+  return <rect x={x} y={y} width={width} height={height} fill={fill} />
 }
 
 function MetricCard({ label, value, sub }: { label: string; value: string | number; sub?: string }) {
@@ -67,12 +86,15 @@ function FunnelEtapa({ label, valor, pct }: { label: string; valor: number; pct:
 
 export default function SDR() {
   const anioActual = new Date().getFullYear()
-  const [desde] = useState(`${anioActual}-01`)
-  const [hasta] = useState(`${anioActual}-${String(new Date().getMonth() + 1).padStart(2, '0')}`)
+  const [anio, setAnio] = useState(anioActual)
   const [sdrSel, setSdrSel] = useState<string>('todos')
+  const [udnSel, setUdnSel] = useState<string>('todas')
   const [actividad, setActividad] = useState<RowActividad[]>([])
   const [mqlsUdn, setMqlsUdn] = useState<RowMqlUdn[]>([])
   const [loading, setLoading] = useState(true)
+
+  const desde = `${anio}-01`
+  const hasta = anio === anioActual ? `${anio}-${String(new Date().getMonth() + 1).padStart(2, '0')}` : `${anio}-12`
 
   useEffect(() => {
     setLoading(true)
@@ -89,23 +111,36 @@ export default function SDR() {
     sdrSel === 'todos' ? actividad : actividad.filter(r => r.sdr === sdrSel)
   , [actividad, sdrSel])
 
-  const mqlsFiltrados = useMemo(() =>
-    sdrSel === 'todos' ? mqlsUdn : mqlsUdn.filter(r => r.sdr === sdrSel)
-  , [mqlsUdn, sdrSel])
+  const mqlsFiltrados = useMemo(() => {
+    let rows = sdrSel === 'todos' ? mqlsUdn : mqlsUdn.filter(r => r.sdr === sdrSel)
+    if (udnSel !== 'todas') rows = rows.filter(r => r.udn === udnSel)
+    return rows
+  }, [mqlsUdn, sdrSel, udnSel])
 
   const totales = useMemo(() => {
     const totalActividad = actividadFiltrada.reduce((s, r) => s + r.total_actividad, 0)
     const contactosConectados = actividadFiltrada.reduce((s, r) => s + r.contactos_conectados, 0)
-    const reunionesAgendadas = actividadFiltrada.reduce((s, r) => s + r.reuniones_agendadas, 0)
     const reunionesCompletadas = actividadFiltrada.reduce((s, r) => s + r.reuniones_completadas, 0)
     const mqls = mqlsFiltrados.reduce((s, r) => s + r.mqls, 0)
-    return { totalActividad, contactosConectados, mqls, reunionesAgendadas, reunionesCompletadas }
+    return { totalActividad, contactosConectados, mqls, reunionesCompletadas }
   }, [actividadFiltrada, mqlsFiltrados])
+
+  const comparativoMensual = useMemo(() => {
+    const meses = Array.from(new Set(actividadFiltrada.map(r => r.mes))).sort()
+    if (meses.length < 2) return null
+    const mesActual = meses[meses.length - 1]
+    const mesAnterior = meses[meses.length - 2]
+    const sum = (mes: string) => actividadFiltrada.filter(r => r.mes === mes).reduce((s, r) => s + r.total_actividad, 0)
+    const actual = sum(mesActual)
+    const anterior = sum(mesAnterior)
+    const delta = anterior > 0 ? (((actual - anterior) / anterior) * 100).toFixed(1) : null
+    return { mesActual: mesLabel(mesActual), mesAnterior: mesLabel(mesAnterior), actual, anterior, delta }
+  }, [actividadFiltrada])
 
   const leaderboard = useMemo(() => {
     return SDRS_VIGENTES.map(sdr => {
       const act = actividad.filter(r => r.sdr === sdr)
-      const mqlRows = mqlsUdn.filter(r => r.sdr === sdr)
+      const mqlRows = mqlsUdn.filter(r => r.sdr === sdr && (udnSel === 'todas' || r.udn === udnSel))
       const totalActividad = act.reduce((s, r) => s + r.total_actividad, 0)
       const contactosConectados = act.reduce((s, r) => s + r.contactos_conectados, 0)
       const mqls = mqlRows.reduce((s, r) => s + r.mqls, 0)
@@ -113,9 +148,9 @@ export default function SDR() {
       const tasaConversion = totalActividad > 0 ? ((mqls / totalActividad) * 100).toFixed(1) : '0.0'
       return { sdr, totalActividad, contactosConectados, mqls, reunionesCompletadas, tasaConversion }
     }).sort((a, b) => b.mqls - a.mqls)
-  }, [actividad, mqlsUdn])
+  }, [actividad, mqlsUdn, udnSel])
 
-  const chartData = useMemo(() => {
+  const chartDataUdn = useMemo(() => {
     const meses = Array.from(new Set(mqlsFiltrados.map(r => r.mes))).sort()
     const udns = Array.from(new Set(mqlsFiltrados.map(r => r.udn)))
     return meses.map(mes => {
@@ -128,6 +163,19 @@ export default function SDR() {
   }, [mqlsFiltrados])
 
   const udnsPresentes = useMemo(() => Array.from(new Set(mqlsFiltrados.map(r => r.udn))), [mqlsFiltrados])
+  const udnsDisponibles = useMemo(() => Array.from(new Set(mqlsUdn.map(r => r.udn))).sort(), [mqlsUdn])
+
+  const chartDataReuniones = useMemo(() => {
+    const meses = Array.from(new Set(actividad.map(r => r.mes))).sort()
+    return meses.map(mes => {
+      const fila: Record<string, string | number> = { mes: mesLabel(mes) }
+      SDRS_VIGENTES.forEach(sdr => {
+        const row = actividad.find(r => r.mes === mes && r.sdr === sdr)
+        fila[sdr] = row?.reuniones_completadas || 0
+      })
+      return fila
+    })
+  }, [actividad])
 
   if (loading) {
     return <div style={{ padding: 60, textAlign: 'center', color: '#94a3b8', fontSize: 13 }}>Cargando datos de SDR...</div>
@@ -138,15 +186,45 @@ export default function SDR() {
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 20, flexWrap: 'wrap', gap: 12 }}>
         <div>
           <h2 style={{ fontSize: 18, fontWeight: 800, color: '#172033', margin: 0 }}>Gestión SDR</h2>
-          <p style={{ fontSize: 12, color: '#64748b', margin: '2px 0 0' }}>Rendimiento de prospección, {anioActual} · hasta antes de SQL</p>
+          <p style={{ fontSize: 12, color: '#64748b', margin: '2px 0 0' }}>Rendimiento de prospección · hasta antes de SQL</p>
         </div>
-        <select value={sdrSel} onChange={e => setSdrSel(e.target.value)} style={{
-          padding: '7px 12px', borderRadius: 8, border: '1px solid #e2e8f0', fontSize: 12.5, color: '#172033', background: '#fff',
-        }}>
-          <option value="todos">Todos los SDR</option>
-          {SDRS_VIGENTES.map(s => <option key={s} value={s}>{s}</option>)}
-        </select>
+        <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+          <select value={anio} onChange={e => setAnio(parseInt(e.target.value, 10))} style={{
+            padding: '7px 12px', borderRadius: 8, border: '1px solid #e2e8f0', fontSize: 12.5, color: '#172033', background: '#fff',
+          }}>
+            <option value={anioActual}>{anioActual}</option>
+            <option value={anioActual - 1}>{anioActual - 1}</option>
+          </select>
+          <select value={udnSel} onChange={e => setUdnSel(e.target.value)} style={{
+            padding: '7px 12px', borderRadius: 8, border: '1px solid #e2e8f0', fontSize: 12.5, color: '#172033', background: '#fff',
+          }}>
+            <option value="todas">Todas las UDN</option>
+            {udnsDisponibles.map(u => <option key={u} value={u}>{u}</option>)}
+          </select>
+          <select value={sdrSel} onChange={e => setSdrSel(e.target.value)} style={{
+            padding: '7px 12px', borderRadius: 8, border: '1px solid #e2e8f0', fontSize: 12.5, color: '#172033', background: '#fff',
+          }}>
+            <option value="todos">Todos los SDR</option>
+            {SDRS_VIGENTES.map(s => <option key={s} value={s}>{s}</option>)}
+          </select>
+        </div>
       </div>
+
+      {comparativoMensual && (
+        <div style={{
+          display: 'flex', alignItems: 'center', gap: 10, marginBottom: 16, fontSize: 12, color: '#64748b',
+          background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: 10, padding: '8px 14px', width: 'fit-content',
+        }}>
+          <span>Actividad {comparativoMensual.mesActual}: <strong style={{ color: '#172033' }}>{comparativoMensual.actual.toLocaleString()}</strong></span>
+          <span style={{ color: '#cbd5e1' }}>vs</span>
+          <span>{comparativoMensual.mesAnterior}: <strong style={{ color: '#172033' }}>{comparativoMensual.anterior.toLocaleString()}</strong></span>
+          {comparativoMensual.delta !== null && (
+            <span style={{ fontWeight: 700, color: parseFloat(comparativoMensual.delta) >= 0 ? '#22c55e' : '#ef4444' }}>
+              {parseFloat(comparativoMensual.delta) >= 0 ? '▲' : '▼'} {Math.abs(parseFloat(comparativoMensual.delta))}%
+            </span>
+          )}
+        </div>
+      )}
 
       <div style={{ background: '#fff', border: '1px solid #e2e8f0', borderRadius: 12, padding: 20, marginBottom: 20 }}>
         <div style={{ fontSize: 12, fontWeight: 700, color: '#64748b', marginBottom: 14, textTransform: 'uppercase', letterSpacing: '0.03em' }}>
@@ -184,14 +262,32 @@ export default function SDR() {
           MQLs por UDN a lo largo del tiempo
         </div>
         <ResponsiveContainer width="100%" height={280}>
-          <BarChart data={chartData}>
+          <BarChart data={chartDataUdn}>
             <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" />
             <XAxis dataKey="mes" tick={{ fontSize: 11 }} />
             <YAxis tick={{ fontSize: 11 }} />
             <Tooltip />
             <Legend wrapperStyle={{ fontSize: 11 }} />
-            {udnsPresentes.map(udn => (
-              <Bar key={udn} dataKey={udn} stackId="a" fill={UDN_COLORS[udn] || '#94a3b8'} />
+            {udnsPresentes.map((udn, i) => (
+              <Bar key={udn} dataKey={udn} stackId="a" fill={UDN_COLORS[udn] || '#94a3b8'} shape={i === udnsPresentes.length - 1 ? RoundedTopBar : GlossyBar} />
+            ))}
+          </BarChart>
+        </ResponsiveContainer>
+      </div>
+
+      <div style={{ background: '#fff', border: '1px solid #e2e8f0', borderRadius: 12, padding: 20, marginBottom: 20 }}>
+        <div style={{ fontSize: 12, fontWeight: 700, color: '#64748b', marginBottom: 14, textTransform: 'uppercase', letterSpacing: '0.03em' }}>
+          Reuniones completadas por SDR
+        </div>
+        <ResponsiveContainer width="100%" height={280}>
+          <BarChart data={chartDataReuniones}>
+            <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" />
+            <XAxis dataKey="mes" tick={{ fontSize: 11 }} />
+            <YAxis tick={{ fontSize: 11 }} />
+            <Tooltip />
+            <Legend wrapperStyle={{ fontSize: 11 }} />
+            {SDRS_VIGENTES.map((sdr, i) => (
+              <Bar key={sdr} dataKey={sdr} stackId="b" fill={SDR_COLORS[sdr]} shape={i === SDRS_VIGENTES.length - 1 ? RoundedTopBar : GlossyBar} />
             ))}
           </BarChart>
         </ResponsiveContainer>
@@ -215,7 +311,12 @@ export default function SDR() {
           <tbody>
             {leaderboard.map(row => (
               <tr key={row.sdr} style={{ borderBottom: '1px solid #f1f5f9' }}>
-                <td style={{ padding: '10px 20px', fontWeight: 600, color: '#172033' }}>{row.sdr}</td>
+                <td style={{ padding: '10px 20px', fontWeight: 600, color: '#172033' }}>
+                  <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}>
+                    <span style={{ width: 8, height: 8, borderRadius: '50%', background: SDR_COLORS[row.sdr], flexShrink: 0 }} />
+                    {row.sdr}
+                  </span>
+                </td>
                 <td style={{ padding: '10px 12px', textAlign: 'right', color: '#64748b' }}>{row.totalActividad.toLocaleString()}</td>
                 <td style={{ padding: '10px 12px', textAlign: 'right', color: '#64748b' }}>{row.contactosConectados.toLocaleString()}</td>
                 <td style={{ padding: '10px 12px', textAlign: 'right', fontWeight: 700, color: ACCENT }}>{row.mqls.toLocaleString()}</td>
