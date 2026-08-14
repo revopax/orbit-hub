@@ -40,12 +40,26 @@ function Badge({ label, color, bg }: { label: string; color: string; bg: string 
 }
 
 function Avatar({ nombre }: { nombre: string }) {
-  if (nombre === '—') return <div style={{ width: 26, height: 26, borderRadius: '50%', background: '#f1f5f9' }} />;
+  if (nombre === '—') return <div style={{ width: 24, height: 24, borderRadius: '50%', background: '#f1f5f9', flexShrink: 0 }} />;
   const iniciales = nombre.split(' ').map(p => p[0]).slice(0, 2).join('');
   const color = SDR_COLOR[nombre] || '#94a3b8';
   return (
-    <div style={{ width: 26, height: 26, borderRadius: '50%', background: color, color: '#fff', fontSize: 10, fontWeight: 700, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+    <div title={nombre} style={{ width: 24, height: 24, borderRadius: '50%', background: color, color: '#fff', fontSize: 10, fontWeight: 700, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
       {iniciales}
+    </div>
+  );
+}
+
+function ScoreCard({ label, value, sub, accent, icon }: { label: string; value: string | number; sub: string; accent: string; icon: string }) {
+  return (
+    <div style={{ ...cardStyle, position: 'relative', overflow: 'hidden', padding: '18px 22px' }}>
+      <div style={{ position: 'absolute', top: 0, left: 0, width: 4, height: '100%', background: accent }} />
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+        <p style={{ fontSize: 12, fontWeight: 600, color: '#64748b', margin: '0 0 8px', textTransform: 'uppercase', letterSpacing: 0.4 }}>{label}</p>
+        <span style={{ fontSize: 18 }}>{icon}</span>
+      </div>
+      <p style={{ fontSize: 30, fontWeight: 800, margin: 0, color: '#0f172a', letterSpacing: -0.5 }}>{value}</p>
+      <p style={{ fontSize: 12, color: '#94a3b8', margin: '4px 0 0' }}>{sub}</p>
     </div>
   );
 }
@@ -63,21 +77,9 @@ export default function InteligenciaMercado() {
     <div style={{ display: 'flex', flexDirection: 'column', gap: 24 }}>
 
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 16 }}>
-        <div style={cardStyle}>
-          <p style={{ fontSize: 13, color: '#64748b', margin: '0 0 6px' }}>Potencial sin cubrir</p>
-          <p style={{ fontSize: 28, fontWeight: 700, margin: 0, color: '#0f172a' }}>{potencialSinCubrir.toLocaleString()}</p>
-          <p style={{ fontSize: 12, color: '#94a3b8', margin: '4px 0 0' }}>empresas objetivo (DENUE)</p>
-        </div>
-        <div style={cardStyle}>
-          <p style={{ fontSize: 13, color: '#64748b', margin: '0 0 6px' }}>Señales activas</p>
-          <p style={{ fontSize: 28, fontWeight: 700, margin: 0, color: '#0f172a' }}>{senalesActivas}</p>
-          <p style={{ fontSize: 12, color: '#94a3b8', margin: '4px 0 0' }}>últimos 7 días</p>
-        </div>
-        <div style={cardStyle}>
-          <p style={{ fontSize: 13, color: '#64748b', margin: '0 0 6px' }}>Cambios de puesto</p>
-          <p style={{ fontSize: 28, fontWeight: 700, margin: 0, color: '#0f172a' }}>{cambiosPuesto}</p>
-          <p style={{ fontSize: 12, color: '#94a3b8', margin: '4px 0 0' }}>este mes</p>
-        </div>
+        <ScoreCard label="Potencial sin cubrir" value={potencialSinCubrir.toLocaleString()} sub="empresas objetivo (DENUE)" accent="#8C59FE" icon="🎯" />
+        <ScoreCard label="Señales activas" value={senalesActivas} sub="últimos 7 días" accent="#059669" icon="📡" />
+        <ScoreCard label="Cambios de puesto" value={cambiosPuesto} sub="este mes" accent="#d97706" icon="💼" />
       </div>
 
       <div style={cardStyle}>
@@ -100,32 +102,37 @@ export default function InteligenciaMercado() {
         </div>
         <p style={{ fontSize: 12, color: '#94a3b8', margin: '0 0 16px' }}>Detecciones de Brand24 y Apollo — expansión, inversión y cambios de puesto clave.</p>
 
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-          {senalesFiltradas.map((s, i) => (
-            <div key={i} style={{ border: '1px solid #f1f5f9', borderRadius: 12, padding: '14px 16px' }}>
-              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8 }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-                  <span style={{ fontWeight: 700, color: '#0f172a', fontSize: 14 }}>{s.empresa}</span>
-                  <Badge label={s.tipo} color={TIPO_COLOR[s.tipo]} bg={TIPO_BG[s.tipo]} />
-                  <Badge label={s.estado} color={ESTADO_COLOR[s.estado]} bg={ESTADO_BG[s.estado]} />
-                </div>
-                <span style={{ fontSize: 12, color: '#94a3b8' }}>{s.fecha}</span>
-              </div>
-              <p style={{ fontSize: 13, color: '#475569', margin: '0 0 10px', lineHeight: 1.5 }}>
-                &ldquo;{s.senalPublica}&rdquo;
-              </p>
-              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                <span style={{ fontSize: 12, color: '#94a3b8' }}>
-                  Fuente: <strong style={{ color: '#64748b' }}>{s.fuenteSistema}</strong> · {s.medio} · UDN: <strong style={{ color: '#64748b' }}>{s.udn}</strong>
-                </span>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-                  <Avatar nombre={s.dueno} />
-                  <span style={{ fontSize: 12, color: '#64748b' }}>{s.dueno}</span>
-                </div>
-              </div>
-            </div>
-          ))}
-        </div>
+        <table style={{ width: '100%', fontSize: 13, borderCollapse: 'collapse' }}>
+          <thead>
+            <tr style={{ textAlign: 'left' }}>
+              {['Fecha', 'Empresa', 'Tipo', 'Señal pública', 'Fuente', 'UDN', 'Estado', 'Dueño'].map(h => (
+                <th key={h} style={{ fontWeight: 500, color: '#94a3b8', fontSize: 11, textTransform: 'uppercase', letterSpacing: 0.4, paddingBottom: 10, paddingRight: 12 }}>{h}</th>
+              ))}
+            </tr>
+          </thead>
+          <tbody>
+            {senalesFiltradas.map((s, i) => (
+              <tr key={i} style={{ borderTop: '1px solid #f1f5f9' }}>
+                <td style={{ padding: '12px 12px 12px 0', color: '#64748b', whiteSpace: 'nowrap' }}>{s.fecha}</td>
+                <td style={{ padding: '12px 12px 12px 0', fontWeight: 600, color: '#0f172a', whiteSpace: 'nowrap' }}>{s.empresa}</td>
+                <td style={{ padding: '12px 12px 12px 0' }}><Badge label={s.tipo} color={TIPO_COLOR[s.tipo]} bg={TIPO_BG[s.tipo]} /></td>
+                <td style={{ padding: '12px 12px 12px 0', color: '#64748b', maxWidth: 320, fontSize: 12.5, lineHeight: 1.4 }}>
+                  &ldquo;{s.senalPublica}&rdquo;
+                  <div style={{ fontSize: 11, color: '#94a3b8', marginTop: 3 }}>{s.medio}</div>
+                </td>
+                <td style={{ padding: '12px 12px 12px 0', color: '#64748b', whiteSpace: 'nowrap' }}>{s.fuenteSistema}</td>
+                <td style={{ padding: '12px 12px 12px 0', color: '#64748b', whiteSpace: 'nowrap' }}>{s.udn}</td>
+                <td style={{ padding: '12px 12px 12px 0' }}><Badge label={s.estado} color={ESTADO_COLOR[s.estado]} bg={ESTADO_BG[s.estado]} /></td>
+                <td style={{ padding: '12px 0' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                    <Avatar nombre={s.dueno} />
+                    <span style={{ whiteSpace: 'nowrap', color: '#64748b' }}>{s.dueno}</span>
+                  </div>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
       </div>
 
       <style>{`@keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.3} }`}</style>
