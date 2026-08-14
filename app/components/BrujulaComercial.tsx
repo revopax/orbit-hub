@@ -10,8 +10,9 @@ import { UDNS } from '../lib/data';
 import { useAuth } from '../hooks/useAuth';
 import type { UDN } from '../lib/types';
 import InteligenciaComercial from './brujula-comercial/InteligenciaComercial';
+import InteligenciaMercado from './hubspot/InteligenciaMercado';
 
-type SubTab = 'comercial' | 'demanda';
+type SubTab = 'comercial' | 'demanda' | 'mercado';
 const ACCENT = '#8C59FE';
 
 type Permisos = Record<string, 'all' | string[]>;
@@ -61,7 +62,7 @@ export default function BrujulaComercial({ permisos }: { permisos?: Permisos | n
             Brújula <span style={{ color: ACCENT }}>Comercial</span>
           </span>
           <div style={{ display: 'flex', gap: 4, overflowX: 'auto', flex: 1 }}>
-            {(['comercial', 'demanda'] as SubTab[]).map(t => {
+            {(['comercial', 'demanda', 'mercado'] as SubTab[]).map(t => {
               const permitido = tienePermiso(permisos, 'brujula', t);
               return (
               <button
@@ -78,7 +79,7 @@ export default function BrujulaComercial({ permisos }: { permisos?: Permisos | n
                   opacity: permitido ? 1 : 0.6,
                 }}
               >
-                {t === 'comercial' ? 'Inteligencia Comercial' : 'Inteligencia de Demanda'}
+                {t === 'comercial' ? 'Inteligencia Comercial' : t === 'demanda' ? 'Inteligencia de Demanda' : 'Inteligencia de Mercado'}
                 {!permitido && (
                   <span style={{
                     fontSize: 9, fontWeight: 700, padding: '2px 6px', borderRadius: 5,
@@ -126,6 +127,13 @@ export default function BrujulaComercial({ permisos }: { permisos?: Permisos | n
       )}
       {sub === 'comercial' && tienePermiso(permisos, 'brujula', 'comercial') && (
         <InteligenciaComercial udnId={udnActiva.id} brandColor={udnActiva.color} />
+      )}
+      {sub === 'mercado' && (
+        <div style={{ padding: 20 }}>
+          <div style={{ maxWidth: 1400, margin: '0 auto' }}>
+            <InteligenciaMercado />
+          </div>
+        </div>
       )}
     </div>
   );
