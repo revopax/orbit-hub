@@ -23,100 +23,109 @@ const SENALES_DUMMY: Senal[] = [
   { fecha: '08 ago', empresa: 'Difrenosa', tipo: 'Contacto', fuente: 'Apollo', udn: 'Zeus', estado: 'perdida', dueno: 'Antonio Vargas', detalle: 'Sin presupuesto — reintento en 90 días' },
 ];
 
-const BADGE_COLOR: Record<TipoSenal, string> = {
-  'Expansión': 'bg-green-100 text-green-800',
-  'Inversión': 'bg-blue-100 text-blue-800',
-  'Apertura': 'bg-purple-100 text-purple-800',
-  'Contacto': 'bg-amber-100 text-amber-800',
+const TIPO_COLOR: Record<TipoSenal, string> = {
+  'Expansión': '#059669',
+  'Inversión': '#2563eb',
+  'Apertura': '#7c3aed',
+  'Contacto': '#d97706',
+};
+const TIPO_BG: Record<TipoSenal, string> = {
+  'Expansión': '#d1fae5',
+  'Inversión': '#dbeafe',
+  'Apertura': '#ede9fe',
+  'Contacto': '#fef3c7',
+};
+const ESTADO_COLOR: Record<EstadoSenal, string> = {
+  nueva: '#475569', asignada: '#2563eb', contactada: '#059669', perdida: '#dc2626',
+};
+const ESTADO_BG: Record<EstadoSenal, string> = {
+  nueva: '#f1f5f9', asignada: '#dbeafe', contactada: '#d1fae5', perdida: '#fee2e2',
 };
 
-const ESTADO_COLOR: Record<EstadoSenal, string> = {
-  nueva: 'bg-gray-100 text-gray-700',
-  asignada: 'bg-blue-100 text-blue-700',
-  contactada: 'bg-green-100 text-green-700',
-  perdida: 'bg-red-100 text-red-700',
+const cardStyle: React.CSSProperties = {
+  background: '#fff', borderRadius: 14, border: '1px solid #eef0f3',
+  boxShadow: '0 1px 3px rgba(16,24,40,0.04)', padding: '20px 24px',
 };
+
+function Badge({ label, color, bg }: { label: string; color: string; bg: string }) {
+  return (
+    <span style={{ fontSize: 12, fontWeight: 600, padding: '3px 10px', borderRadius: 20, background: bg, color }}>
+      {label}
+    </span>
+  );
+}
 
 export default function InteligenciaMercado() {
   const [filtroUdn, setFiltroUdn] = useState<string>('Todas');
   const udns = ['Todas', 'UIX', 'Marketing United', 'Promo Espacio', 'Zeus', 'Neracode', 'House Of Films', 'Research Land', 'Mexa Creativa'];
 
-  const senalesFiltradas = filtroUdn === 'Todas'
-    ? SENALES_DUMMY
-    : SENALES_DUMMY.filter(s => s.udn === filtroUdn);
-
+  const senalesFiltradas = filtroUdn === 'Todas' ? SENALES_DUMMY : SENALES_DUMMY.filter(s => s.udn === filtroUdn);
   const potencialSinCubrir = 3240;
   const senalesActivas = SENALES_DUMMY.filter(s => s.estado === 'nueva' || s.estado === 'asignada').length;
   const cambiosContacto = SENALES_DUMMY.filter(s => s.fuente === 'Apollo').length;
 
   return (
-    <div className="space-y-6">
-      <div className="grid grid-cols-3 gap-3">
-        <div className="bg-white rounded-xl border border-gray-200 p-4">
-          <p className="text-sm text-gray-500 mb-1">Potencial sin cubrir</p>
-          <p className="text-2xl font-medium">{potencialSinCubrir.toLocaleString()}</p>
-          <p className="text-xs text-gray-400 mt-1">empresas objetivo (DENUE)</p>
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 24 }}>
+
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 16 }}>
+        <div style={cardStyle}>
+          <p style={{ fontSize: 13, color: '#64748b', margin: '0 0 6px' }}>Potencial sin cubrir</p>
+          <p style={{ fontSize: 28, fontWeight: 700, margin: 0, color: '#0f172a' }}>{potencialSinCubrir.toLocaleString()}</p>
+          <p style={{ fontSize: 12, color: '#94a3b8', margin: '4px 0 0' }}>empresas objetivo (DENUE)</p>
         </div>
-        <div className="bg-white rounded-xl border border-gray-200 p-4">
-          <p className="text-sm text-gray-500 mb-1">Señales activas</p>
-          <p className="text-2xl font-medium">{senalesActivas}</p>
-          <p className="text-xs text-gray-400 mt-1">últimos 7 días</p>
+        <div style={cardStyle}>
+          <p style={{ fontSize: 13, color: '#64748b', margin: '0 0 6px' }}>Señales activas</p>
+          <p style={{ fontSize: 28, fontWeight: 700, margin: 0, color: '#0f172a' }}>{senalesActivas}</p>
+          <p style={{ fontSize: 12, color: '#94a3b8', margin: '4px 0 0' }}>últimos 7 días</p>
         </div>
-        <div className="bg-white rounded-xl border border-gray-200 p-4">
-          <p className="text-sm text-gray-500 mb-1">Cambios de contacto</p>
-          <p className="text-2xl font-medium">{cambiosContacto}</p>
-          <p className="text-xs text-gray-400 mt-1">este mes</p>
+        <div style={cardStyle}>
+          <p style={{ fontSize: 13, color: '#64748b', margin: '0 0 6px' }}>Cambios de contacto</p>
+          <p style={{ fontSize: 28, fontWeight: 700, margin: 0, color: '#0f172a' }}>{cambiosContacto}</p>
+          <p style={{ fontSize: 12, color: '#94a3b8', margin: '4px 0 0' }}>este mes</p>
         </div>
       </div>
 
-      <div className="bg-white rounded-xl border border-gray-200 p-5">
-        <h3 className="text-base font-medium mb-3">Potencial de mercado por UDN</h3>
-        <p className="text-sm text-gray-500">Cruce DENUE (filtro empleados) vs. cartera actual — pendiente de conectar pipeline real.</p>
+      <div style={cardStyle}>
+        <h3 style={{ fontSize: 15, fontWeight: 700, margin: '0 0 6px', color: '#0f172a' }}>Potencial de mercado por UDN</h3>
+        <p style={{ fontSize: 13, color: '#64748b', margin: 0 }}>Cruce DENUE (filtro empleados) vs. cartera actual — pendiente de conectar pipeline real.</p>
       </div>
 
-      <div className="bg-white rounded-xl border border-gray-200 p-5">
-        <div className="flex items-center justify-between mb-4">
-          <h3 className="text-base font-medium">Señales de mercado</h3>
+      <div style={cardStyle}>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16 }}>
+          <h3 style={{ fontSize: 15, fontWeight: 700, margin: 0, color: '#0f172a' }}>Señales de mercado</h3>
           <select
             value={filtroUdn}
             onChange={(e) => setFiltroUdn(e.target.value)}
-            className="text-sm border border-gray-200 rounded-lg px-3 py-1.5"
+            style={{ fontSize: 13, border: '1px solid #e2e8f0', borderRadius: 8, padding: '6px 10px', color: '#475569' }}
           >
             {udns.map(u => <option key={u} value={u}>{u}</option>)}
           </select>
         </div>
 
-        <table className="w-full text-sm">
+        <table style={{ width: '100%', fontSize: 13, borderCollapse: 'collapse' }}>
           <thead>
-            <tr className="text-left text-gray-400 text-xs">
-              <th className="pb-2 font-normal">Fecha</th>
-              <th className="pb-2 font-normal">Empresa</th>
-              <th className="pb-2 font-normal">Tipo</th>
-              <th className="pb-2 font-normal">Fuente</th>
-              <th className="pb-2 font-normal">UDN</th>
-              <th className="pb-2 font-normal">Estado</th>
-              <th className="pb-2 font-normal">Dueño</th>
+            <tr style={{ textAlign: 'left' }}>
+              {['Fecha', 'Empresa', 'Tipo', 'Fuente', 'UDN', 'Estado', 'Dueño'].map(h => (
+                <th key={h} style={{ fontWeight: 500, color: '#94a3b8', fontSize: 11, textTransform: 'uppercase', letterSpacing: 0.4, paddingBottom: 10 }}>{h}</th>
+              ))}
             </tr>
           </thead>
           <tbody>
             {senalesFiltradas.map((s, i) => (
-              <tr key={i} className="border-t border-gray-100">
-                <td className="py-2.5 text-gray-600">{s.fecha}</td>
-                <td className="py-2.5 font-medium">{s.empresa}</td>
-                <td className="py-2.5">
-                  <span className={`text-xs px-2 py-0.5 rounded-full ${BADGE_COLOR[s.tipo]}`}>{s.tipo}</span>
-                </td>
-                <td className="py-2.5 text-gray-500">{s.fuente}</td>
-                <td className="py-2.5 text-gray-600">{s.udn}</td>
-                <td className="py-2.5">
-                  <span className={`text-xs px-2 py-0.5 rounded-full ${ESTADO_COLOR[s.estado]}`}>{s.estado}</span>
-                </td>
-                <td className="py-2.5 text-gray-600">{s.dueno}</td>
+              <tr key={i} style={{ borderTop: '1px solid #f1f5f9' }}>
+                <td style={{ padding: '12px 0', color: '#64748b' }}>{s.fecha}</td>
+                <td style={{ padding: '12px 0', fontWeight: 600, color: '#0f172a' }}>{s.empresa}</td>
+                <td style={{ padding: '12px 0' }}><Badge label={s.tipo} color={TIPO_COLOR[s.tipo]} bg={TIPO_BG[s.tipo]} /></td>
+                <td style={{ padding: '12px 0', color: '#64748b' }}>{s.fuente}</td>
+                <td style={{ padding: '12px 0', color: '#64748b' }}>{s.udn}</td>
+                <td style={{ padding: '12px 0' }}><Badge label={s.estado} color={ESTADO_COLOR[s.estado]} bg={ESTADO_BG[s.estado]} /></td>
+                <td style={{ padding: '12px 0', color: '#64748b' }}>{s.dueno}</td>
               </tr>
             ))}
           </tbody>
         </table>
       </div>
+
     </div>
   );
 }

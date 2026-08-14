@@ -94,6 +94,9 @@ export default function BrujulaComercial({ permisos }: { permisos?: Permisos | n
           </div>
         </div>
       </div>
+      <div style={{ padding: '4px 20px 0', fontSize: 11, fontWeight: 700, color: 'var(--txt-4)', textTransform: 'uppercase', letterSpacing: 0.5 }}>
+        Inteligencia
+      </div>
       <UDNBar
         udns={udnsVisibles}
         udnActiva={udnActiva}
