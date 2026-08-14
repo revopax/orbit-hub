@@ -580,8 +580,7 @@ export function FunnelPanel({ dateFrom, dateTo, filtros }: { dateFrom: string; d
         background: '#fffbeb', border: '1px solid #fde68a', borderRadius: 8,
         padding: '10px 14px', fontSize: 11, color: '#92400e', lineHeight: 1.5,
       }}>
-        <div>* El funnel (Contactos a Clientes) cuenta los registros por fecha de creacion, para no romper la logica de conversion entre etapas.</div>
-        <div style={{ marginTop: 4 }}>* Clientes ($) y Proyectos ganados cuentan por fecha de facturacion (cuando el dinero ya entro). Ganados por facturar ($) cuenta por su propia fecha de por-facturar (negocios ganados pendientes de facturar).</div>
+        <div>* Clientes ($) y Proyectos ganados cuentan por fecha de facturacion (cuando el dinero ya entro). Ganados por facturar ($) cuenta por su propia fecha de por-facturar (negocios ganados pendientes de facturar).</div>
       </div>
     </div>
   )
