@@ -117,7 +117,8 @@ function ChartLegend({ items, colors, historicos }: { items: string[]; colors: R
 function CustomTooltip({ active, payload, label }: any) {
   if (!active || !payload || !payload.length) return null
   const anioAnteriorEntry = payload.find((p: any) => p.dataKey === 'anioAnterior')
-  const totalActual = payload.find((p: any) => p.dataKey === 'total')?.value as number | undefined
+  const totalActual = payload.filter((p: any) => p.dataKey !== 'total' && p.dataKey !== 'anioAnterior')
+    .reduce((s: number, p: any) => s + (typeof p.value === 'number' ? p.value : 0), 0)
   const totalAnterior = anioAnteriorEntry?.value as number | undefined
   const tieneComparativo = anioAnteriorEntry && typeof totalActual === 'number' && typeof totalAnterior === 'number' && totalAnterior > 0
   const delta = tieneComparativo ? (((totalActual! - totalAnterior!) / totalAnterior!) * 100).toFixed(0) : null
