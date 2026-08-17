@@ -264,7 +264,10 @@ export default function SDR() {
     rpc<{ mqls_udn: RowMqlUdn[] }>('sdr_dashboard_data', { p_desde: desplazar(desde), p_hasta: desplazar(hasta) })
       .then(data => {
         const acc: Record<string, number> = {}
-        ;(data.mqls_udn || []).forEach(r => { acc[r.mes] = (acc[r.mes] || 0) + r.mqls })
+        ;(data.mqls_udn || []).forEach(r => {
+          const mesKey = String(r.mes).slice(0, 7)
+          acc[mesKey] = (acc[mesKey] || 0) + r.mqls
+        })
         setMqlsAnioAnteriorPorMes(acc)
       }).catch(() => setMqlsAnioAnteriorPorMes({}))
   }, [desde, hasta])
