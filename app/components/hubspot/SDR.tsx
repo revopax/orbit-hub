@@ -71,7 +71,7 @@ interface RowActividad {
   sdr: string; mes: string; total_actividad: number; contactos_conectados: number
   reuniones_agendadas: number; reuniones_completadas: number
 }
-interface RowMqlUdn { sdr: string; mes: string; udn: string; mqls: number }
+interface RowMqlUdn { sdr: string; mes: string; udn: string; fuente_tipo: 'outbound' | 'inbound'; mqls: number }
 interface RowActividadTipo { sdr: string; tipo: string; total: number }
 
 function mesLabel(mes: string | null | undefined) {
@@ -273,6 +273,7 @@ export default function SDR() {
   const desde = dateFrom.slice(0, 7)
   const hasta = dateTo.slice(0, 7)
   const [mqlsAnioAnteriorPorMes, setMqlsAnioAnteriorPorMes] = useState<Record<string, number>>({})
+  const [fuenteMqlSel, setFuenteMqlSel] = useState<'todas' | 'outbound' | 'inbound'>('todas')
   const [slaPorSdr, setSlaPorSdr] = useState<{ sdr: string; sla_promedio: number; contactos: number }[]>([])
   const [slaPorDia, setSlaPorDia] = useState<{ dia: string; sla_promedio: number; contactos: number }[]>([])
   useEffect(() => {
@@ -333,6 +334,9 @@ export default function SDR() {
     if (udnSel !== 'todas') rows = rows.filter(r => r.udn === udnSel)
     return rows
   }, [mqlsUdn, sdrSel, udnSel])
+  const mqlsFiltradosGrafica = useMemo(() => {
+    return fuenteMqlSel === 'todas' ? mqlsFiltrados : mqlsFiltrados.filter(r => r.fuente_tipo === fuenteMqlSel)
+  }, [mqlsFiltrados, fuenteMqlSel])
 
   const totales = useMemo(() => {
     const totalActividad = actividadFiltrada.reduce((s, r) => s + r.total_actividad, 0)
@@ -410,19 +414,19 @@ export default function SDR() {
   const sdrDeLaSemana = leaderboard.length > 0 && leaderboard[0].reunionesCompletadas > 0 ? leaderboard[0].sdr : null
 
   const chartDataUdn = useMemo(() => {
-    const meses = Array.from(new Set(mqlsFiltrados.map(r => r.mes))).sort()
-    const udns = Array.from(new Set(mqlsFiltrados.map(r => r.udn)))
+    const meses = Array.from(new Set(mqlsFiltradosGrafica.map(r => r.mes))).sort()
+    const udns = Array.from(new Set(mqlsFiltradosGrafica.map(r => r.udn)))
     return meses.map(mes => {
       const fila: Record<string, string | number> = { mes: mesLabel(mes) }
       udns.forEach(udn => {
-        fila[udn] = mqlsFiltrados.filter(r => r.mes === mes && r.udn === udn).reduce((s, r) => s + r.mqls, 0)
+        fila[udn] = mqlsFiltradosGrafica.filter(r => r.mes === mes && r.udn === udn).reduce((s, r) => s + r.mqls, 0)
       })
       fila.total = udns.reduce((s, u) => s + (fila[u] as number || 0), 0)
       return fila
     })
-  }, [mqlsFiltrados])
+  }, [mqlsFiltradosGrafica])
 
-  const udnsPresentes = useMemo(() => Array.from(new Set(mqlsFiltrados.map(r => r.udn))), [mqlsFiltrados])
+  const udnsPresentes = useMemo(() => Array.from(new Set(mqlsFiltradosGrafica.map(r => r.udn))), [mqlsFiltradosGrafica])
   const udnsDisponibles = useMemo(() => {
     const base = sdrSel === 'todos' ? mqlsUdn : mqlsUdn.filter(r => r.sdr === sdrSel)
     return Array.from(new Set(base.map(r => r.udn))).sort()
@@ -561,8 +565,17 @@ export default function SDR() {
       </div>
 
       <div style={{ background: '#fff', border: '1px solid #e2e8f0', borderRadius: 12, padding: 20, marginBottom: 20 }}>
-        <div style={{ fontSize: 12, fontWeight: 700, color: '#64748b', marginBottom: 14, textTransform: 'uppercase', letterSpacing: '0.03em' }}>
-          MQLs por UDN a lo largo del tiempo
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 14, flexWrap: 'wrap', gap: 8 }}>
+          <div style={{ fontSize: 12, fontWeight: 700, color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.03em' }}>
+            MQLs por UDN a lo largo del tiempo
+          </div>
+          <select value={fuenteMqlSel} onChange={e => setFuenteMqlSel(e.target.value as any)} style={{
+            padding: '5px 10px', borderRadius: 8, border: '1px solid #e2e8f0', fontSize: 11.5, color: '#172033', background: '#fff',
+          }}>
+            <option value="todas">Todas las fuentes</option>
+            <option value="outbound">Solo Outbound (Prospección)</option>
+            <option value="inbound">Solo Inbound</option>
+          </select>
         </div>
         <ChartLegend items={udnsPresentes} colors={UDN_COLORS} historicos={udnsHistoricas} />
         <ResponsiveContainer width="100%" height={300}>
