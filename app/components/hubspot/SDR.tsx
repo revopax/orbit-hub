@@ -405,9 +405,9 @@ export default function SDR() {
       const tasaConversion = totalActividad > 0 ? ((mqls / totalActividad) * 100).toFixed(1) : '0.0'
       const tasaMqlReunion = mqls > 0 ? ((reunionesCompletadas / mqls) * 100).toFixed(1) : '0.0'
       return { sdr, totalActividad, contactosConectados, mqls, reunionesCompletadas, tasaConversion, tasaMqlReunion, tipos }
-    }).sort((a, b) => parseFloat(b.tasaConversion) - parseFloat(a.tasaConversion))
+    }).sort((a, b) => b.reunionesCompletadas - a.reunionesCompletadas)
   }, [actividad, mqlsUdn, actividadTipo, udnSel, sdrsAMostrar])
-  const sdrDeLaSemana = leaderboard.length > 0 && leaderboard[0].totalActividad > 0 ? leaderboard[0].sdr : null
+  const sdrDeLaSemana = leaderboard.length > 0 && leaderboard[0].reunionesCompletadas > 0 ? leaderboard[0].sdr : null
 
   const chartDataUdn = useMemo(() => {
     const meses = Array.from(new Set(mqlsFiltrados.map(r => r.mes))).sort()
@@ -657,7 +657,7 @@ export default function SDR() {
       <div style={{ background: '#fff', border: '1px solid #e2e8f0', borderRadius: 12, overflow: 'hidden' }}>
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '16px 20px 0' }}>
           <div style={{ fontSize: 12, fontWeight: 700, color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.03em' }}>
-            Comparativo por SDR — ordenado por eficiencia
+            Comparativo por SDR — ordenado por reuniones completadas
           </div>
         </div>
         <table style={{ width: '100%', borderCollapse: 'collapse', marginTop: 12, fontSize: 12.5 }}>
@@ -693,7 +693,7 @@ export default function SDR() {
                         <span style={{ width: 8, height: 8, borderRadius: '50%', background: SDR_COLORS[row.sdr], flexShrink: 0 }} />
                         {row.sdr}
                         {row.sdr === sdrDeLaSemana && (
-                          <span title="Mayor eficiencia Actividad → MQL del periodo seleccionado" style={{
+                          <span title="Mayor número de reuniones completadas en el periodo seleccionado" style={{
                             display: 'inline-flex', alignItems: 'center', gap: 3, fontSize: 10, fontWeight: 700,
                             color: '#7c3aed', background: '#f3e8ff', border: '1px solid #e9d5ff',
                             borderRadius: 999, padding: '2px 8px', letterSpacing: '0.02em',
@@ -701,7 +701,7 @@ export default function SDR() {
                             <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="#7c3aed" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
                               <polygon points="12 2 15 9 22 9 16.5 13.5 18.5 21 12 16.5 5.5 21 7.5 13.5 2 9 9 9" />
                             </svg>
-                            Mejor conversión
+                            Más reuniones
                           </span>
                         )}
                       </span>
