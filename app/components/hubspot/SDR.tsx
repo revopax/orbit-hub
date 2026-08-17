@@ -1,6 +1,6 @@
 'use client';
 import React, { useState, useEffect, useMemo, useRef } from 'react'
-import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid, LabelList } from 'recharts'
+import { BarChart, Bar, Line, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid, LabelList } from 'recharts'
 import { InfoTip } from '../redes/KPICard'
 
 const ACCENT = '#7038E5'
@@ -255,6 +255,19 @@ export default function SDR() {
 
   const desde = dateFrom.slice(0, 7)
   const hasta = dateTo.slice(0, 7)
+  const [mqlsAnioAnteriorPorMes, setMqlsAnioAnteriorPorMes] = useState<Record<string, number>>({})
+  useEffect(() => {
+    const desplazar = (ym: string) => {
+      const [y, m] = ym.split('-').map(Number)
+      return `${y - 1}-${String(m).padStart(2, '0')}`
+    }
+    rpc<{ mqls_udn: RowMqlUdn[] }>('sdr_dashboard_data', { p_desde: desplazar(desde), p_hasta: desplazar(hasta) })
+      .then(data => {
+        const acc: Record<string, number> = {}
+        ;(data.mqls_udn || []).forEach(r => { acc[r.mes] = (acc[r.mes] || 0) + r.mqls })
+        setMqlsAnioAnteriorPorMes(acc)
+      }).catch(() => setMqlsAnioAnteriorPorMes({}))
+  }, [desde, hasta])
 
   useEffect(() => {
     setLoading(true)
@@ -371,9 +384,12 @@ export default function SDR() {
         fila[udn] = mqlsFiltrados.filter(r => r.mes === mes && r.udn === udn).reduce((s, r) => s + r.mqls, 0)
       })
       fila.total = udns.reduce((s, u) => s + (fila[u] as number || 0), 0)
+      const [y, m] = mes.split('-').map(Number)
+      const mesAnioAnterior = `${y - 1}-${String(m).padStart(2, '0')}`
+      fila.anioAnterior = mqlsAnioAnteriorPorMes[mesAnioAnterior] || 0
       return fila
     })
-  }, [mqlsFiltrados])
+  }, [mqlsFiltrados, mqlsAnioAnteriorPorMes])
 
   const udnsPresentes = useMemo(() => Array.from(new Set(mqlsFiltrados.map(r => r.udn))), [mqlsFiltrados])
   const udnsDisponibles = useMemo(() => {
@@ -537,6 +553,7 @@ export default function SDR() {
                 )}
               </Bar>
             ))}
+            <Line type="monotone" dataKey="anioAnterior" stroke="#94a3b8" strokeWidth={2} strokeDasharray="5 4" dot={{ r: 3, fill: '#94a3b8' }} name="Año anterior" />
           </BarChart>
         </ResponsiveContainer>
       </div>
