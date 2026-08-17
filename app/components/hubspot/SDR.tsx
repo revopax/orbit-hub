@@ -401,6 +401,8 @@ export default function SDR() {
     return sdrsAMostrar.map(sdr => {
       const act = actividad.filter(r => r.sdr === sdr)
       const mqlRows = mqlsUdn.filter(r => r.sdr === sdr && (udnSel === 'todas' || r.udn === udnSel))
+      const mqlsOutbound = mqlRows.filter(r => r.fuente_tipo === 'outbound').reduce((s, r) => s + r.mqls, 0)
+      const mqlsInbound = mqlRows.filter(r => r.fuente_tipo === 'inbound').reduce((s, r) => s + r.mqls, 0)
       const tipos = actividadTipo.filter(r => r.sdr === sdr)
       const totalActividad = act.reduce((s, r) => s + r.total_actividad, 0)
       const contactosConectados = act.reduce((s, r) => s + r.contactos_conectados, 0)
@@ -408,7 +410,7 @@ export default function SDR() {
       const reunionesCompletadas = act.reduce((s, r) => s + r.reuniones_completadas, 0)
       const tasaConversion = totalActividad > 0 ? ((mqls / totalActividad) * 100).toFixed(1) : '0.0'
       const tasaMqlReunion = mqls > 0 ? ((reunionesCompletadas / mqls) * 100).toFixed(1) : '0.0'
-      return { sdr, totalActividad, contactosConectados, mqls, reunionesCompletadas, tasaConversion, tasaMqlReunion, tipos }
+      return { sdr, totalActividad, contactosConectados, mqls, mqlsOutbound, mqlsInbound, reunionesCompletadas, tasaConversion, tasaMqlReunion, tipos }
     }).sort((a, b) => b.reunionesCompletadas - a.reunionesCompletadas)
   }, [actividad, mqlsUdn, actividadTipo, udnSel, sdrsAMostrar])
   const sdrDeLaSemana = leaderboard.length > 0 && leaderboard[0].reunionesCompletadas > 0 ? leaderboard[0].sdr : null
@@ -740,16 +742,30 @@ export default function SDR() {
                   {abierto && (
                     <tr style={{ borderBottom: '1px solid #f1f5f9' }}>
                       <td colSpan={6} style={{ padding: '0 20px 12px 44px', background: '#f8fafc' }}>
-                        <div style={{ display: 'flex', flexDirection: 'column', gap: 4, paddingTop: 8 }}>
-                          {row.tipos.length === 0 && (
-                            <div style={{ fontSize: 11.5, color: '#94a3b8' }}>Sin desglose disponible</div>
-                          )}
-                          {row.tipos.map(t => (
-                            <div key={t.tipo} style={{ display: 'flex', justifyContent: 'space-between', fontSize: 11.5, color: '#64748b', maxWidth: 260 }}>
-                              <span>{TIPO_LABELS[t.tipo] || t.tipo}</span>
-                              <span style={{ fontWeight: 600, color: '#334155' }}>{t.total.toLocaleString()}</span>
+                        <div style={{ display: 'flex', gap: 32, flexWrap: 'wrap' }}>
+                          <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+                            <div style={{ fontSize: 10, fontWeight: 700, color: '#94a3b8', textTransform: 'uppercase', letterSpacing: '0.03em', marginBottom: 2 }}>Actividad</div>
+                            {row.tipos.length === 0 && (
+                              <div style={{ fontSize: 11.5, color: '#94a3b8' }}>Sin desglose disponible</div>
+                            )}
+                            {row.tipos.map(t => (
+                              <div key={t.tipo} style={{ display: 'flex', justifyContent: 'space-between', fontSize: 11.5, color: '#64748b', minWidth: 200 }}>
+                                <span>{TIPO_LABELS[t.tipo] || t.tipo}</span>
+                                <span style={{ fontWeight: 600, color: '#334155' }}>{t.total.toLocaleString()}</span>
+                              </div>
+                            ))}
+                          </div>
+                          <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+                            <div style={{ fontSize: 10, fontWeight: 700, color: '#94a3b8', textTransform: 'uppercase', letterSpacing: '0.03em', marginBottom: 2 }}>MQLs por fuente</div>
+                            <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 11.5, color: '#64748b', minWidth: 200 }}>
+                              <span>Outbound (Prospección)</span>
+                              <span style={{ fontWeight: 600, color: '#334155' }}>{row.mqlsOutbound.toLocaleString()}</span>
                             </div>
-                          ))}
+                            <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 11.5, color: '#64748b', minWidth: 200 }}>
+                              <span>Inbound</span>
+                              <span style={{ fontWeight: 600, color: '#334155' }}>{row.mqlsInbound.toLocaleString()}</span>
+                            </div>
+                          </div>
                         </div>
                       </td>
                     </tr>
