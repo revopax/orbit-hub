@@ -273,6 +273,18 @@ export default function SDR() {
   const desde = dateFrom.slice(0, 7)
   const hasta = dateTo.slice(0, 7)
   const [mqlsAnioAnteriorPorMes, setMqlsAnioAnteriorPorMes] = useState<Record<string, number>>({})
+  const [slaPorSdr, setSlaPorSdr] = useState<{ sdr: string; sla_promedio: number; contactos: number }[]>([])
+  const [slaPorDia, setSlaPorDia] = useState<{ dia: string; sla_promedio: number; contactos: number }[]>([])
+  useEffect(() => {
+    const hoy = new Date()
+    const inicioMes = toDateOnly(new Date(hoy.getFullYear(), hoy.getMonth(), 1))
+    const hoyStr = toDateOnly(hoy)
+    const hace30 = toDateOnly(new Date(hoy.getTime() - 30 * 24 * 60 * 60 * 1000))
+    rpc<{ sdr: string; sla_promedio: number; contactos: number }[]>('sla_por_sdr_mes_actual', { fecha_desde: inicioMes, fecha_hasta: hoyStr })
+      .then(setSlaPorSdr).catch(() => setSlaPorSdr([]))
+    rpc<{ dia: string; sla_promedio: number; contactos: number }[]>('sla_por_dia', { fecha_desde: hace30, fecha_hasta: hoyStr })
+      .then(setSlaPorDia).catch(() => setSlaPorDia([]))
+  }, [])
   useEffect(() => {
     const desplazar = (ym: string) => {
       const [y, m] = ym.split('-').map(Number)
@@ -606,6 +618,42 @@ export default function SDR() {
         </ResponsiveContainer>
       </div>
 
+      <div style={{ background: '#fff', border: '1px solid #e2e8f0', borderRadius: 12, padding: 20, marginBottom: 20 }}>
+        <div style={{ display: 'flex', alignItems: 'center', marginBottom: 14 }}>
+          <div style={{ fontSize: 12, fontWeight: 700, color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.03em' }}>
+            SLA por SDR — mes actual (solo Inbound)
+          </div>
+          <InfoTip text="Promedio de horas que tarda cada SDR en atender un contacto que llego por Inbound (Website, Paid Media, Webinar, etc.), no por prospeccion propia." />
+        </div>
+        <ResponsiveContainer width="100%" height={260}>
+          <BarChart data={slaPorSdr} margin={{ top: 24, right: 8, left: 0, bottom: 8 }} barCategoryGap="30%" maxBarSize={70}>
+            <CartesianGrid vertical={false} stroke="#f1f5f9" />
+            <XAxis dataKey="sdr" tick={{ fontSize: 10.5, fill: '#64748b' }} axisLine={false} tickLine={false} />
+            <YAxis tick={{ fontSize: 11, fill: '#64748b' }} axisLine={false} tickLine={false} />
+            <Tooltip cursor={{ fill: 'rgba(0,0,0,0.03)' }} formatter={(v: number, name: string, props: any) => [`${v.toLocaleString()} horas (${props.payload.contactos} contactos)`, 'SLA promedio']} />
+            <Bar dataKey="sla_promedio" fill="#fb923c" radius={[6, 6, 0, 0]}>
+              <LabelList dataKey="sla_promedio" position="top" formatter={(v: number) => `${v}h`} style={{ fontSize: 11, fontWeight: 700, fill: '#0f172a' }} />
+            </Bar>
+          </BarChart>
+        </ResponsiveContainer>
+      </div>
+      <div style={{ background: '#fff', border: '1px solid #e2e8f0', borderRadius: 12, padding: 20, marginBottom: 20 }}>
+        <div style={{ display: 'flex', alignItems: 'center', marginBottom: 14 }}>
+          <div style={{ fontSize: 12, fontWeight: 700, color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.03em' }}>
+            SLA por día — últimos 30 días (solo Inbound)
+          </div>
+          <InfoTip text="Promedio diario de horas de respuesta a contactos Inbound, para detectar dias o rachas con demoras atipicas." />
+        </div>
+        <ResponsiveContainer width="100%" height={260}>
+          <BarChart data={slaPorDia} margin={{ top: 24, right: 8, left: 0, bottom: 8 }} barCategoryGap="20%" maxBarSize={40}>
+            <CartesianGrid vertical={false} stroke="#f1f5f9" />
+            <XAxis dataKey="dia" tick={{ fontSize: 9.5, fill: '#64748b' }} axisLine={false} tickLine={false} />
+            <YAxis tick={{ fontSize: 11, fill: '#64748b' }} axisLine={false} tickLine={false} />
+            <Tooltip cursor={{ fill: 'rgba(0,0,0,0.03)' }} formatter={(v: number, name: string, props: any) => [`${v.toLocaleString()} horas (${props.payload.contactos} contactos)`, 'SLA promedio']} />
+            <Bar dataKey="sla_promedio" fill="#fb923c" radius={[4, 4, 0, 0]} />
+          </BarChart>
+        </ResponsiveContainer>
+      </div>
       <div style={{ background: '#fff', border: '1px solid #e2e8f0', borderRadius: 12, overflow: 'hidden' }}>
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '16px 20px 0' }}>
           <div style={{ fontSize: 12, fontWeight: 700, color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.03em' }}>
