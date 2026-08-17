@@ -74,6 +74,10 @@ const DUMMY = {
   extras: { mqlDescalificados: 875, sqlObjetadas: 18, oppsPerdidas: 385, ganadosPorFacturar: 113, ganadosPorFacturarValor: 63861022, clientesValor: 14055420 },
 }
 
+const UDN_COLORS_UPPER: Record<string, string> = Object.fromEntries(
+  Object.entries(UDN_COLORS).map(([k, v]) => [k.toUpperCase(), v])
+)
+const getUdnColor = (udn: string) => UDN_COLORS[udn] || UDN_COLORS_UPPER[udn?.toUpperCase()] || UDN_COLOR_FALLBACK
 const UDNS_LIST = ['Upax', 'Promo Espacio', 'Marketing United', 'Research Land', 'Mexa Creativa', 'House Of Films', 'UIX', 'Zeus', 'Neracode']
 const FUENTES_LIST = ['Chatflow', 'Content Nurturing', 'Evento', 'Inbound', 'Paid Media', 'Prospección', 'RRSS', 'RRSS Paid', 'Referido IA', 'Referidos', 'Sin fuente', 'Website']
 export type FiltrosHome = {
@@ -1176,7 +1180,7 @@ function MqlDescalificadosPanel({ dateFrom, dateTo, filtros }: { dateFrom: strin
           <div style={{ display: 'flex', flexWrap: 'wrap', gap: 14, fontSize: 11, marginBottom: 12 }}>
             {udnsPresentes.map(udn => (
               <div key={udn} style={{ display: 'flex', alignItems: 'center', gap: 5 }}>
-                <span style={{ width: 9, height: 9, borderRadius: '50%', background: UDN_COLORS[udn] || UDN_COLOR_FALLBACK, display: 'inline-block', flexShrink: 0 }} />
+                <span style={{ width: 9, height: 9, borderRadius: '50%', background: getUdnColor(udn), display: 'inline-block', flexShrink: 0 }} />
                 <span style={{ color: '#475569' }}>{udn}</span>
               </div>
             ))}
@@ -1218,7 +1222,7 @@ function MqlDescalificadosPanel({ dateFrom, dateTo, filtros }: { dateFrom: strin
                   key={udn}
                   dataKey={udn}
                   stackId="udn"
-                  fill={UDN_COLORS[udn] || UDN_COLOR_FALLBACK}
+                  fill={getUdnColor(udn)}
                   name={udn}
                   shape={(props: any) => {
                     const row = props.payload || {}
@@ -1312,7 +1316,7 @@ function MqlTimelinePanel({ dateFrom, dateTo, filtros }: { dateFrom: string; dat
           <div style={{ display: 'flex', flexWrap: 'wrap', gap: 14, fontSize: 11, marginBottom: 12 }}>
             {udnsPresentes.map(udn => (
               <div key={udn} style={{ display: 'flex', alignItems: 'center', gap: 5 }}>
-                <span style={{ width: 9, height: 9, borderRadius: '50%', background: UDN_COLORS[udn] || UDN_COLOR_FALLBACK, display: 'inline-block', flexShrink: 0 }} />
+                <span style={{ width: 9, height: 9, borderRadius: '50%', background: getUdnColor(udn), display: 'inline-block', flexShrink: 0 }} />
                 <span style={{ color: '#475569' }}>{udn}</span>
               </div>
             ))}
@@ -1354,7 +1358,7 @@ function MqlTimelinePanel({ dateFrom, dateTo, filtros }: { dateFrom: string; dat
                   key={udn}
                   dataKey={udn}
                   stackId="udn"
-                  fill={UDN_COLORS[udn] || UDN_COLOR_FALLBACK}
+                  fill={getUdnColor(udn)}
                   name={udn}
                   shape={(props: any) => {
                     const row = props.payload || {}
@@ -1481,7 +1485,7 @@ function ContactosTimelinePanel({ dateFrom, dateTo, filtros }: { dateFrom: strin
           <div style={{ display: 'flex', flexWrap: 'wrap', gap: 14, fontSize: 11, marginBottom: 12 }}>
             {udnsPresentes.map(udn => (
               <div key={udn} style={{ display: 'flex', alignItems: 'center', gap: 5 }}>
-                <span style={{ width: 9, height: 9, borderRadius: '50%', background: UDN_COLORS[udn] || UDN_COLOR_FALLBACK, display: 'inline-block', flexShrink: 0 }} />
+                <span style={{ width: 9, height: 9, borderRadius: '50%', background: getUdnColor(udn), display: 'inline-block', flexShrink: 0 }} />
                 <span style={{ color: '#475569' }}>{udn}</span>
               </div>
             ))}
@@ -1523,7 +1527,7 @@ function ContactosTimelinePanel({ dateFrom, dateTo, filtros }: { dateFrom: strin
                   key={udn}
                   dataKey={udn}
                   stackId="udn"
-                  fill={UDN_COLORS[udn] || UDN_COLOR_FALLBACK}
+                  fill={getUdnColor(udn)}
                   name={udn}
                   shape={(props: any) => {
                     // Determina si esta UDN es la ultima con valor > 0 en ESTE mes especifico,
@@ -1700,7 +1704,7 @@ function SqlCredencialesTimelinePanel({ dateFrom, dateTo, filtros }: { dateFrom:
           <div style={{ display: 'flex', flexWrap: 'wrap', gap: 14, fontSize: 11, marginBottom: 12 }}>
             {udnsPresentes.map(udn => (
               <div key={udn} style={{ display: 'flex', alignItems: 'center', gap: 5 }}>
-                <span style={{ width: 9, height: 9, borderRadius: '50%', background: UDN_COLORS[udn] || UDN_COLOR_FALLBACK, display: 'inline-block', flexShrink: 0 }} />
+                <span style={{ width: 9, height: 9, borderRadius: '50%', background: getUdnColor(udn), display: 'inline-block', flexShrink: 0 }} />
                 <span style={{ color: '#475569' }}>{udn}</span>
               </div>
             ))}
@@ -1742,7 +1746,7 @@ function SqlCredencialesTimelinePanel({ dateFrom, dateTo, filtros }: { dateFrom:
                   key={udn}
                   dataKey={udn}
                   stackId="udn"
-                  fill={UDN_COLORS[udn] || UDN_COLOR_FALLBACK}
+                  fill={getUdnColor(udn)}
                   name={udn}
                   shape={(props: any) => {
                     const row = props.payload || {}
@@ -1886,7 +1890,7 @@ function PropuestasCreadasTimelinePanel({ dateFrom, dateTo, filtros }: { dateFro
           <div style={{ display: 'flex', flexWrap: 'wrap', gap: 14, fontSize: 11, marginBottom: 12 }}>
             {udnsPresentes.map(udn => (
               <div key={udn} style={{ display: 'flex', alignItems: 'center', gap: 5 }}>
-                <span style={{ width: 9, height: 9, borderRadius: '50%', background: UDN_COLORS[udn] || UDN_COLOR_FALLBACK, display: 'inline-block', flexShrink: 0 }} />
+                <span style={{ width: 9, height: 9, borderRadius: '50%', background: getUdnColor(udn), display: 'inline-block', flexShrink: 0 }} />
                 <span style={{ color: '#475569' }}>{udn}</span>
               </div>
             ))}
@@ -1928,7 +1932,7 @@ function PropuestasCreadasTimelinePanel({ dateFrom, dateTo, filtros }: { dateFro
                   key={udn}
                   dataKey={udn}
                   stackId="udn"
-                  fill={UDN_COLORS[udn] || UDN_COLOR_FALLBACK}
+                  fill={getUdnColor(udn)}
                   name={udn}
                   shape={(props: any) => {
                     const row = props.payload || {}
@@ -2072,7 +2076,7 @@ function PropuestasPerdidasTimelinePanel({ dateFrom, dateTo, filtros }: { dateFr
           <div style={{ display: 'flex', flexWrap: 'wrap', gap: 14, fontSize: 11, marginBottom: 12 }}>
             {udnsPresentes.map(udn => (
               <div key={udn} style={{ display: 'flex', alignItems: 'center', gap: 5 }}>
-                <span style={{ width: 9, height: 9, borderRadius: '50%', background: UDN_COLORS[udn] || UDN_COLOR_FALLBACK, display: 'inline-block', flexShrink: 0 }} />
+                <span style={{ width: 9, height: 9, borderRadius: '50%', background: getUdnColor(udn), display: 'inline-block', flexShrink: 0 }} />
                 <span style={{ color: '#475569' }}>{udn}</span>
               </div>
             ))}
@@ -2114,7 +2118,7 @@ function PropuestasPerdidasTimelinePanel({ dateFrom, dateTo, filtros }: { dateFr
                   key={udn}
                   dataKey={udn}
                   stackId="udn"
-                  fill={UDN_COLORS[udn] || UDN_COLOR_FALLBACK}
+                  fill={getUdnColor(udn)}
                   name={udn}
                   shape={(props: any) => {
                     const row = props.payload || {}
@@ -2502,7 +2506,7 @@ function PropuestasGanadasFacturarTimelinePanel({ dateFrom, dateTo, filtros }: {
           <div style={{ display: 'flex', flexWrap: 'wrap', gap: 14, fontSize: 11, marginBottom: 12 }}>
             {udnsPresentes.map(udn => (
               <div key={udn} style={{ display: 'flex', alignItems: 'center', gap: 5 }}>
-                <span style={{ width: 9, height: 9, borderRadius: '50%', background: UDN_COLORS[udn] || UDN_COLOR_FALLBACK, display: 'inline-block', flexShrink: 0 }} />
+                <span style={{ width: 9, height: 9, borderRadius: '50%', background: getUdnColor(udn), display: 'inline-block', flexShrink: 0 }} />
                 <span style={{ color: '#475569' }}>{udn}</span>
               </div>
             ))}
@@ -2544,7 +2548,7 @@ function PropuestasGanadasFacturarTimelinePanel({ dateFrom, dateTo, filtros }: {
                   key={udn}
                   dataKey={udn}
                   stackId="udn"
-                  fill={UDN_COLORS[udn] || UDN_COLOR_FALLBACK}
+                  fill={getUdnColor(udn)}
                   name={udn}
                   shape={(props: any) => {
                     const row = props.payload || {}
@@ -2690,7 +2694,7 @@ function PropuestasFacturadasTimelinePanel({ dateFrom, dateTo, filtros }: { date
           <div style={{ display: 'flex', flexWrap: 'wrap', gap: 14, fontSize: 11, marginBottom: 12 }}>
             {udnsPresentes.map(udn => (
               <div key={udn} style={{ display: 'flex', alignItems: 'center', gap: 5 }}>
-                <span style={{ width: 9, height: 9, borderRadius: '50%', background: UDN_COLORS[udn] || UDN_COLOR_FALLBACK, display: 'inline-block', flexShrink: 0 }} />
+                <span style={{ width: 9, height: 9, borderRadius: '50%', background: getUdnColor(udn), display: 'inline-block', flexShrink: 0 }} />
                 <span style={{ color: '#475569' }}>{udn}</span>
               </div>
             ))}
@@ -2732,7 +2736,7 @@ function PropuestasFacturadasTimelinePanel({ dateFrom, dateTo, filtros }: { date
                   key={udn}
                   dataKey={udn}
                   stackId="udn"
-                  fill={UDN_COLORS[udn] || UDN_COLOR_FALLBACK}
+                  fill={getUdnColor(udn)}
                   name={udn}
                   shape={(props: any) => {
                     const row = props.payload || {}
