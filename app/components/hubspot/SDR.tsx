@@ -391,9 +391,14 @@ export default function SDR() {
       const mqls = mqlRows.reduce((s, r) => s + r.mqls, 0)
       const reunionesCompletadas = act.reduce((s, r) => s + r.reuniones_completadas, 0)
       const tasaConversion = totalActividad > 0 ? ((mqls / totalActividad) * 100).toFixed(1) : '0.0'
-      return { sdr, totalActividad, contactosConectados, mqls, reunionesCompletadas, tasaConversion, tipos }
-    }).sort((a, b) => b.mqls - a.mqls)
+      const tasaMqlReunion = mqls > 0 ? ((reunionesCompletadas / mqls) * 100).toFixed(1) : '0.0'
+      return { sdr, totalActividad, contactosConectados, mqls, reunionesCompletadas, tasaConversion, tasaMqlReunion, tipos }
+    }).sort((a, b) => parseFloat(b.tasaConversion) - parseFloat(a.tasaConversion))
   }, [actividad, mqlsUdn, actividadTipo, udnSel, sdrsAMostrar])
+  const sdrDeLaSemana = useMemo(() => {
+    if (!leaderboard.length) return null
+    return [...leaderboard].sort((a, b) => b.mqls - a.mqls)[0]?.sdr || null
+  }, [leaderboard])
 
   const chartDataUdn = useMemo(() => {
     const meses = Array.from(new Set(mqlsFiltrados.map(r => r.mes))).sort()
@@ -605,8 +610,10 @@ export default function SDR() {
       </div>
 
       <div style={{ background: '#fff', border: '1px solid #e2e8f0', borderRadius: 12, overflow: 'hidden' }}>
-        <div style={{ fontSize: 12, fontWeight: 700, color: '#64748b', padding: '16px 20px 0', textTransform: 'uppercase', letterSpacing: '0.03em' }}>
-          Comparativo por SDR
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '16px 20px 0' }}>
+          <div style={{ fontSize: 12, fontWeight: 700, color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.03em' }}>
+            Comparativo por SDR — ordenado por eficiencia
+          </div>
         </div>
         <table style={{ width: '100%', borderCollapse: 'collapse', marginTop: 12, fontSize: 12.5 }}>
           <thead>
@@ -616,7 +623,18 @@ export default function SDR() {
               <th style={{ padding: '8px 12px', textAlign: 'right' }}>Conectados</th>
               <th style={{ padding: '8px 12px', textAlign: 'right' }}>MQLs</th>
               <th style={{ padding: '8px 12px', textAlign: 'right' }}>Reuniones</th>
-              <th style={{ padding: '8px 20px', textAlign: 'right' }} title="De cada 100 actividades registradas, cuantas terminaron en un MQL calificado. Es una referencia de eficiencia, comparala entre SDRs con contexto (cartera, UDN, antiguedad).">Actividad → MQL ⓘ</th>
+              <th style={{ padding: '8px 12px', textAlign: 'right' }}>
+                <span style={{ display: 'inline-flex', alignItems: 'center' }}>
+                  MQL → Reunión
+                  <InfoTip text="De cada 100 MQLs calificados, cuántos llegaron a reunión completada con el Comercial. Mide qué tan bien se cierra el embudo después de la calificación." />
+                </span>
+              </th>
+              <th style={{ padding: '8px 20px', textAlign: 'right' }}>
+                <span style={{ display: 'inline-flex', alignItems: 'center' }}>
+                  Actividad → MQL
+                  <InfoTip text="Fórmula: MQLs ÷ Actividad total × 100. De cada 100 actividades (llamadas, mensajes, WhatsApp) registradas, cuántas terminaron en un MQL calificado. Es una medida de eficiencia, no de volumen — compárala entre SDRs con contexto de cartera y antigüedad." />
+                </span>
+              </th>
             </tr>
           </thead>
           <tbody>
@@ -629,6 +647,18 @@ export default function SDR() {
                       <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}>
                         <span style={{ width: 8, height: 8, borderRadius: '50%', background: SDR_COLORS[row.sdr], flexShrink: 0 }} />
                         {row.sdr}
+                        {row.sdr === sdrDeLaSemana && (
+                          <span title="Más MQLs generados esta semana" style={{
+                            display: 'inline-flex', alignItems: 'center', gap: 3, fontSize: 10, fontWeight: 700,
+                            color: '#7c3aed', background: '#f3e8ff', border: '1px solid #e9d5ff',
+                            borderRadius: 999, padding: '2px 8px', letterSpacing: '0.02em',
+                          }}>
+                            <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="#7c3aed" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                              <polygon points="12 2 15 9 22 9 16.5 13.5 18.5 21 12 16.5 5.5 21 7.5 13.5 2 9 9 9" />
+                            </svg>
+                            Top de la semana
+                          </span>
+                        )}
                       </span>
                     </td>
                     <td
@@ -646,7 +676,8 @@ export default function SDR() {
                     <td style={{ padding: '10px 12px', textAlign: 'right', color: '#64748b' }}>{row.contactosConectados.toLocaleString()}</td>
                     <td style={{ padding: '10px 12px', textAlign: 'right', fontWeight: 700, color: ACCENT }}>{row.mqls.toLocaleString()}</td>
                     <td style={{ padding: '10px 12px', textAlign: 'right', color: '#64748b' }}>{row.reunionesCompletadas.toLocaleString()}</td>
-                    <td style={{ padding: '10px 20px', textAlign: 'right', color: '#64748b' }}>{row.tasaConversion}%</td>
+                    <td style={{ padding: '10px 12px', textAlign: 'right', color: '#64748b' }}>{row.tasaMqlReunion}%</td>
+                    <td style={{ padding: '10px 20px', textAlign: 'right', fontWeight: 700, color: '#172033' }}>{row.tasaConversion}%</td>
                   </tr>
                   {abierto && (
                     <tr style={{ borderBottom: '1px solid #f1f5f9' }}>
