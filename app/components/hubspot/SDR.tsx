@@ -414,7 +414,9 @@ export default function SDR() {
       return { sdr, totalActividad, contactosConectados, mqls, mqlsOutbound, mqlsInbound, reunionesCompletadas, tasaConversion, tasaMqlReunion, tipos }
     }).sort((a, b) => {
       if (b.reunionesCompletadas !== a.reunionesCompletadas) return b.reunionesCompletadas - a.reunionesCompletadas
-      return b.mqlsOutbound - a.mqlsOutbound
+      const puntajeA = a.mqlsOutbound * 0.6 + a.mqlsInbound * 0.4
+      const puntajeB = b.mqlsOutbound * 0.6 + b.mqlsInbound * 0.4
+      return puntajeB - puntajeA
     })
   }, [actividad, mqlsUdn, actividadTipo, udnSel, sdrsAMostrar])
   const sdrDeLaSemana = leaderboard.length > 0 && leaderboard[0].reunionesCompletadas > 0 ? leaderboard[0].sdr : null
@@ -493,7 +495,7 @@ export default function SDR() {
           <PeriodoPicker dateFrom={dateFrom} dateTo={dateTo} activePreset={activePreset}
             onChange={(f, t, label) => { setDateFrom(f); setDateTo(t); setActivePreset(label) }} />
           {(udnSel !== 'todas' || sdrSel !== 'todos' || activePreset !== 'Este año') && (
-            <button onClick={() => { setUdnSel('todas'); setSdrSel('todos'); setDateFrom(`${anioActual}-01-01`); setDateTo(toDateOnly(new Date())); setActivePreset('Este año'); setFuenteMqlSel('todas') }}
+            <button onClick={() => { setUdnSel('todas'); setSdrSel('todos'); setDateFrom(`${new Date().getFullYear()}-01-01`); setDateTo(toDateOnly(new Date())); setActivePreset('Este año'); setFuenteMqlSel('todas') }}
               style={{
                 padding: '7px 12px', borderRadius: 8, border: '1px solid #e2e8f0', background: '#fff', color: '#64748b',
                 fontSize: 12.5, cursor: 'pointer', fontWeight: 600, display: 'flex', alignItems: 'center', gap: 5,
