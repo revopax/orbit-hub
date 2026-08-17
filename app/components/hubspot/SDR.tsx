@@ -422,9 +422,10 @@ export default function SDR() {
     if (sdrSel === 'todos') return new Set<string>()
     const actuales = udnActualPorSdr[sdrSel]
     if (!actuales) return new Set<string>()
+    const actualesUpper = actuales.map(u => u.toUpperCase().trim())
     const base = mqlsUdn.filter(r => r.sdr === sdrSel)
     const todasUdns = new Set(base.map(r => r.udn))
-    return new Set([...todasUdns].filter(u => !actuales.includes(u)))
+    return new Set([...todasUdns].filter(u => !actualesUpper.includes(u.toUpperCase().trim())))
   }, [mqlsUdn, sdrSel, udnActualPorSdr])
 
   const chartDataReuniones = useMemo(() => {
