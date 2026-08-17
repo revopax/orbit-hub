@@ -96,13 +96,15 @@ const GlossyBar = (props: any) => {
 }
 
 function ChartLegend({ items, colors, historicos }: { items: string[]; colors: Record<string, string>; historicos?: Set<string> }) {
+  const colorsUpper: Record<string, string> = Object.fromEntries(Object.entries(colors).map(([k, v]) => [k.toUpperCase(), v]))
+  const lookup = (item: string) => colors[item] || colorsUpper[item?.toUpperCase()] || '#94a3b8'
   return (
     <div style={{ display: 'flex', flexWrap: 'wrap', gap: 14, fontSize: 11, marginBottom: 12 }}>
       {items.map(item => {
         const esHistorico = historicos?.has(item)
         return (
           <div key={item} style={{ display: 'flex', alignItems: 'center', gap: 5, opacity: esHistorico ? 0.55 : 1 }}>
-            <span style={{ width: 9, height: 9, borderRadius: '50%', background: colors[item] || '#94a3b8', display: 'inline-block', flexShrink: 0 }} />
+            <span style={{ width: 9, height: 9, borderRadius: '50%', background: lookup(item), display: 'inline-block', flexShrink: 0 }} />
             <span style={{ color: '#475569' }}>{item}{esHistorico && ' (anterior)'}</span>
           </div>
         )
