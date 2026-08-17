@@ -1,6 +1,7 @@
 'use client';
 import React, { useState, useEffect, useMemo, useRef } from 'react'
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid, LabelList } from 'recharts'
+import { InfoTip } from '../redes/KPICard'
 
 const ACCENT = '#7038E5'
 const SUPABASE_MBR_URL = process.env.NEXT_PUBLIC_SUPABASE_URL_MBR!
@@ -299,6 +300,9 @@ export default function SDR() {
   const [comparativoDinamico, setComparativoDinamico] = useState<{
     actual: number; anterior: number; delta: string | null; labelActual: string; labelAnterior: string
   } | null>(null)
+  const [comparativoSemanal, setComparativoSemanal] = useState<{
+    actual: number; anterior: number; delta: string | null; labelActual: string; labelAnterior: string
+  } | null>(null)
   useEffect(() => {
     const hoy = new Date()
     const diaHoy = hoy.getDate()
@@ -322,6 +326,26 @@ export default function SDR() {
         labelAnterior: `${diaHoy} ${nombresLargos[inicioMesAnterior.getMonth()]}`,
       })
     }).catch(() => setComparativoDinamico(null))
+    // Comparativo semanal: ultimos 7 dias vs los 7 dias previos
+    const finSemanaActual = hoy
+    const inicioSemanaActual = new Date(hoy); inicioSemanaActual.setDate(hoy.getDate() - 6)
+    const finSemanaAnterior = new Date(hoy); finSemanaAnterior.setDate(hoy.getDate() - 7)
+    const inicioSemanaAnterior = new Date(hoy); inicioSemanaAnterior.setDate(hoy.getDate() - 13)
+    rpc<{ total: number }[]>('sdr_actividad_rango_diario', {
+      p_desde_actual: toDateOnly(inicioSemanaActual), p_hasta_actual: toDateOnly(finSemanaActual),
+      p_desde_anterior: toDateOnly(inicioSemanaAnterior), p_hasta_anterior: toDateOnly(finSemanaAnterior),
+      p_sdr: sdrParam,
+    }).then((rows: any) => {
+      const actual = rows?.[0]?.total_actual ?? 0
+      const anterior = rows?.[0]?.total_anterior ?? 0
+      const delta = anterior > 0 ? (((actual - anterior) / anterior) * 100).toFixed(1) : null
+      const fmt = (d: Date) => `${d.getDate()} ${nombresLargos[d.getMonth()]}`
+      setComparativoSemanal({
+        actual, anterior, delta,
+        labelActual: `${fmt(inicioSemanaActual)}-${fmt(finSemanaActual)}`,
+        labelAnterior: `${fmt(inicioSemanaAnterior)}-${fmt(finSemanaAnterior)}`,
+      })
+    }).catch(() => setComparativoSemanal(null))
   }, [sdrSel])
 
   const leaderboard = useMemo(() => {
@@ -422,31 +446,45 @@ export default function SDR() {
         </div>
       </div>
 
-      {comparativoDinamico && (
-        <div style={{
-          display: 'flex', alignItems: 'center', gap: 10, marginBottom: 16, fontSize: 12, color: '#64748b',
-          background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: 10, padding: '8px 14px', width: 'fit-content',
-        }}>
-          <span>Actividad al {comparativoDinamico.labelActual}: <strong style={{ color: '#172033' }}>{comparativoDinamico.actual.toLocaleString()}</strong></span>
-          <span style={{ color: '#cbd5e1' }}>vs</span>
-          <span>al {comparativoDinamico.labelAnterior}: <strong style={{ color: '#172033' }}>{comparativoDinamico.anterior.toLocaleString()}</strong></span>
-          {comparativoDinamico.delta !== null && (
-            <span style={{ fontWeight: 700, color: parseFloat(comparativoDinamico.delta) >= 0 ? '#22c55e' : '#ef4444' }}>
-              {parseFloat(comparativoDinamico.delta) >= 0 ? '▲' : '▼'} {Math.abs(parseFloat(comparativoDinamico.delta))}%
-            </span>
-          )}
-        </div>
-      )}
+      <div style={{ display: 'flex', flexWrap: 'wrap', gap: 10, marginBottom: 16 }}>
+        {comparativoDinamico && (
+          <div style={{
+            display: 'flex', alignItems: 'center', gap: 10, fontSize: 12, color: '#64748b',
+            background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: 10, padding: '8px 14px', width: 'fit-content',
+          }}>
+            <span>Actividad al {comparativoDinamico.labelActual}: <strong style={{ color: '#172033' }}>{comparativoDinamico.actual.toLocaleString()}</strong></span>
+            <span style={{ color: '#cbd5e1' }}>vs</span>
+            <span>al {comparativoDinamico.labelAnterior}: <strong style={{ color: '#172033' }}>{comparativoDinamico.anterior.toLocaleString()}</strong></span>
+            {comparativoDinamico.delta !== null && (
+              <span style={{ fontWeight: 700, color: parseFloat(comparativoDinamico.delta) >= 0 ? '#22c55e' : '#ef4444' }}>
+                {parseFloat(comparativoDinamico.delta) >= 0 ? '▲' : '▼'} {Math.abs(parseFloat(comparativoDinamico.delta))}%
+              </span>
+            )}
+          </div>
+        )}
+        {comparativoSemanal && (
+          <div style={{
+            display: 'flex', alignItems: 'center', gap: 10, fontSize: 12, color: '#64748b',
+            background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: 10, padding: '8px 14px', width: 'fit-content',
+          }}>
+            <span>Semana {comparativoSemanal.labelActual}: <strong style={{ color: '#172033' }}>{comparativoSemanal.actual.toLocaleString()}</strong></span>
+            <span style={{ color: '#cbd5e1' }}>vs</span>
+            <span>{comparativoSemanal.labelAnterior}: <strong style={{ color: '#172033' }}>{comparativoSemanal.anterior.toLocaleString()}</strong></span>
+            {comparativoSemanal.delta !== null && (
+              <span style={{ fontWeight: 700, color: parseFloat(comparativoSemanal.delta) >= 0 ? '#22c55e' : '#ef4444' }}>
+                {parseFloat(comparativoSemanal.delta) >= 0 ? '▲' : '▼'} {Math.abs(parseFloat(comparativoSemanal.delta))}%
+              </span>
+            )}
+          </div>
+        )}
+      </div>
 
       <div style={{ background: '#fff', border: '1px solid #e2e8f0', borderRadius: 12, padding: 20, marginBottom: 20 }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 16 }}>
           <div style={{ fontSize: 12, fontWeight: 700, color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.03em' }}>
             Funnel de prospección
           </div>
-          <span title="Actividad: llamadas, mensajes y WhatsApp gestionados. Contacto conectado: llamadas donde la persona contestó. MQL calificado: contactos que cumplieron BANT. Reunión completada: reunión de credenciales con el Comercial ya realizada. El % bajo cada número es la conversión respecto a la etapa anterior."
-            style={{ fontSize: 11, color: '#94a3b8', cursor: 'help', border: '1px solid #cbd5e1', borderRadius: '50%', width: 14, height: 14, display: 'inline-flex', alignItems: 'center', justifyContent: 'center' }}>
-            ⓘ
-          </span>
+          <InfoTip text="Actividad: llamadas, mensajes y WhatsApp gestionados. Contacto conectado: llamadas donde la persona contestó. MQL calificado: contactos que cumplieron BANT. Reunión completada: reunión de credenciales con el Comercial ya realizada. El % bajo cada número es la conversión respecto a la etapa anterior." />
         </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
           <FunnelEtapa label="Actividad" valor={totales.totalActividad} pct={null} tooltip="Llamadas, mensajes y WhatsApp gestionados en el periodo" />
