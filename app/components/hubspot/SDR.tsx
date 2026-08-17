@@ -116,10 +116,26 @@ function ChartLegend({ items, colors, historicos }: { items: string[]; colors: R
 
 function CustomTooltip({ active, payload, label }: any) {
   if (!active || !payload || !payload.length) return null
+  const anioAnteriorEntry = payload.find((p: any) => p.dataKey === 'anioAnterior')
+  const totalActual = payload.find((p: any) => p.dataKey === 'total')?.value as number | undefined
+  const totalAnterior = anioAnteriorEntry?.value as number | undefined
+  const tieneComparativo = anioAnteriorEntry && typeof totalActual === 'number' && typeof totalAnterior === 'number' && totalAnterior > 0
+  const delta = tieneComparativo ? (((totalActual! - totalAnterior!) / totalAnterior!) * 100).toFixed(0) : null
   return (
-    <div style={{ background: '#fff', border: '1px solid #e2e8f0', borderRadius: 10, boxShadow: '0 4px 12px rgba(0,0,0,0.08)', padding: '10px 14px', fontSize: 12 }}>
-      <div style={{ fontWeight: 700, color: '#0f172a', marginBottom: 6 }}>{label}</div>
-      {payload.slice().reverse().filter((p: any) => p.dataKey !== 'total').map((p: any) => (
+    <div style={{ background: '#fff', border: '1px solid #e2e8f0', borderRadius: 10, boxShadow: '0 4px 12px rgba(0,0,0,0.08)', padding: '10px 14px', fontSize: 12, minWidth: 180 }}>
+      <div style={{ fontWeight: 700, color: '#0f172a', marginBottom: tieneComparativo ? 2 : 6 }}>{label}</div>
+      {tieneComparativo && (
+        <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 8, paddingBottom: 8, borderBottom: '1px solid #f1f5f9', fontSize: 12 }}>
+          <span style={{ fontWeight: 700, color: '#0f172a' }}>{fmtNum(totalActual!)}</span>
+          <span style={{ color: '#94a3b8' }}>vs año ant. {fmtNum(totalAnterior!)}</span>
+          {delta !== null && (
+            <span style={{ fontWeight: 700, color: parseFloat(delta) >= 0 ? '#22c55e' : '#ef4444' }}>
+              {parseFloat(delta) >= 0 ? '▲' : '▼'} {Math.abs(parseFloat(delta))}%
+            </span>
+          )}
+        </div>
+      )}
+      {payload.slice().reverse().filter((p: any) => p.dataKey !== 'total' && p.dataKey !== 'anioAnterior').map((p: any) => (
         <div key={p.dataKey} style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '2px 0' }}>
           <span style={{ width: 9, height: 9, borderRadius: 2, background: p.color, flexShrink: 0 }} />
           <span style={{ color: '#0f172a' }}>{p.name}: {fmtNum(p.value as number)}</span>
