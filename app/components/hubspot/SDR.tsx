@@ -45,6 +45,10 @@ const UDN_COLORS: Record<string, string> = {
   'UIX': '#ACE738', 'Neracode': '#3E31CC', 'Zeus': '#FF004F', 'Research Land': '#770EB7',
   'Promo Espacio': '#FF7600', 'Upax': '#323644', 'Sin UDN': '#94a3b8',
 }
+const UDN_COLORS_UPPER: Record<string, string> = Object.fromEntries(
+  Object.entries(UDN_COLORS).map(([k, v]) => [k.toUpperCase(), v])
+)
+const getUdnColor = (udn: string) => UDN_COLORS[udn] || UDN_COLORS_UPPER[udn?.toUpperCase()] || '#94a3b8'
 
 const SDR_COLORS: Record<string, string> = {
   'Elizabeth Gomez': '#FF6B6B',
@@ -256,11 +260,7 @@ export default function SDR() {
     ).then(data => {
       setActividad(data.actividad || [])
       setActividadTipo(data.actividad_tipo || [])
-      const mqlsMapeados = (data.mqls_udn || []).map(r => ({
-        ...r,
-        udn: CODIGO_UDN_A_NOMBRE[r.udn?.trim()] || r.udn,
-      }))
-      setMqlsUdn(mqlsMapeados)
+      setMqlsUdn(data.mqls_udn || [])
     }).catch(() => {}).finally(() => setLoading(false))
   }, [desde, hasta])
 
@@ -485,7 +485,7 @@ export default function SDR() {
             <Tooltip cursor={{ fill: 'rgba(0,0,0,0.03)' }} content={<CustomTooltip />} />
             {udnsPresentes.map((udn, i) => (
               <Bar
-                key={udn} dataKey={udn} stackId="a" fill={UDN_COLORS[udn] || (console.warn('UDN sin color mapeado:', udn), '#94a3b8')} name={udn}
+                key={udn} dataKey={udn} stackId="a" fill={getUdnColor(udn)} name={udn}
                 shape={(props: any) => {
                   const row = props.payload || {}
                   const lastConValor = [...udnsPresentes].reverse().find(u => (row[u] || 0) > 0)
