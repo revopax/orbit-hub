@@ -174,6 +174,7 @@ function FunnelEtapa({ label, valor, pct, tooltip }: { label: string; valor: num
 function toDateStr(d: Date) { return d.toISOString().slice(0, 10) }
 
 const PRESETS_SDR = [
+  { label: 'Este mes',          fn: () => { const d = new Date(); return [`${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-01`, toDateStr(d)] as [string, string] } },
   { label: 'Últimos 30 días',   fn: () => { const d = new Date(), s = new Date(); s.setDate(s.getDate() - 30); return [toDateStr(s), toDateStr(d)] as [string, string] } },
   { label: 'Últimos 90 días',   fn: () => { const d = new Date(), s = new Date(); s.setDate(s.getDate() - 90); return [toDateStr(s), toDateStr(d)] as [string, string] } },
   { label: 'Este año',          fn: () => [`${new Date().getFullYear()}-01-01`, toDateStr(new Date())] as [string, string] },
@@ -411,7 +412,10 @@ export default function SDR() {
       const tasaConversion = totalActividad > 0 ? ((mqls / totalActividad) * 100).toFixed(1) : '0.0'
       const tasaMqlReunion = mqls > 0 ? ((reunionesCompletadas / mqls) * 100).toFixed(1) : '0.0'
       return { sdr, totalActividad, contactosConectados, mqls, mqlsOutbound, mqlsInbound, reunionesCompletadas, tasaConversion, tasaMqlReunion, tipos }
-    }).sort((a, b) => b.reunionesCompletadas - a.reunionesCompletadas)
+    }).sort((a, b) => {
+      if (b.reunionesCompletadas !== a.reunionesCompletadas) return b.reunionesCompletadas - a.reunionesCompletadas
+      return b.mqlsOutbound - a.mqlsOutbound
+    })
   }, [actividad, mqlsUdn, actividadTipo, udnSel, sdrsAMostrar])
   const sdrDeLaSemana = leaderboard.length > 0 && leaderboard[0].reunionesCompletadas > 0 ? leaderboard[0].sdr : null
 
@@ -489,7 +493,7 @@ export default function SDR() {
           <PeriodoPicker dateFrom={dateFrom} dateTo={dateTo} activePreset={activePreset}
             onChange={(f, t, label) => { setDateFrom(f); setDateTo(t); setActivePreset(label) }} />
           {(udnSel !== 'todas' || sdrSel !== 'todos' || activePreset !== 'Este año') && (
-            <button onClick={() => { setUdnSel('todas'); setSdrSel('todos'); setDateFrom(`${anioActual}-01-01`); setDateTo(toDateOnly(new Date())); setActivePreset('Este año') }}
+            <button onClick={() => { setUdnSel('todas'); setSdrSel('todos'); setDateFrom(`${anioActual}-01-01`); setDateTo(toDateOnly(new Date())); setActivePreset('Este año'); setFuenteMqlSel('todas') }}
               style={{
                 padding: '7px 12px', borderRadius: 8, border: '1px solid #e2e8f0', background: '#fff', color: '#64748b',
                 fontSize: 12.5, cursor: 'pointer', fontWeight: 600, display: 'flex', alignItems: 'center', gap: 5,
