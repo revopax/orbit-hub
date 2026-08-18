@@ -1,7 +1,7 @@
 'use client';
 import React, { useState, useEffect, useMemo, useRef } from 'react'
 import { BarChart, Bar, Line, ComposedChart, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid, LabelList, ReferenceLine } from 'recharts'
-import { InfoTip } from '../redes/KPICard'
+import KPICard, { InfoTip } from '../redes/KPICard'
 
 const ACCENT = '#7038E5'
 const SUPABASE_MBR_URL = process.env.NEXT_PUBLIC_SUPABASE_URL_MBR!
@@ -370,7 +370,8 @@ export default function SDR() {
       .filter(r => r.tipo === 'llamada' && sdrsIds.includes(r.sdr))
       .reduce((s, r) => s + r.total, 0)
     const tasaConectado = totalLlamadas > 0 ? ((contactosConectados / totalLlamadas) * 100).toFixed(1) : null
-    return { totalActividad, contactosConectados, mqls, reunionesCompletadas, totalLlamadas, tasaConectado }
+    const tasaMqlReunionGlobal = mqls > 0 ? ((reunionesCompletadas / mqls) * 100).toFixed(1) : null
+    return { totalActividad, contactosConectados, mqls, reunionesCompletadas, totalLlamadas, tasaConectado, tasaMqlReunionGlobal }
   }, [actividadFiltrada, mqlsFiltrados, actividadTipo, sdrSel])
 
   const [comparativoDinamico, setComparativoDinamico] = useState<{
@@ -577,25 +578,31 @@ export default function SDR() {
           </div>
           <InfoTip text="Actividad: llamadas, mensajes y WhatsApp gestionados. Contacto conectado: llamadas donde la persona contestó. MQL calificado: contactos que cumplieron BANT. Reunión completada: reunión de credenciales con el Comercial ya realizada. Estas cifras son volumen total del período, no un funnel de conversión secuencial (Actividad y Reuniones no son directamente proporcionales entre sí)." />
         </div>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-          <FunnelEtapa label="Actividad" valor={totales.totalActividad} pct={null} tooltip="Llamadas, mensajes y WhatsApp gestionados en el periodo" />
-          <FunnelEtapa
+        <div style={{ display: 'flex', alignItems: 'stretch', gap: 16, flexWrap: 'wrap' }}>
+          <KPICard label="Actividad" value={String(totales.totalActividad)} accent="#6366f1" info="Llamadas, mensajes y WhatsApp gestionados en el periodo" />
+          <KPICard
             label="Contacto conectado"
-            valor={totales.contactosConectados}
-            pct={totales.tasaConectado !== null ? `${totales.tasaConectado}% de las llamadas` : null}
-            tooltip="Llamadas donde la persona sí contestó. El % es sobre el total de llamadas realizadas (no aplica a WhatsApp/correo, que no registran este dato en HubSpot)"
+            value={String(totales.contactosConectados)}
+            accent="#0ea5e9"
+            delta={totales.tasaConectado !== null ? `${totales.tasaConectado}% de las llamadas` : undefined}
+            deltaSuffix=""
+            deltaUp={true}
+            info="Llamadas donde la persona sí contestó. El % es sobre el total de llamadas realizadas (no aplica a WhatsApp/correo, que no registran este dato en HubSpot)"
           />
-          <FunnelEtapa
+          <KPICard
             label="MQL calificado"
-            valor={totales.mqls}
-            pct={null}
-            tooltip="Contactos que cumplieron BANT (necesidad, presupuesto, autoridad, tiempo)"
+            value={String(totales.mqls)}
+            accent={ACCENT}
+            info="Contactos que cumplieron BANT (necesidad, presupuesto, autoridad, tiempo)"
           />
-          <FunnelEtapa
+          <KPICard
             label="Reunión completada"
-            valor={totales.reunionesCompletadas}
-            pct={null}
-            tooltip="Reunión de credenciales con el Comercial que ya se llevó a cabo"
+            value={String(totales.reunionesCompletadas)}
+            accent="#22c55e"
+            delta={totales.tasaMqlReunionGlobal !== null ? `${totales.tasaMqlReunionGlobal}% de los MQLs` : undefined}
+            deltaSuffix=""
+            deltaUp={true}
+            info="Reunión de credenciales con el Comercial que ya se llevó a cabo. El % es sobre el total de MQLs calificados en el período"
           />
         </div>
       </div>

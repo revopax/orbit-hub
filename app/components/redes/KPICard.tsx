@@ -24,7 +24,7 @@ function useCountUp(raw: string, dur = 1200) {
 
 interface Props {
   label: string; value: string; accent: string;
-  delta?: string; deltaUp?: boolean; small?: boolean; bg?: string; gradient?: string; info?: string
+  delta?: string; deltaUp?: boolean; small?: boolean; bg?: string; gradient?: string; info?: string; deltaSuffix?: string
 }
 export function InfoTip({ text }: { text: string }) {
   const [show, setShow] = useState(false)
@@ -52,7 +52,7 @@ export function InfoTip({ text }: { text: string }) {
     </span>
   )
 }
-export default function KPICard({ label, value, accent, delta, deltaUp, small, info }: Props) {
+export default function KPICard({ label, value, accent, delta, deltaUp, small, info, deltaSuffix = 'vs ant.' }: Props) {
   const animated = useCountUp(value)
   return (
     <div style={{
@@ -78,7 +78,7 @@ export default function KPICard({ label, value, accent, delta, deltaUp, small, i
       {delta && (
         <div style={{ display:'flex',alignItems:'center',gap:4,fontSize:12,fontWeight:600,
           color: deltaUp===false ? '#ef4444' : '#22c55e' }}>
-          <span>{deltaUp===false ? '▼' : '▲'}</span><span>{delta} vs ant.</span>
+          <span>{deltaUp===false ? '▼' : '▲'}</span><span>{delta}{deltaSuffix ? ` ${deltaSuffix}` : ''}</span>
         </div>
       )}
       <div style={{ height:3,background:`${accent}18`,borderRadius:3,marginTop:12 }}>
