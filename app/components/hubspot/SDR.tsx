@@ -301,12 +301,12 @@ export default function SDR() {
     const hoy = new Date()
     const inicioMes = toDateOnly(new Date(hoy.getFullYear(), hoy.getMonth(), 1))
     const hoyStr = toDateOnly(hoy)
-    const hace30 = toDateOnly(new Date(hoy.getTime() - 30 * 24 * 60 * 60 * 1000))
-    rpc<{ sdr: string; sla_promedio: number; contactos: number }[]>('sla_por_sdr_mes_actual', { fecha_desde: inicioMes, fecha_hasta: hoyStr })
+    const sdrParam = sdrSel === 'todos' ? null : sdrSel
+    rpc<{ sdr: string; sla_promedio: number; contactos: number }[]>('sla_por_sdr_mes_actual', { fecha_desde: inicioMes, fecha_hasta: hoyStr, p_sdr: sdrParam })
       .then(setSlaPorSdr).catch(() => setSlaPorSdr([]))
-    rpc<{ dia: string; sla_promedio: number; contactos: number }[]>('sla_por_dia', { fecha_desde: inicioMes, fecha_hasta: hoyStr })
+    rpc<{ dia: string; sla_promedio: number; contactos: number }[]>('sla_por_dia', { fecha_desde: inicioMes, fecha_hasta: hoyStr, p_sdr: sdrParam })
       .then(setSlaPorDia).catch(() => setSlaPorDia([]))
-  }, [])
+  }, [sdrSel])
   useEffect(() => {
     const desplazar = (ym: string) => {
       const [y, m] = ym.split('-').map(Number)
