@@ -1,6 +1,6 @@
 'use client';
 import React, { useState, useEffect, useMemo, useRef } from 'react'
-import { BarChart, Bar, Line, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid, LabelList } from 'recharts'
+import { BarChart, Bar, Line, ComposedChart, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid, LabelList } from 'recharts'
 import { InfoTip } from '../redes/KPICard'
 
 const ACCENT = '#7038E5'
@@ -285,7 +285,7 @@ export default function SDR() {
     const hace30 = toDateOnly(new Date(hoy.getTime() - 30 * 24 * 60 * 60 * 1000))
     rpc<{ sdr: string; sla_promedio: number; contactos: number }[]>('sla_por_sdr_mes_actual', { fecha_desde: inicioMes, fecha_hasta: hoyStr })
       .then(setSlaPorSdr).catch(() => setSlaPorSdr([]))
-    rpc<{ dia: string; sla_promedio: number; contactos: number }[]>('sla_por_dia', { fecha_desde: hace30, fecha_hasta: hoyStr })
+    rpc<{ dia: string; sla_promedio: number; contactos: number }[]>('sla_por_dia', { fecha_desde: inicioMes, fecha_hasta: hoyStr })
       .then(setSlaPorDia).catch(() => setSlaPorDia([]))
   }, [])
   useEffect(() => {
@@ -639,7 +639,7 @@ export default function SDR() {
           </BarChart>
         </ResponsiveContainer>
       </div>
-      <div style={{ background: '#fff', border: '1px solid #e2e8f0', borderRadius: 12, overflow: 'hidden' }}>
+      <div style={{ background: '#fff', border: '1px solid #e2e8f0', borderRadius: 12, overflow: 'hidden', marginBottom: 20 }}>
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '16px 20px 0' }}>
           <div style={{ fontSize: 12, fontWeight: 700, color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.03em' }}>
             Comparativo por SDR — ordenado por reuniones completadas
@@ -758,41 +758,47 @@ export default function SDR() {
         </table>
       </div>
 
-      <div style={{ background: '#fff', border: '1px solid #e2e8f0', borderRadius: 12, padding: 20, marginBottom: 20 }}>
-        <div style={{ display: 'flex', alignItems: 'center', marginBottom: 14 }}>
-          <div style={{ fontSize: 12, fontWeight: 700, color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.03em' }}>
-            SLA por SDR — mes actual (solo Inbound)
+      <div style={{ display: 'flex', flexWrap: 'wrap', gap: 16, marginBottom: 20 }}>
+        <div style={{ background: '#fff', border: '1px solid #e2e8f0', borderRadius: 12, padding: 20, flex: 1, minWidth: 320 }}>
+          <div style={{ display: 'flex', alignItems: 'center', marginBottom: 14 }}>
+            <div style={{ fontSize: 12, fontWeight: 700, color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.03em' }}>
+              SLA por SDR — mes actual (solo Inbound)
+            </div>
+            <InfoTip text="Promedio de horas que tarda cada SDR en atender un contacto que llego por Inbound (Website, Paid Media, Webinar, etc.), no por prospeccion propia." />
           </div>
-          <InfoTip text="Promedio de horas que tarda cada SDR en atender un contacto que llego por Inbound (Website, Paid Media, Webinar, etc.), no por prospeccion propia." />
+          <ResponsiveContainer width="100%" height={260}>
+            <ComposedChart data={slaPorSdr} margin={{ top: 24, right: 8, left: 0, bottom: 8 }}>
+              <CartesianGrid vertical={false} stroke="#f1f5f9" />
+              <XAxis dataKey="sdr" tick={{ fontSize: 10.5, fill: '#64748b' }} axisLine={false} tickLine={false} />
+              <YAxis yAxisId="left" tick={{ fontSize: 11, fill: '#64748b' }} axisLine={false} tickLine={false} />
+              <YAxis yAxisId="right" orientation="right" tick={{ fontSize: 11, fill: '#64748b' }} axisLine={false} tickLine={false} />
+              <Tooltip cursor={{ fill: 'rgba(0,0,0,0.03)' }} formatter={(v: number, name: string) => name === 'contactos' ? [`${v} contactos`, 'Contactos'] : [`${v.toLocaleString()} horas`, 'SLA promedio']} />
+              <Bar yAxisId="left" dataKey="sla_promedio" fill="#fb923c" radius={[6, 6, 0, 0]} barSize={40}>
+                <LabelList dataKey="sla_promedio" position="top" formatter={(v: number) => `${v}h`} style={{ fontSize: 11, fontWeight: 700, fill: '#0f172a' }} />
+              </Bar>
+              <Line yAxisId="right" type="monotone" dataKey="contactos" stroke="#0f172a" strokeWidth={2} dot={{ r: 4, fill: '#0f172a' }} />
+            </ComposedChart>
+          </ResponsiveContainer>
         </div>
-        <ResponsiveContainer width="100%" height={260}>
-          <BarChart data={slaPorSdr} margin={{ top: 24, right: 8, left: 0, bottom: 8 }} barCategoryGap="30%" maxBarSize={70}>
-            <CartesianGrid vertical={false} stroke="#f1f5f9" />
-            <XAxis dataKey="sdr" tick={{ fontSize: 10.5, fill: '#64748b' }} axisLine={false} tickLine={false} />
-            <YAxis tick={{ fontSize: 11, fill: '#64748b' }} axisLine={false} tickLine={false} />
-            <Tooltip cursor={{ fill: 'rgba(0,0,0,0.03)' }} formatter={(v: number, name: string, props: any) => [`${v.toLocaleString()} horas (${props.payload.contactos} contactos)`, 'SLA promedio']} />
-            <Bar dataKey="sla_promedio" fill="#fb923c" radius={[6, 6, 0, 0]}>
-              <LabelList dataKey="sla_promedio" position="top" formatter={(v: number) => `${v}h`} style={{ fontSize: 11, fontWeight: 700, fill: '#0f172a' }} />
-            </Bar>
-          </BarChart>
-        </ResponsiveContainer>
-      </div>
-      <div style={{ background: '#fff', border: '1px solid #e2e8f0', borderRadius: 12, padding: 20, marginBottom: 20 }}>
-        <div style={{ display: 'flex', alignItems: 'center', marginBottom: 14 }}>
-          <div style={{ fontSize: 12, fontWeight: 700, color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.03em' }}>
-            SLA por día — últimos 30 días (solo Inbound)
+        <div style={{ background: '#fff', border: '1px solid #e2e8f0', borderRadius: 12, padding: 20, flex: 1, minWidth: 320 }}>
+          <div style={{ display: 'flex', alignItems: 'center', marginBottom: 14 }}>
+            <div style={{ fontSize: 12, fontWeight: 700, color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.03em' }}>
+              SLA por día — mes actual (solo Inbound)
+            </div>
+            <InfoTip text="Promedio diario de horas de respuesta a contactos Inbound, para detectar dias o rachas con demoras atipicas." />
           </div>
-          <InfoTip text="Promedio diario de horas de respuesta a contactos Inbound, para detectar dias o rachas con demoras atipicas." />
+          <ResponsiveContainer width="100%" height={260}>
+            <ComposedChart data={slaPorDia} margin={{ top: 24, right: 8, left: 0, bottom: 8 }}>
+              <CartesianGrid vertical={false} stroke="#f1f5f9" />
+              <XAxis dataKey="dia" tick={{ fontSize: 9.5, fill: '#64748b' }} axisLine={false} tickLine={false} />
+              <YAxis yAxisId="left" tick={{ fontSize: 11, fill: '#64748b' }} axisLine={false} tickLine={false} />
+              <YAxis yAxisId="right" orientation="right" tick={{ fontSize: 11, fill: '#64748b' }} axisLine={false} tickLine={false} />
+              <Tooltip cursor={{ fill: 'rgba(0,0,0,0.03)' }} formatter={(v: number, name: string) => name === 'contactos' ? [`${v} contactos`, 'Contactos'] : [`${v.toLocaleString()} horas`, 'SLA promedio']} />
+              <Bar yAxisId="left" dataKey="sla_promedio" fill="#fb923c" radius={[4, 4, 0, 0]} barSize={24} />
+              <Line yAxisId="right" type="monotone" dataKey="contactos" stroke="#0f172a" strokeWidth={2} dot={{ r: 3, fill: '#0f172a' }} />
+            </ComposedChart>
+          </ResponsiveContainer>
         </div>
-        <ResponsiveContainer width="100%" height={260}>
-          <BarChart data={slaPorDia} margin={{ top: 24, right: 8, left: 0, bottom: 8 }} barCategoryGap="20%" maxBarSize={40}>
-            <CartesianGrid vertical={false} stroke="#f1f5f9" />
-            <XAxis dataKey="dia" tick={{ fontSize: 9.5, fill: '#64748b' }} axisLine={false} tickLine={false} />
-            <YAxis tick={{ fontSize: 11, fill: '#64748b' }} axisLine={false} tickLine={false} />
-            <Tooltip cursor={{ fill: 'rgba(0,0,0,0.03)' }} formatter={(v: number, name: string, props: any) => [`${v.toLocaleString()} horas (${props.payload.contactos} contactos)`, 'SLA promedio']} />
-            <Bar dataKey="sla_promedio" fill="#fb923c" radius={[4, 4, 0, 0]} />
-          </BarChart>
-        </ResponsiveContainer>
       </div>
     </div>
   )
