@@ -475,6 +475,8 @@ export default function SDR() {
     return new Set([...todasUdns].filter(u => !actualesUpper.includes(u.toUpperCase().trim())))
   }, [mqlsUdn, sdrSel, udnActualPorSdr])
 
+  const periodLabelGlobal = activePreset === 'Personalizado' ? `${dateFrom} → ${dateTo}` : activePreset
+
   const chartDataReuniones = useMemo(() => {
     const base = sdrSel === 'todos' ? actividad : actividad.filter(r => r.sdr === sdrSel)
     const campo = fuenteReunionSel === 'outbound' ? 'reuniones_completadas_outbound'
