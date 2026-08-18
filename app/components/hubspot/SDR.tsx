@@ -1,6 +1,6 @@
 'use client';
 import React, { useState, useEffect, useMemo, useRef } from 'react'
-import { BarChart, Bar, Line, ComposedChart, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid, LabelList } from 'recharts'
+import { BarChart, Bar, Line, ComposedChart, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid, LabelList, ReferenceLine } from 'recharts'
 import { InfoTip } from '../redes/KPICard'
 
 const ACCENT = '#7038E5'
@@ -664,6 +664,13 @@ export default function SDR() {
             <XAxis dataKey="mes" tick={{ fontSize: 11, fill: '#64748b' }} axisLine={false} tickLine={false} />
             <YAxis tick={{ fontSize: 11, fill: '#64748b' }} axisLine={false} tickLine={false} />
             <Tooltip cursor={{ fill: 'rgba(0,0,0,0.03)' }} content={<CustomTooltip />} />
+            <ReferenceLine
+              y={sdrsAMostrar.length * 20}
+              stroke="#0f172a"
+              strokeDasharray="4 4"
+              strokeWidth={1.5}
+              label={{ value: `Meta: ${sdrsAMostrar.length * 20} (20/SDR outbound)`, position: 'insideTopRight', fontSize: 10.5, fill: '#0f172a', fontWeight: 700 }}
+            />
             {sdrsAMostrar.map((sdr, i) => (
               <Bar
                 key={sdr} dataKey={sdr} stackId="b" fill={SDR_COLORS[sdr]} name={sdr}
