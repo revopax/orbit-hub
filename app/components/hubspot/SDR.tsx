@@ -830,14 +830,14 @@ export default function SDR() {
             <div style={{ fontSize: 12, fontWeight: 700, color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.03em' }}>
               SLA por SDR — mes actual (solo Inbound)
             </div>
-            <InfoTip text="Promedio de horas que tarda cada SDR en atender un contacto que llego por Inbound (Website, Paid Media, Webinar, etc.), no por prospeccion propia." />
+            <InfoTip text="Promedio de horas que tarda cada SDR en atender un contacto Inbound (Website, Paid Media, Webinar, etc.) desde que entró hasta que fue calificado como MQL. 'Contactos' es el número de contactos Inbound calificados por ese SDR en el mes — no tiene relación con la columna 'Conectados' de la tabla superior (esa viene de llamadas telefónicas; esta viene de contactos calificados en mbr)." />
           </div>
           <ResponsiveContainer width="100%" height={300}>
-            <ComposedChart data={slaPorSdr} margin={{ top: 24, right: 8, left: 0, bottom: 40 }}>
+            <ComposedChart data={slaPorSdr} margin={{ top: 24, right: 8, left: 30, bottom: 40 }}>
               <CartesianGrid vertical={false} stroke="#f1f5f9" />
-              <XAxis dataKey="sdr" tick={<TickNombreSDR />} axisLine={false} tickLine={false} interval={0} height={50} />
-              <YAxis yAxisId="left" tick={{ fontSize: 11, fill: '#64748b' }} axisLine={false} tickLine={false} tickFormatter={(v: number) => formatSla(v)} />
-              <YAxis yAxisId="right" orientation="right" tick={{ fontSize: 11, fill: '#64748b' }} axisLine={false} tickLine={false} />
+              <XAxis dataKey="sdr" tick={<TickNombreSDR />} axisLine={false} tickLine={false} interval={0} height={50} label={{ value: 'SDR', position: 'insideBottom', offset: -8, fontSize: 11, fill: '#64748b', fontWeight: 700 }} />
+              <YAxis yAxisId="left" tick={{ fontSize: 11, fill: '#64748b' }} axisLine={false} tickLine={false} tickFormatter={(v: number) => formatSla(v)} label={{ value: '(Promedio) SLA SDR', angle: -90, position: 'insideLeft', fontSize: 10.5, fill: '#64748b', fontWeight: 700 }} />
+              <YAxis yAxisId="right" orientation="right" tick={{ fontSize: 11, fill: '#64748b' }} axisLine={false} tickLine={false} label={{ value: '(Número) contactos', angle: 90, position: 'insideRight', fontSize: 10.5, fill: '#64748b', fontWeight: 700 }} />
               <Tooltip cursor={{ fill: 'rgba(0,0,0,0.03)' }} formatter={(v: number, name: string) => name === 'contactos' ? [`${v} contactos`, 'Contactos'] : [formatSla(v), 'SLA promedio']} />
               <Bar yAxisId="left" dataKey="sla_promedio" fill="#fb923c" radius={[6, 6, 0, 0]} barSize={40}>
                 <LabelList dataKey="sla_promedio" position="top" formatter={(v: number) => formatSla(v)} style={{ fontSize: 11, fontWeight: 700, fill: '#0f172a' }} />
@@ -851,14 +851,14 @@ export default function SDR() {
             <div style={{ fontSize: 12, fontWeight: 700, color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.03em' }}>
               SLA por día — mes actual (solo Inbound)
             </div>
-            <InfoTip text="Promedio diario de horas de respuesta a contactos Inbound, para detectar dias o rachas con demoras atipicas." />
+            <InfoTip text="Promedio diario de horas de respuesta a contactos Inbound calificados ese día como MQL, para detectar dias o rachas con demoras atipicas. 'Contactos' es el número de contactos Inbound calificados ese día (no relacionado con 'Conectados' de la tabla superior, que es de llamadas)." />
           </div>
           <ResponsiveContainer width="100%" height={300}>
-            <ComposedChart data={slaPorDia} margin={{ top: 24, right: 8, left: 0, bottom: 8 }}>
+            <ComposedChart data={slaPorDia} margin={{ top: 24, right: 8, left: 30, bottom: 20 }}>
               <CartesianGrid vertical={false} stroke="#f1f5f9" />
-              <XAxis dataKey="dia" tick={{ fontSize: 9.5, fill: '#64748b' }} axisLine={false} tickLine={false} />
-              <YAxis yAxisId="left" tick={{ fontSize: 11, fill: '#64748b' }} axisLine={false} tickLine={false} tickFormatter={(v: number) => formatSla(v)} />
-              <YAxis yAxisId="right" orientation="right" tick={{ fontSize: 11, fill: '#64748b' }} axisLine={false} tickLine={false} />
+              <XAxis dataKey="dia" tick={{ fontSize: 9.5, fill: '#64748b' }} axisLine={false} tickLine={false} label={{ value: 'Fecha de calificación', position: 'insideBottom', offset: -8, fontSize: 11, fill: '#64748b', fontWeight: 700 }} />
+              <YAxis yAxisId="left" tick={{ fontSize: 11, fill: '#64748b' }} axisLine={false} tickLine={false} tickFormatter={(v: number) => formatSla(v)} label={{ value: '(Promedio) SLA SDR', angle: -90, position: 'insideLeft', fontSize: 10.5, fill: '#64748b', fontWeight: 700 }} />
+              <YAxis yAxisId="right" orientation="right" tick={{ fontSize: 11, fill: '#64748b' }} axisLine={false} tickLine={false} label={{ value: '(Número) contactos', angle: 90, position: 'insideRight', fontSize: 10.5, fill: '#64748b', fontWeight: 700 }} />
               <Tooltip cursor={{ fill: 'rgba(0,0,0,0.03)' }} formatter={(v: number, name: string) => name === 'contactos' ? [`${v} contactos`, 'Contactos'] : [formatSla(v), 'SLA promedio']} />
               <Bar yAxisId="left" dataKey="sla_promedio" fill="#fb923c" radius={[4, 4, 0, 0]} barSize={24}>
                 <LabelList dataKey="sla_promedio" position="top" formatter={(v: number) => formatSla(v)} style={{ fontSize: 10, fontWeight: 700, fill: '#0f172a' }} />
