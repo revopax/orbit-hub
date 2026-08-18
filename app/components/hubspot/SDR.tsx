@@ -258,6 +258,12 @@ function PeriodoPicker({ dateFrom, dateTo, activePreset, onChange }: {
   )
 }
 
+function formatSla(horas: number): string {
+  if (horas < 1/60) return `${Math.round(horas * 3600)}s`
+  if (horas < 1) return `${Math.round(horas * 60)}min`
+  return `${horas.toFixed(1)}h`
+}
+
 export default function SDR() {
   const [dateFrom, setDateFrom] = useState(`${new Date().getFullYear()}-01-01`)
   const [dateTo, setDateTo] = useState(toDateStr(new Date()))
@@ -772,9 +778,9 @@ export default function SDR() {
               <XAxis dataKey="sdr" tick={{ fontSize: 10.5, fill: '#64748b' }} axisLine={false} tickLine={false} />
               <YAxis yAxisId="left" tick={{ fontSize: 11, fill: '#64748b' }} axisLine={false} tickLine={false} />
               <YAxis yAxisId="right" orientation="right" tick={{ fontSize: 11, fill: '#64748b' }} axisLine={false} tickLine={false} />
-              <Tooltip cursor={{ fill: 'rgba(0,0,0,0.03)' }} formatter={(v: number, name: string) => name === 'contactos' ? [`${v} contactos`, 'Contactos'] : [`${v.toLocaleString()} horas`, 'SLA promedio']} />
+              <Tooltip cursor={{ fill: 'rgba(0,0,0,0.03)' }} formatter={(v: number, name: string) => name === 'contactos' ? [`${v} contactos`, 'Contactos'] : [formatSla(v), 'SLA promedio']} />
               <Bar yAxisId="left" dataKey="sla_promedio" fill="#fb923c" radius={[6, 6, 0, 0]} barSize={40}>
-                <LabelList dataKey="sla_promedio" position="top" formatter={(v: number) => `${v}h`} style={{ fontSize: 11, fontWeight: 700, fill: '#0f172a' }} />
+                <LabelList dataKey="sla_promedio" position="top" formatter={(v: number) => formatSla(v)} style={{ fontSize: 11, fontWeight: 700, fill: '#0f172a' }} />
               </Bar>
               <Line yAxisId="right" type="monotone" dataKey="contactos" stroke="#0f172a" strokeWidth={2} dot={{ r: 4, fill: '#0f172a' }} />
             </ComposedChart>
@@ -793,7 +799,7 @@ export default function SDR() {
               <XAxis dataKey="dia" tick={{ fontSize: 9.5, fill: '#64748b' }} axisLine={false} tickLine={false} />
               <YAxis yAxisId="left" tick={{ fontSize: 11, fill: '#64748b' }} axisLine={false} tickLine={false} />
               <YAxis yAxisId="right" orientation="right" tick={{ fontSize: 11, fill: '#64748b' }} axisLine={false} tickLine={false} />
-              <Tooltip cursor={{ fill: 'rgba(0,0,0,0.03)' }} formatter={(v: number, name: string) => name === 'contactos' ? [`${v} contactos`, 'Contactos'] : [`${v.toLocaleString()} horas`, 'SLA promedio']} />
+              <Tooltip cursor={{ fill: 'rgba(0,0,0,0.03)' }} formatter={(v: number, name: string) => name === 'contactos' ? [`${v} contactos`, 'Contactos'] : [formatSla(v), 'SLA promedio']} />
               <Bar yAxisId="left" dataKey="sla_promedio" fill="#fb923c" radius={[4, 4, 0, 0]} barSize={24} />
               <Line yAxisId="right" type="monotone" dataKey="contactos" stroke="#0f172a" strokeWidth={2} dot={{ r: 3, fill: '#0f172a' }} />
             </ComposedChart>
