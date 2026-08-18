@@ -416,8 +416,8 @@ export default function SDR() {
       const tasaMqlReunion = mqls > 0 ? ((reunionesCompletadas / mqls) * 100).toFixed(1) : '0.0'
       return { sdr, totalActividad, contactosConectados, mqls, mqlsOutbound, mqlsInbound, reunionesCompletadas, reunionesOutbound, reunionesInbound, tasaConversion, tasaMqlReunion, tipos }
     }).sort((a, b) => {
-      if (b.reunionesCompletadas !== a.reunionesCompletadas) return b.reunionesCompletadas - a.reunionesCompletadas
-      return b.reunionesOutbound - a.reunionesOutbound
+      if (b.reunionesOutbound !== a.reunionesOutbound) return b.reunionesOutbound - a.reunionesOutbound
+      return b.reunionesCompletadas - a.reunionesCompletadas
     })
   }, [actividad, mqlsUdn, actividadTipo, udnSel, sdrsAMostrar])
   const sdrDeLaSemana = leaderboard.length > 0 && leaderboard[0].reunionesCompletadas > 0 ? leaderboard[0].sdr : null
@@ -642,7 +642,7 @@ export default function SDR() {
       <div style={{ background: '#fff', border: '1px solid #e2e8f0', borderRadius: 12, overflow: 'hidden', marginBottom: 20 }}>
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '16px 20px 0' }}>
           <div style={{ fontSize: 12, fontWeight: 700, color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.03em' }}>
-            Comparativo por SDR — ordenado por reuniones completadas
+            Comparativo por SDR — ordenado por reuniones outbound completadas
           </div>
         </div>
         <table style={{ width: '100%', borderCollapse: 'collapse', marginTop: 12, fontSize: 12.5 }}>
