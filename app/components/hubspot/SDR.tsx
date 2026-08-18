@@ -582,12 +582,12 @@ export default function SDR() {
           <KPICard label="Actividad" value={String(totales.totalActividad)} accent="#6366f1" info="Llamadas, mensajes y WhatsApp gestionados en el periodo" />
           <KPICard
             label="Contacto conectado"
-            value={String(totales.contactosConectados)}
+            value={`${totales.contactosConectados.toLocaleString()} / ${totales.totalLlamadas.toLocaleString()}`}
             accent="#0ea5e9"
             delta={totales.tasaConectado !== null ? `${totales.tasaConectado}% de las llamadas` : undefined}
             deltaSuffix=""
             deltaUp={true}
-            info="Llamadas donde la persona sí contestó. El % es sobre el total de llamadas realizadas (no aplica a WhatsApp/correo, que no registran este dato en HubSpot)"
+            info="Llamadas donde la persona sí contestó, sobre el total de llamadas realizadas. No aplica a WhatsApp/correo, que no registran este dato en HubSpot"
           />
           <KPICard
             label="MQL calificado"
