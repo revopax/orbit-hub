@@ -633,8 +633,11 @@ export default function SDR() {
 
       <div style={{ background: '#fff', border: '1px solid #e2e8f0', borderRadius: 12, padding: 20, marginBottom: 20 }}>
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 14, flexWrap: 'wrap', gap: 8 }}>
-          <div style={{ fontSize: 12, fontWeight: 700, color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.03em' }}>
-            Reuniones completadas por SDR
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+            <div style={{ fontSize: 12, fontWeight: 700, color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.03em' }}>
+              Reuniones completadas por SDR
+            </div>
+            <span style={{ fontSize: 10.5, fontWeight: 600, color: '#94a3b8', background: '#f1f5f9', padding: '2px 8px', borderRadius: 6 }}>{periodLabelGlobal}</span>
           </div>
           <select value={fuenteReunionSel} onChange={e => setFuenteReunionSel(e.target.value as any)} style={{
             padding: '5px 10px', borderRadius: 8, border: '1px solid #e2e8f0', fontSize: 11.5, color: '#172033', background: '#fff',
@@ -670,8 +673,11 @@ export default function SDR() {
       </div>
       <div style={{ background: '#fff', border: '1px solid #e2e8f0', borderRadius: 12, overflow: 'hidden', marginBottom: 20 }}>
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '16px 20px 0' }}>
-          <div style={{ fontSize: 12, fontWeight: 700, color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.03em' }}>
-            Comparativo por SDR — ordenado por reuniones outbound completadas
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+            <div style={{ fontSize: 12, fontWeight: 700, color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.03em' }}>
+              Comparativo por SDR — ordenado por reuniones outbound completadas
+            </div>
+            <span style={{ fontSize: 10.5, fontWeight: 600, color: '#94a3b8', background: '#f1f5f9', padding: '2px 8px', borderRadius: 6 }}>{periodLabelGlobal}</span>
           </div>
         </div>
         <table style={{ width: '100%', borderCollapse: 'collapse', marginTop: 12, fontSize: 12.5 }}>
