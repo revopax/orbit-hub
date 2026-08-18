@@ -70,6 +70,7 @@ const TIPO_LABELS: Record<string, string> = {
 interface RowActividad {
   sdr: string; mes: string; total_actividad: number; contactos_conectados: number
   reuniones_agendadas: number; reuniones_completadas: number
+  reuniones_completadas_outbound: number; reuniones_completadas_inbound: number
 }
 interface RowMqlUdn { sdr: string; mes: string; udn: string; fuente_tipo: 'outbound' | 'inbound'; mqls: number }
 interface RowActividadTipo { sdr: string; tipo: string; total: number }
@@ -409,14 +410,14 @@ export default function SDR() {
       const contactosConectados = act.reduce((s, r) => s + r.contactos_conectados, 0)
       const mqls = mqlRows.reduce((s, r) => s + r.mqls, 0)
       const reunionesCompletadas = act.reduce((s, r) => s + r.reuniones_completadas, 0)
+      const reunionesOutbound = act.reduce((s, r) => s + r.reuniones_completadas_outbound, 0)
+      const reunionesInbound = act.reduce((s, r) => s + r.reuniones_completadas_inbound, 0)
       const tasaConversion = totalActividad > 0 ? ((mqls / totalActividad) * 100).toFixed(1) : '0.0'
       const tasaMqlReunion = mqls > 0 ? ((reunionesCompletadas / mqls) * 100).toFixed(1) : '0.0'
-      return { sdr, totalActividad, contactosConectados, mqls, mqlsOutbound, mqlsInbound, reunionesCompletadas, tasaConversion, tasaMqlReunion, tipos }
+      return { sdr, totalActividad, contactosConectados, mqls, mqlsOutbound, mqlsInbound, reunionesCompletadas, reunionesOutbound, reunionesInbound, tasaConversion, tasaMqlReunion, tipos }
     }).sort((a, b) => {
       if (b.reunionesCompletadas !== a.reunionesCompletadas) return b.reunionesCompletadas - a.reunionesCompletadas
-      const puntajeA = a.mqlsOutbound * 0.6 + a.mqlsInbound * 0.4
-      const puntajeB = b.mqlsOutbound * 0.6 + b.mqlsInbound * 0.4
-      return puntajeB - puntajeA
+      return b.reunionesOutbound - a.reunionesOutbound
     })
   }, [actividad, mqlsUdn, actividadTipo, udnSel, sdrsAMostrar])
   const sdrDeLaSemana = leaderboard.length > 0 && leaderboard[0].reunionesCompletadas > 0 ? leaderboard[0].sdr : null
@@ -638,43 +639,6 @@ export default function SDR() {
           </BarChart>
         </ResponsiveContainer>
       </div>
-
-      <div style={{ background: '#fff', border: '1px solid #e2e8f0', borderRadius: 12, padding: 20, marginBottom: 20 }}>
-        <div style={{ display: 'flex', alignItems: 'center', marginBottom: 14 }}>
-          <div style={{ fontSize: 12, fontWeight: 700, color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.03em' }}>
-            SLA por SDR — mes actual (solo Inbound)
-          </div>
-          <InfoTip text="Promedio de horas que tarda cada SDR en atender un contacto que llego por Inbound (Website, Paid Media, Webinar, etc.), no por prospeccion propia." />
-        </div>
-        <ResponsiveContainer width="100%" height={260}>
-          <BarChart data={slaPorSdr} margin={{ top: 24, right: 8, left: 0, bottom: 8 }} barCategoryGap="30%" maxBarSize={70}>
-            <CartesianGrid vertical={false} stroke="#f1f5f9" />
-            <XAxis dataKey="sdr" tick={{ fontSize: 10.5, fill: '#64748b' }} axisLine={false} tickLine={false} />
-            <YAxis tick={{ fontSize: 11, fill: '#64748b' }} axisLine={false} tickLine={false} />
-            <Tooltip cursor={{ fill: 'rgba(0,0,0,0.03)' }} formatter={(v: number, name: string, props: any) => [`${v.toLocaleString()} horas (${props.payload.contactos} contactos)`, 'SLA promedio']} />
-            <Bar dataKey="sla_promedio" fill="#fb923c" radius={[6, 6, 0, 0]}>
-              <LabelList dataKey="sla_promedio" position="top" formatter={(v: number) => `${v}h`} style={{ fontSize: 11, fontWeight: 700, fill: '#0f172a' }} />
-            </Bar>
-          </BarChart>
-        </ResponsiveContainer>
-      </div>
-      <div style={{ background: '#fff', border: '1px solid #e2e8f0', borderRadius: 12, padding: 20, marginBottom: 20 }}>
-        <div style={{ display: 'flex', alignItems: 'center', marginBottom: 14 }}>
-          <div style={{ fontSize: 12, fontWeight: 700, color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.03em' }}>
-            SLA por día — últimos 30 días (solo Inbound)
-          </div>
-          <InfoTip text="Promedio diario de horas de respuesta a contactos Inbound, para detectar dias o rachas con demoras atipicas." />
-        </div>
-        <ResponsiveContainer width="100%" height={260}>
-          <BarChart data={slaPorDia} margin={{ top: 24, right: 8, left: 0, bottom: 8 }} barCategoryGap="20%" maxBarSize={40}>
-            <CartesianGrid vertical={false} stroke="#f1f5f9" />
-            <XAxis dataKey="dia" tick={{ fontSize: 9.5, fill: '#64748b' }} axisLine={false} tickLine={false} />
-            <YAxis tick={{ fontSize: 11, fill: '#64748b' }} axisLine={false} tickLine={false} />
-            <Tooltip cursor={{ fill: 'rgba(0,0,0,0.03)' }} formatter={(v: number, name: string, props: any) => [`${v.toLocaleString()} horas (${props.payload.contactos} contactos)`, 'SLA promedio']} />
-            <Bar dataKey="sla_promedio" fill="#fb923c" radius={[4, 4, 0, 0]} />
-          </BarChart>
-        </ResponsiveContainer>
-      </div>
       <div style={{ background: '#fff', border: '1px solid #e2e8f0', borderRadius: 12, overflow: 'hidden' }}>
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '16px 20px 0' }}>
           <div style={{ fontSize: 12, fontWeight: 700, color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.03em' }}>
@@ -772,6 +736,17 @@ export default function SDR() {
                               <span style={{ fontWeight: 600, color: '#334155' }}>{row.mqlsInbound.toLocaleString()}</span>
                             </div>
                           </div>
+                          <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+                            <div style={{ fontSize: 10, fontWeight: 700, color: '#94a3b8', textTransform: 'uppercase', letterSpacing: '0.03em', marginBottom: 2 }}>Reuniones por fuente</div>
+                            <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 11.5, color: '#64748b', minWidth: 200 }}>
+                              <span>Outbound (Prospección)</span>
+                              <span style={{ fontWeight: 600, color: '#334155' }}>{row.reunionesOutbound.toLocaleString()}</span>
+                            </div>
+                            <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 11.5, color: '#64748b', minWidth: 200 }}>
+                              <span>Inbound</span>
+                              <span style={{ fontWeight: 600, color: '#334155' }}>{row.reunionesInbound.toLocaleString()}</span>
+                            </div>
+                          </div>
                         </div>
                       </td>
                     </tr>
@@ -781,6 +756,43 @@ export default function SDR() {
             })}
           </tbody>
         </table>
+      </div>
+
+      <div style={{ background: '#fff', border: '1px solid #e2e8f0', borderRadius: 12, padding: 20, marginBottom: 20 }}>
+        <div style={{ display: 'flex', alignItems: 'center', marginBottom: 14 }}>
+          <div style={{ fontSize: 12, fontWeight: 700, color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.03em' }}>
+            SLA por SDR — mes actual (solo Inbound)
+          </div>
+          <InfoTip text="Promedio de horas que tarda cada SDR en atender un contacto que llego por Inbound (Website, Paid Media, Webinar, etc.), no por prospeccion propia." />
+        </div>
+        <ResponsiveContainer width="100%" height={260}>
+          <BarChart data={slaPorSdr} margin={{ top: 24, right: 8, left: 0, bottom: 8 }} barCategoryGap="30%" maxBarSize={70}>
+            <CartesianGrid vertical={false} stroke="#f1f5f9" />
+            <XAxis dataKey="sdr" tick={{ fontSize: 10.5, fill: '#64748b' }} axisLine={false} tickLine={false} />
+            <YAxis tick={{ fontSize: 11, fill: '#64748b' }} axisLine={false} tickLine={false} />
+            <Tooltip cursor={{ fill: 'rgba(0,0,0,0.03)' }} formatter={(v: number, name: string, props: any) => [`${v.toLocaleString()} horas (${props.payload.contactos} contactos)`, 'SLA promedio']} />
+            <Bar dataKey="sla_promedio" fill="#fb923c" radius={[6, 6, 0, 0]}>
+              <LabelList dataKey="sla_promedio" position="top" formatter={(v: number) => `${v}h`} style={{ fontSize: 11, fontWeight: 700, fill: '#0f172a' }} />
+            </Bar>
+          </BarChart>
+        </ResponsiveContainer>
+      </div>
+      <div style={{ background: '#fff', border: '1px solid #e2e8f0', borderRadius: 12, padding: 20, marginBottom: 20 }}>
+        <div style={{ display: 'flex', alignItems: 'center', marginBottom: 14 }}>
+          <div style={{ fontSize: 12, fontWeight: 700, color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.03em' }}>
+            SLA por día — últimos 30 días (solo Inbound)
+          </div>
+          <InfoTip text="Promedio diario de horas de respuesta a contactos Inbound, para detectar dias o rachas con demoras atipicas." />
+        </div>
+        <ResponsiveContainer width="100%" height={260}>
+          <BarChart data={slaPorDia} margin={{ top: 24, right: 8, left: 0, bottom: 8 }} barCategoryGap="20%" maxBarSize={40}>
+            <CartesianGrid vertical={false} stroke="#f1f5f9" />
+            <XAxis dataKey="dia" tick={{ fontSize: 9.5, fill: '#64748b' }} axisLine={false} tickLine={false} />
+            <YAxis tick={{ fontSize: 11, fill: '#64748b' }} axisLine={false} tickLine={false} />
+            <Tooltip cursor={{ fill: 'rgba(0,0,0,0.03)' }} formatter={(v: number, name: string, props: any) => [`${v.toLocaleString()} horas (${props.payload.contactos} contactos)`, 'SLA promedio']} />
+            <Bar dataKey="sla_promedio" fill="#fb923c" radius={[4, 4, 0, 0]} />
+          </BarChart>
+        </ResponsiveContainer>
       </div>
     </div>
   )
