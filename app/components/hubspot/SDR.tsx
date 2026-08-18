@@ -562,31 +562,28 @@ export default function SDR() {
       <div style={{ background: '#fff', border: '1px solid #e2e8f0', borderRadius: 12, padding: 20, marginBottom: 20 }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 16 }}>
           <div style={{ fontSize: 12, fontWeight: 700, color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.03em' }}>
-            Funnel de prospección
+            Volumen del período
           </div>
-          <InfoTip text="Actividad: llamadas, mensajes y WhatsApp gestionados. Contacto conectado: llamadas donde la persona contestó. MQL calificado: contactos que cumplieron BANT. Reunión completada: reunión de credenciales con el Comercial ya realizada. El % bajo cada número es la conversión respecto a la etapa anterior." />
+          <InfoTip text="Actividad: llamadas, mensajes y WhatsApp gestionados. Contacto conectado: llamadas donde la persona contestó. MQL calificado: contactos que cumplieron BANT. Reunión completada: reunión de credenciales con el Comercial ya realizada. Estas cifras son volumen total del período, no un funnel de conversión secuencial (Actividad y Reuniones no son directamente proporcionales entre sí)." />
         </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
           <FunnelEtapa label="Actividad" valor={totales.totalActividad} pct={null} tooltip="Llamadas, mensajes y WhatsApp gestionados en el periodo" />
-          <span style={{ color: '#cbd5e1', fontSize: 18, flexShrink: 0 }}>→</span>
           <FunnelEtapa
             label="Contacto conectado"
             valor={totales.contactosConectados}
-            pct={totales.totalActividad > 0 ? `${((totales.contactosConectados / totales.totalActividad) * 100).toFixed(1)}% de la actividad` : null}
+            pct={null}
             tooltip="Llamadas donde la persona sí contestó"
           />
-          <span style={{ color: '#cbd5e1', fontSize: 18, flexShrink: 0 }}>→</span>
           <FunnelEtapa
             label="MQL calificado"
             valor={totales.mqls}
-            pct={totales.contactosConectados > 0 ? `${((totales.mqls / totales.contactosConectados) * 100).toFixed(1)}% de conectados` : null}
+            pct={null}
             tooltip="Contactos que cumplieron BANT (necesidad, presupuesto, autoridad, tiempo)"
           />
-          <span style={{ color: '#cbd5e1', fontSize: 18, flexShrink: 0 }}>→</span>
           <FunnelEtapa
             label="Reunión completada"
             valor={totales.reunionesCompletadas}
-            pct={totales.mqls > 0 ? `${((totales.reunionesCompletadas / totales.mqls) * 100).toFixed(1)}% de MQLs` : null}
+            pct={null}
             tooltip="Reunión de credenciales con el Comercial que ya se llevó a cabo"
           />
         </div>
