@@ -710,16 +710,10 @@ export default function SDR() {
               </th>
               <th style={{ padding: '8px 12px', textAlign: 'right' }}>MQLs</th>
               <th style={{ padding: '8px 12px', textAlign: 'right' }}>Reuniones</th>
-              <th style={{ padding: '8px 12px', textAlign: 'right' }}>
-                <span style={{ display: 'inline-flex', alignItems: 'center' }}>
-                  Actividad → MQL
-                  <InfoTip text="MQLs ÷ Actividad total. Qué tan eficiente es el SDR generando MQLs por cada actividad que realiza." />
-                </span>
-              </th>
               <th style={{ padding: '8px 20px', textAlign: 'right' }}>
                 <span style={{ display: 'inline-flex', alignItems: 'center' }}>
                   MQL → Reunión
-                  <InfoTip text="Reuniones ÷ MQLs. Qué tan bien se cierra el embudo después de calificar el MQL." />
+                  <InfoTip text="Reuniones ÷ MQLs. De cada 100 MQLs calificados por el SDR, cuántos se convirtieron en reunión de credenciales completada con el Comercial." />
                 </span>
               </th>
             </tr>
@@ -769,7 +763,6 @@ export default function SDR() {
                     </td>
                     <td style={{ padding: '10px 12px', textAlign: 'right', fontWeight: 700, color: ACCENT }}>{row.mqls.toLocaleString()}</td>
                     <td style={{ padding: '10px 12px', textAlign: 'right', color: '#64748b' }}>{row.reunionesCompletadas.toLocaleString()}</td>
-                    <td style={{ padding: '10px 12px', textAlign: 'right', fontWeight: 700, color: '#172033' }}>{row.tasaConversion}%</td>
                     <td style={{ padding: '10px 20px', textAlign: 'right', color: '#64748b' }}>{row.tasaMqlReunion}%</td>
                   </tr>
                   {abierto && (
