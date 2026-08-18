@@ -513,7 +513,7 @@ export default function SDR() {
             display: 'flex', alignItems: 'center', gap: 10, fontSize: 12, color: '#64748b',
             background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: 10, padding: '8px 14px', width: 'fit-content',
           }}>
-            <span>Actividad al {comparativoDinamico.labelActual}: <strong style={{ color: '#172033' }}>{comparativoDinamico.actual.toLocaleString()}</strong></span>
+            <span>Reuniones outbound al {comparativoDinamico.labelActual}: <strong style={{ color: '#172033' }}>{comparativoDinamico.actual.toLocaleString()}</strong></span>
             <span style={{ color: '#cbd5e1' }}>vs</span>
             <span>al {comparativoDinamico.labelAnterior}: <strong style={{ color: '#172033' }}>{comparativoDinamico.anterior.toLocaleString()}</strong></span>
             {comparativoDinamico.delta !== null && (
@@ -528,7 +528,7 @@ export default function SDR() {
             display: 'flex', alignItems: 'center', gap: 10, fontSize: 12, color: '#64748b',
             background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: 10, padding: '8px 14px', width: 'fit-content',
           }}>
-            <span>Semana {comparativoSemanal.labelActual}: <strong style={{ color: '#172033' }}>{comparativoSemanal.actual.toLocaleString()}</strong></span>
+            <span>Reuniones outbound, semana {comparativoSemanal.labelActual}: <strong style={{ color: '#172033' }}>{comparativoSemanal.actual.toLocaleString()}</strong></span>
             <span style={{ color: '#cbd5e1' }}>vs</span>
             <span>{comparativoSemanal.labelAnterior}: <strong style={{ color: '#172033' }}>{comparativoSemanal.anterior.toLocaleString()}</strong></span>
             {comparativoSemanal.delta !== null && (
