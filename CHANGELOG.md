@@ -1,3 +1,34 @@
+## [v2.6.0] - 2026-08-18
+### Gestión SDR: reestructuración de bloques y layout
+- Bloque "Comparativo por SDR" reordenado para aparecer después de "Reuniones completadas por SDR", antes de los gráficos de SLA.
+- Gráficos "SLA por SDR" y "SLA por día" fusionados en fila doble (antes apilados), migrados de `BarChart` a `ComposedChart` con barra (SLA) + línea (contactos) en doble eje, replicando el patrón visual de HubSpot.
+- Formato dinámico de tiempo (segundos/minutos/horas/días) aplicado en ejes, tooltips y etiquetas de ambos gráficos de SLA — antes mostraban solo horas sin importar la magnitud.
+- Nombres de SDR en eje X de "SLA por SDR" renderizados en múltiples líneas (`TickNombreSDR`) para evitar solapamiento con nombres largos.
+- Filtro de SDR (arriba de la vista) ahora se propaga a `sla_por_sdr_mes_actual` y `sla_por_dia` — antes ignoraban el filtro y mostraban datos de todos los SDRs.
+- Etiquetas de ejes X/Y agregadas a ambos gráficos de SLA (SDR, "(Promedio) SLA SDR", "(Número) contactos"), centradas, más tooltip aclarando que "contactos" refiere a MQLs Inbound calificados (no relacionado con la columna "Conectados" de la tabla).
+
+### Atribución de reuniones outbound: propietario → creador
+- RPCs `sdr_dashboard_data` y `sdr_actividad_rango_diario` corregidos: filtraban actividad por `propietario` (Comercial asignado a la reunión) en vez de `creador` (SDR que la gestionó). Impacto real fue menor (~2 registros de ~1,900) pero el criterio ahora es correcto de fondo.
+- Labels de las tarjetas de comparativo mensual/semanal actualizados de "Actividad" a "Reuniones outbound".
+- Orden de la tabla "Comparativo por SDR" cambiado a reuniones outbound completadas (antes ordenaba por reuniones totales); título actualizado.
+
+### Filtros de fuente y período visibles en gráficos
+- Filtro Outbound/Inbound agregado a "Reuniones completadas por SDR" (antes solo existía en "MQLs por UDN").
+- Badge de período dinámico ("Este año", "Este mes", etc.) agregado a "MQLs por UDN", "Reuniones completadas por SDR" y "Comparativo por SDR" — refleja el filtro de fecha activo en vez de quedar fijo.
+- Fix: variable `periodLabelGlobal` faltante causaba crash de la página tras un primer intento incompleto de este cambio.
+- Línea de referencia (meta: 20 reuniones outbound/SDR/mes) agregada al gráfico "Reuniones completadas por SDR", escalando según el número de SDRs visibles; dominio del eje Y extendido para que la línea siempre sea visible.
+
+### Rediseño de scorecards ("Volumen del período")
+- Bloque "Funnel de prospección" renombrado a "Volumen del período": se quitaron flechas y porcentajes intermedios (no representaban un funnel de conversión secuencial real).
+- Migrado de tarjetas custom (`FunnelEtapa`) a componente reusable `KPICard` (contador animado, colores por métrica, gap entre tarjetas) — mismo patrón visual que el módulo de Redes UPAX.
+- Card "Contacto conectado" ahora muestra fracción "conectados / llamadas totales" en vez de solo el número absoluto, con ratio (%) debajo.
+- Card "Reunión completada" ahora incluye ratio (% sobre MQLs calificados) debajo del valor.
+
+### Columna "Conectados" reinterpretada como ratio
+- Columna "Conectados" en "Comparativo por SDR" reemplazada por ratio "Llamada → Conectado" (antes mostraba el número absoluto sin contexto de sobre qué total). Número absoluto de conectados se movió al detalle expandible, junto al desglose de llamadas.
+- Columna "Actividad → MQL" eliminada de la tabla (denominador mezclaba llamadas/WhatsApp/notas/tareas sin relación causal clara con MQLs generados).
+- Tooltip de "MQL → Reunión" mejorado para explicar la lectura del ratio con más detalle.
+
 ## [v2.5.0] - 2026-08-12
 ### Permisos y visibilidad por UDN
 - Fix de IDs desalineados: LinkedIn Orgánico/Ads en IAM usaban `linkedin-org`/`linkedin-ads`, corregido a `li-org`/`li-ads` (coincide con `RedesUPAX.tsx`).
