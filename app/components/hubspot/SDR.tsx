@@ -365,8 +365,13 @@ export default function SDR() {
     const contactosConectados = actividadFiltrada.reduce((s, r) => s + r.contactos_conectados, 0)
     const reunionesCompletadas = actividadFiltrada.reduce((s, r) => s + r.reuniones_completadas, 0)
     const mqls = mqlsFiltrados.reduce((s, r) => s + r.mqls, 0)
-    return { totalActividad, contactosConectados, mqls, reunionesCompletadas }
-  }, [actividadFiltrada, mqlsFiltrados])
+    const sdrsIds = sdrSel === 'todos' ? SDRS_VIGENTES : [sdrSel]
+    const totalLlamadas = actividadTipo
+      .filter(r => r.tipo === 'llamada' && sdrsIds.includes(r.sdr))
+      .reduce((s, r) => s + r.total, 0)
+    const tasaConectado = totalLlamadas > 0 ? ((contactosConectados / totalLlamadas) * 100).toFixed(1) : null
+    return { totalActividad, contactosConectados, mqls, reunionesCompletadas, totalLlamadas, tasaConectado }
+  }, [actividadFiltrada, mqlsFiltrados, actividadTipo, sdrSel])
 
   const [comparativoDinamico, setComparativoDinamico] = useState<{
     actual: number; anterior: number; delta: string | null; labelActual: string; labelAnterior: string
@@ -577,8 +582,8 @@ export default function SDR() {
           <FunnelEtapa
             label="Contacto conectado"
             valor={totales.contactosConectados}
-            pct={null}
-            tooltip="Llamadas donde la persona sí contestó"
+            pct={totales.tasaConectado !== null ? `${totales.tasaConectado}% de las llamadas` : null}
+            tooltip="Llamadas donde la persona sí contestó. El % es sobre el total de llamadas realizadas (no aplica a WhatsApp/correo, que no registran este dato en HubSpot)"
           />
           <FunnelEtapa
             label="MQL calificado"
