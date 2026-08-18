@@ -295,6 +295,7 @@ export default function SDR() {
   const hasta = dateTo.slice(0, 7)
   const [mqlsAnioAnteriorPorMes, setMqlsAnioAnteriorPorMes] = useState<Record<string, number>>({})
   const [fuenteMqlSel, setFuenteMqlSel] = useState<'todas' | 'outbound' | 'inbound'>('todas')
+  const [fuenteReunionSel, setFuenteReunionSel] = useState<'todas' | 'outbound' | 'inbound'>('todas')
   const [slaPorSdr, setSlaPorSdr] = useState<{ sdr: string; sla_promedio: number; contactos: number }[]>([])
   const [slaPorDia, setSlaPorDia] = useState<{ dia: string; sla_promedio: number; contactos: number }[]>([])
   useEffect(() => {
@@ -476,17 +477,20 @@ export default function SDR() {
 
   const chartDataReuniones = useMemo(() => {
     const base = sdrSel === 'todos' ? actividad : actividad.filter(r => r.sdr === sdrSel)
+    const campo = fuenteReunionSel === 'outbound' ? 'reuniones_completadas_outbound'
+      : fuenteReunionSel === 'inbound' ? 'reuniones_completadas_inbound'
+      : 'reuniones_completadas'
     const meses = Array.from(new Set(base.map(r => r.mes))).sort()
     return meses.map(mes => {
       const fila: Record<string, string | number> = { mes: mesLabel(mes) }
       sdrsAMostrar.forEach(sdr => {
         const row = base.find(r => r.mes === mes && r.sdr === sdr)
-        fila[sdr] = row?.reuniones_completadas || 0
+        fila[sdr] = (row as any)?.[campo] || 0
       })
       fila.total = sdrsAMostrar.reduce((s, sd) => s + (fila[sd] as number || 0), 0)
       return fila
     })
-  }, [actividad, sdrSel, sdrsAMostrar])
+  }, [actividad, sdrSel, sdrsAMostrar, fuenteReunionSel])
 
   if (loading) {
     return <div style={{ padding: 60, textAlign: 'center', color: '#94a3b8', fontSize: 13 }}>Cargando datos de SDR...</div>
@@ -628,8 +632,17 @@ export default function SDR() {
       </div>
 
       <div style={{ background: '#fff', border: '1px solid #e2e8f0', borderRadius: 12, padding: 20, marginBottom: 20 }}>
-        <div style={{ fontSize: 12, fontWeight: 700, color: '#64748b', marginBottom: 14, textTransform: 'uppercase', letterSpacing: '0.03em' }}>
-          Reuniones completadas por SDR
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 14, flexWrap: 'wrap', gap: 8 }}>
+          <div style={{ fontSize: 12, fontWeight: 700, color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.03em' }}>
+            Reuniones completadas por SDR
+          </div>
+          <select value={fuenteReunionSel} onChange={e => setFuenteReunionSel(e.target.value as any)} style={{
+            padding: '5px 10px', borderRadius: 8, border: '1px solid #e2e8f0', fontSize: 11.5, color: '#172033', background: '#fff',
+          }}>
+            <option value="todas">Todas las fuentes</option>
+            <option value="outbound">Solo Outbound (Prospección)</option>
+            <option value="inbound">Solo Inbound</option>
+          </select>
         </div>
         <ChartLegend items={sdrsAMostrar} colors={SDR_COLORS} />
         <ResponsiveContainer width="100%" height={300}>
