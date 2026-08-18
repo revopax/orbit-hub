@@ -261,7 +261,20 @@ function PeriodoPicker({ dateFrom, dateTo, activePreset, onChange }: {
 function formatSla(horas: number): string {
   if (horas < 1/60) return `${Math.round(horas * 3600)}s`
   if (horas < 1) return `${Math.round(horas * 60)}min`
-  return `${horas.toFixed(1)}h`
+  if (horas < 24) return `${horas.toFixed(1)}h`
+  return `${(horas / 24).toFixed(1)} días`
+}
+function TickNombreSDR({ x, y, payload }: any) {
+  const palabras = String(payload.value).split(' ')
+  return (
+    <g transform={`translate(${x},${y})`}>
+      {palabras.map((palabra: string, i: number) => (
+        <text key={i} x={0} y={0} dy={12 + i * 12} textAnchor="middle" fontSize={10.5} fill="#64748b">
+          {palabra}
+        </text>
+      ))}
+    </g>
+  )
 }
 
 export default function SDR() {
@@ -772,11 +785,11 @@ export default function SDR() {
             </div>
             <InfoTip text="Promedio de horas que tarda cada SDR en atender un contacto que llego por Inbound (Website, Paid Media, Webinar, etc.), no por prospeccion propia." />
           </div>
-          <ResponsiveContainer width="100%" height={260}>
-            <ComposedChart data={slaPorSdr} margin={{ top: 24, right: 8, left: 0, bottom: 8 }}>
+          <ResponsiveContainer width="100%" height={300}>
+            <ComposedChart data={slaPorSdr} margin={{ top: 24, right: 8, left: 0, bottom: 40 }}>
               <CartesianGrid vertical={false} stroke="#f1f5f9" />
-              <XAxis dataKey="sdr" tick={{ fontSize: 10.5, fill: '#64748b' }} axisLine={false} tickLine={false} />
-              <YAxis yAxisId="left" tick={{ fontSize: 11, fill: '#64748b' }} axisLine={false} tickLine={false} />
+              <XAxis dataKey="sdr" tick={<TickNombreSDR />} axisLine={false} tickLine={false} interval={0} height={50} />
+              <YAxis yAxisId="left" tick={{ fontSize: 11, fill: '#64748b' }} axisLine={false} tickLine={false} tickFormatter={(v: number) => formatSla(v)} />
               <YAxis yAxisId="right" orientation="right" tick={{ fontSize: 11, fill: '#64748b' }} axisLine={false} tickLine={false} />
               <Tooltip cursor={{ fill: 'rgba(0,0,0,0.03)' }} formatter={(v: number, name: string) => name === 'contactos' ? [`${v} contactos`, 'Contactos'] : [formatSla(v), 'SLA promedio']} />
               <Bar yAxisId="left" dataKey="sla_promedio" fill="#fb923c" radius={[6, 6, 0, 0]} barSize={40}>
