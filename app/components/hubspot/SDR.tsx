@@ -690,7 +690,12 @@ export default function SDR() {
             <tr style={{ borderBottom: '1px solid #e2e8f0', color: '#64748b', textAlign: 'left' }}>
               <th style={{ padding: '8px 20px' }}>SDR</th>
               <th style={{ padding: '8px 12px', textAlign: 'right' }}>Actividad</th>
-              <th style={{ padding: '8px 12px', textAlign: 'right' }}>Conectados</th>
+              <th style={{ padding: '8px 12px', textAlign: 'right' }}>
+                <span style={{ display: 'inline-flex', alignItems: 'center' }}>
+                  Llamada → Conectado
+                  <InfoTip text="Conectados ÷ Llamadas totales. Qué tan efectivo es el SDR marcando (solo aplica a llamadas; WhatsApp y otros canales no registran este dato en HubSpot)." />
+                </span>
+              </th>
               <th style={{ padding: '8px 12px', textAlign: 'right' }}>MQLs</th>
               <th style={{ padding: '8px 12px', textAlign: 'right' }}>Reuniones</th>
               <th style={{ padding: '8px 12px', textAlign: 'right' }}>
@@ -743,7 +748,13 @@ export default function SDR() {
                         {row.totalActividad.toLocaleString()}
                       </span>
                     </td>
-                    <td style={{ padding: '10px 12px', textAlign: 'right', color: '#64748b' }}>{row.contactosConectados.toLocaleString()}</td>
+                    <td style={{ padding: '10px 12px', textAlign: 'right', color: '#64748b' }}>
+                      {(() => {
+                        const llamadas = row.tipos.find(t => t.tipo === 'llamada')?.total || 0
+                        const tasaConectado = llamadas > 0 ? ((row.contactosConectados / llamadas) * 100).toFixed(1) : '0.0'
+                        return `${tasaConectado}%`
+                      })()}
+                    </td>
                     <td style={{ padding: '10px 12px', textAlign: 'right', fontWeight: 700, color: ACCENT }}>{row.mqls.toLocaleString()}</td>
                     <td style={{ padding: '10px 12px', textAlign: 'right', color: '#64748b' }}>{row.reunionesCompletadas.toLocaleString()}</td>
                     <td style={{ padding: '10px 12px', textAlign: 'right', fontWeight: 700, color: '#172033' }}>{row.tasaConversion}%</td>
@@ -761,7 +772,10 @@ export default function SDR() {
                             {row.tipos.map(t => (
                               <div key={t.tipo} style={{ display: 'flex', justifyContent: 'space-between', fontSize: 11.5, color: '#64748b', minWidth: 200 }}>
                                 <span>{TIPO_LABELS[t.tipo] || t.tipo}</span>
-                                <span style={{ fontWeight: 600, color: '#334155' }}>{t.total.toLocaleString()}</span>
+                                <span style={{ fontWeight: 600, color: '#334155' }}>
+                                  {t.total.toLocaleString()}
+                                  {t.tipo === 'llamada' && ` (${row.contactosConectados.toLocaleString()} conectadas)`}
+                                </span>
                               </div>
                             ))}
                           </div>
