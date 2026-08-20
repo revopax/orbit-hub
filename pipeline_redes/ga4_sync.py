@@ -43,8 +43,17 @@ DIMS_PAGES  = [Dimension(name="date"), Dimension(name="pagePath"), Dimension(nam
 
 
 def get_clients():
-    creds = service_account.Credentials.from_service_account_file(
-        SERVICE_ACCOUNT_FILE, scopes=['https://www.googleapis.com/auth/analytics.readonly'])
+    b64_creds = os.getenv("GA4_SERVICE_ACCOUNT_B64")
+    if b64_creds:
+        # Entorno CI (GitHub Actions): credencial viene como secret en base64
+        import base64, json
+        creds_dict = json.loads(base64.b64decode(b64_creds))
+        creds = service_account.Credentials.from_service_account_info(
+            creds_dict, scopes=['https://www.googleapis.com/auth/analytics.readonly'])
+    else:
+        # Entorno local: credencial viene de archivo
+        creds = service_account.Credentials.from_service_account_file(
+            SERVICE_ACCOUNT_FILE, scopes=['https://www.googleapis.com/auth/analytics.readonly'])
     analytics_client = BetaAnalyticsDataClient(credentials=creds)
     supabase = create_client(SUPABASE_URL, SUPABASE_KEY)
     return analytics_client, supabase
