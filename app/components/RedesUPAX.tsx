@@ -105,7 +105,7 @@ export default function RedesUPAX({ permisos, perfil }: { permisos?: Permisos | 
         <div style={{ display:'flex', gap:4, overflowX:'auto', flex:1 }}>
           {TABS.map(t => {
             const active = activeId===t.id
-            const proximamenteRed = t.id !== 'meta-org'
+            const proximamenteRed = !['meta-org', 'ga4'].includes(t.id)
             const permitido = proximamenteRed || tienePermiso(permisos, 'redes', t.id)
             return (
             <button key={t.id} onClick={() => { if (permitido && !proximamenteRed) setActiveId(t.id); }} style={{
