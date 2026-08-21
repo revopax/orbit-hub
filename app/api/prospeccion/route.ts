@@ -40,34 +40,27 @@ export async function GET(request: Request) {
     const mode = searchParams.get('mode') || 'tree';
 
     if (mode === 'tree') {
-      // Modo árbol: conteos agregados por scian_2 y subrama (4 dígitos), paginando para cubrir toda la tabla
-      const PAGE = 1000;
-      let from = 0;
-      let all: { codigo_act: string }[] = [];
-      while (true) {
-        let query = supabaseAdmin
-          .from('denue_prospeccion')
-          .select('codigo_act')
-          .range(from, from + PAGE - 1);
-        if (perOcuList.length > 0) query = query.in('per_ocu', perOcuList);
-        const { data, error } = await query;
-        if (error) return NextResponse.json({ error: error.message }, { status: 400 });
-        if (!data || data.length === 0) break;
-        all = all.concat(data as { codigo_act: string }[]);
-        if (data.length < PAGE) break;
-        from += PAGE;
-      }
+      // Modo árbol: conteos agregados vía función SQL conteo_prospeccion (agrupa en Postgres, instantáneo)
+      const { data, error } = await supabaseAdmin.rpc('conteo_prospeccion', {
+        per_ocu_filtro: perOcuList.length > 0 ? perOcuList : null,
+      });
+      if (error) return NextResponse.json({ error: error.message }, { status: 400 });
+
+      const rows = (data || []) as { codigo_act: string; cnt: number }[];
 
       const ramaCount: Record<string, number> = {};
-      const subramaCount: Record<string, { count: number; scian2: string; nombre: string }> = {};
+      const subramaCount: Record<string, { count: number; scian2: string }> = {};
+      let total = 0;
 
-      for (const row of all) {
+      for (const row of rows) {
         const codigo = row.codigo_act || '';
+        const cnt = Number(row.cnt) || 0;
         const s2 = codigo.slice(0, 2);
         const s4 = codigo.slice(0, 4);
-        ramaCount[s2] = (ramaCount[s2] || 0) + 1;
-        if (!subramaCount[s4]) subramaCount[s4] = { count: 0, scian2: s2, nombre: '' };
-        subramaCount[s4].count += 1;
+        ramaCount[s2] = (ramaCount[s2] || 0) + cnt;
+        if (!subramaCount[s4]) subramaCount[s4] = { count: 0, scian2: s2 };
+        subramaCount[s4].count += cnt;
+        total += cnt;
       }
 
       const ramas = Object.entries(ramaCount)
@@ -78,7 +71,7 @@ export async function GET(request: Request) {
         .map(([codigo, v]) => ({ codigo, scian2: v.scian2, count: v.count }))
         .sort((a, b) => b.count - a.count);
 
-      return NextResponse.json({ ramas, subramas, total: all.length });
+      return NextResponse.json({ ramas, subramas, total });
     }
 
     if (mode === 'detalle') {
