@@ -75,12 +75,28 @@ const CANAL_COLORS: Record<string,string> = {
 
 function agregarKpis(rows: RowTotal[]) {
   const sessions = rows.reduce((s,r) => s + r.sessions, 0)
-  const totalUsers = rows.reduce((s,r) => s + r.total_users, 0)
-  const newUsers = rows.reduce((s,r) => s + r.new_users, 0)
-  const recurrentUsers = Math.max(0, totalUsers - newUsers)
   const engagedSessions = rows.reduce((s,r) => s + r.engaged_sessions, 0)
   const eventCount = rows.reduce((s,r) => s + r.event_count, 0)
-  const avgDuration = rows.length ? rows.reduce((s,r) => s + r.avg_session_duration, 0) / rows.length : 0
+
+  // totalUsers/newUsers: GA4 reporta usuarios únicos por combinación de dimensiones
+  // (fecha x canal x fuente/medio). Sumar todas las filas sobre-cuenta usuarios que
+  // aparecen en múltiples canales el mismo día. Colapsamos primero por fecha para
+  // reducir esa sobre-cuenta antes de sumar.
+  const porFecha = new Map<string, { totalUsers: number; newUsers: number }>()
+  for (const r of rows) {
+    const acc = porFecha.get(r.fecha) || { totalUsers: 0, newUsers: 0 }
+    acc.totalUsers += r.total_users
+    acc.newUsers += r.new_users
+    porFecha.set(r.fecha, acc)
+  }
+  const totalUsers = Array.from(porFecha.values()).reduce((s,d) => s + d.totalUsers, 0)
+  const newUsers = Array.from(porFecha.values()).reduce((s,d) => s + d.newUsers, 0)
+  const recurrentUsers = Math.max(0, totalUsers - newUsers)
+
+  // avgDuration ponderado por sesiones (no promedio simple de promedios)
+  const sumaDuracionPonderada = rows.reduce((s,r) => s + r.avg_session_duration * r.sessions, 0)
+  const avgDuration = sessions > 0 ? sumaDuracionPonderada / sessions : 0
+
   const engagementRate = sessions > 0 ? (engagedSessions/sessions*100) : 0
   const bounceRate = sessions > 0 ? (1 - engagedSessions/sessions)*100 : 0
   return { sessions, totalUsers, newUsers, recurrentUsers, eventCount, avgDuration, engagementRate, bounceRate }
