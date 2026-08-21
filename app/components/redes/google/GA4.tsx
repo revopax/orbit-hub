@@ -14,9 +14,11 @@ interface RowTotal {
 interface RowPagina extends RowTotal { page_path: string; page_title: string }
 interface Props { accent: string; secondary: string; bg?: string; gradient?: string; perfil?: { rol?: string; udn?: string | null } | null }
 
-async function fetchSB(table: string, params: Record<string,string> = {}) {
+async function fetchSB(table: string, params: [string,string][] = []) {
   if (!SUPABASE_KEY) return []
-  const q = new URLSearchParams({ select: '*', ...params })
+  const q = new URLSearchParams()
+  q.append('select', '*')
+  for (const [k, v] of params) q.append(k, v)
   const PAGE = 1000
   let all: any[] = []
   let from = 0
@@ -125,9 +127,9 @@ export default function GA4({ accent, secondary }: Props) {
   useEffect(() => {
     setLoading(true)
     Promise.all([
-      fetchSB('ga4_totales', { fecha: `gte.${dateFrom}`, 'fecha.1': `lte.${dateTo}`, order: 'fecha.asc' }),
-      fetchSB('ga4_totales', { fecha: `gte.${prevFrom}`, 'fecha.1': `lte.${prevTo}` }),
-      fetchSB('ga4_paginas', { fecha: `gte.${dateFrom}`, 'fecha.1': `lte.${dateTo}`, order: 'fecha.asc' }),
+      fetchSB('ga4_totales', [['fecha', `gte.${dateFrom}`], ['fecha', `lte.${dateTo}`], ['order', 'fecha.asc']]),
+      fetchSB('ga4_totales', [['fecha', `gte.${prevFrom}`], ['fecha', `lte.${prevTo}`]]),
+      fetchSB('ga4_paginas', [['fecha', `gte.${dateFrom}`], ['fecha', `lte.${dateTo}`], ['order', 'fecha.asc']]),
     ]).then(([t, tp, p]) => {
       setTotales(t); setTotalesPrev(tp); setPaginas(p); setLoading(false)
     }).catch(() => setLoading(false))
