@@ -83,7 +83,14 @@ export default function RedesUPAX({ permisos, perfil }: { permisos?: Permisos | 
       .catch(err => console.error('Error cargando ultima actualizacion de Redes:', err))
   }, [])
   const proximaActualizacion = ultimaActualizacion ? new Date(ultimaActualizacion.getTime() + 6*60*60*1000) : null
-  const [activeId, setActiveId] = useState('meta-org')
+  const [activeId, setActiveId] = useState<string>(() => {
+    if (typeof window === 'undefined') return 'meta-org'
+    const saved = window.localStorage.getItem('redes-upax-tab')
+    return saved && TABS.some(t => t.id === saved) ? saved : 'meta-org'
+  })
+  useEffect(() => {
+    window.localStorage.setItem('redes-upax-tab', activeId)
+  }, [activeId])
   const tab = TABS.find(t => t.id === activeId)!
   return (
     <div style={{ minHeight:'100vh', background:tab.bg, transition:'background 0.4s ease', fontFamily:'Inter,-apple-system,sans-serif' }}>
