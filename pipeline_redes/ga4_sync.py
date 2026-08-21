@@ -38,6 +38,7 @@ METRIC_KEYS = ["sessions","total_users","new_users","screen_page_views",
                "engaged_sessions","avg_session_duration","event_count","key_events"]
 
 DIMS_TOTALS = [Dimension(name="date"), Dimension(name="sessionDefaultChannelGroup"), Dimension(name="sessionSourceMedium")]
+DIMS_TOTALES_DIA = [Dimension(name="date")]
 DIMS_PAGES  = [Dimension(name="date"), Dimension(name="pagePath"), Dimension(name="pageTitle"),
                Dimension(name="sessionDefaultChannelGroup"), Dimension(name="sessionSourceMedium")]
 
@@ -93,6 +94,11 @@ def run_report(client, prop_id, prop_name, start, end, dims, tipo):
                     "canal_grupo": d_vals[1], "fuente_medio": d_vals[2],
                     **metrics_dict,
                 }
+            elif tipo == "totales_dia":
+                registro = {
+                    "udn": prop_name, "fecha": fecha,
+                    **metrics_dict,
+                }
             else:
                 registro = {
                     "udn": prop_name, "fecha": fecha,
@@ -134,6 +140,7 @@ def main():
     tasks = [
         ("ga4_totales", DIMS_TOTALS, "totales", ["udn", "fecha", "canal_grupo", "fuente_medio"]),
         ("ga4_paginas", DIMS_PAGES, "paginas", ["udn", "fecha", "page_path", "canal_grupo", "fuente_medio"]),
+        ("ga4_totales_dia", DIMS_TOTALES_DIA, "totales_dia", ["udn", "fecha"]),
     ]
 
     for table_name, dims, tipo, conflict_cols in tasks:

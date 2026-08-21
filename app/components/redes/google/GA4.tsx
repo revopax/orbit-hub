@@ -12,6 +12,11 @@ interface RowTotal {
   engaged_sessions: number; avg_session_duration: number; event_count: number; key_events: number
 }
 interface RowPagina extends RowTotal { page_path: string; page_title: string }
+interface RowTotalDia {
+  udn: string; fecha: string
+  sessions: number; total_users: number; new_users: number; screen_page_views: number
+  engaged_sessions: number; avg_session_duration: number; event_count: number; key_events: number
+}
 interface Props { accent: string; secondary: string; bg?: string; gradient?: string; perfil?: { rol?: string; udn?: string | null } | null }
 
 async function fetchSB(table: string, params: [string,string][] = []) {
@@ -73,7 +78,7 @@ const CANAL_COLORS: Record<string,string> = {
   'Referral':'#00ACC1', 'Organic Social':'#FB8C00', 'Cross-network':'#8E24AA',
 }
 
-function agregarKpis(rows: RowTotal[]) {
+function agregarKpis(rows: RowTotal[], totalesDiaExactos?: RowTotalDia[]) {
   const sessions = rows.reduce((s,r) => s + r.sessions, 0)
   const engagedSessions = rows.reduce((s,r) => s + r.engaged_sessions, 0)
   const eventCount = rows.reduce((s,r) => s + r.event_count, 0)
@@ -82,15 +87,15 @@ function agregarKpis(rows: RowTotal[]) {
   // (fecha x canal x fuente/medio). Sumar todas las filas sobre-cuenta usuarios que
   // aparecen en múltiples canales el mismo día. Colapsamos primero por fecha para
   // reducir esa sobre-cuenta antes de sumar.
-  const porFecha = new Map<string, { totalUsers: number; newUsers: number }>()
-  for (const r of rows) {
-    const acc = porFecha.get(r.fecha) || { totalUsers: 0, newUsers: 0 }
-    acc.totalUsers += r.total_users
-    acc.newUsers += r.new_users
-    porFecha.set(r.fecha, acc)
+  let totalUsers: number
+  let newUsers: number
+  if (totalesDiaExactos && totalesDiaExactos.length > 0) {
+    totalUsers = totalesDiaExactos.reduce((s,r) => s + r.total_users, 0)
+    newUsers = totalesDiaExactos.reduce((s,r) => s + r.new_users, 0)
+  } else {
+    totalUsers = rows.reduce((s,r) => s + r.total_users, 0)
+    newUsers = rows.reduce((s,r) => s + r.new_users, 0)
   }
-  const totalUsers = Array.from(porFecha.values()).reduce((s,d) => s + d.totalUsers, 0)
-  const newUsers = Array.from(porFecha.values()).reduce((s,d) => s + d.newUsers, 0)
   const recurrentUsers = Math.max(0, totalUsers - newUsers)
 
   // avgDuration ponderado por sesiones (no promedio simple de promedios)
@@ -108,6 +113,8 @@ function pctDelta(actual: number, anterior: number): number | null {
 
 export default function GA4({ accent, secondary }: Props) {
   const [totales, setTotales] = useState<RowTotal[]>([])
+  const [totalesDia, setTotalesDia] = useState<RowTotalDia[]>([])
+  const [totalesDiaPrev, setTotalesDiaPrev] = useState<RowTotalDia[]>([])
   const [totalesPrev, setTotalesPrev] = useState<RowTotal[]>([])
   const [paginas, setPaginas] = useState<RowPagina[]>([])
   const [loading, setLoading] = useState(true)
@@ -146,8 +153,12 @@ export default function GA4({ accent, secondary }: Props) {
       fetchSB('ga4_totales', [['fecha', `gte.${dateFrom}`], ['fecha', `lte.${dateTo}`], ['order', 'fecha.asc']]),
       fetchSB('ga4_totales', [['fecha', `gte.${prevFrom}`], ['fecha', `lte.${prevTo}`]]),
       fetchSB('ga4_paginas', [['fecha', `gte.${dateFrom}`], ['fecha', `lte.${dateTo}`], ['order', 'fecha.asc']]),
-    ]).then(([t, tp, p]) => {
-      setTotales(t); setTotalesPrev(tp); setPaginas(p); setLoading(false)
+      fetchSB('ga4_totales_dia', [['fecha', `gte.${dateFrom}`], ['fecha', `lte.${dateTo}`], ['order', 'fecha.asc']]),
+      fetchSB('ga4_totales_dia', [['fecha', `gte.${prevFrom}`], ['fecha', `lte.${prevTo}`]]),
+    ]).then(([t, tp, p, td, tdp]) => {
+      setTotales(t); setTotalesPrev(tp); setPaginas(p)
+      setTotalesDia(td); setTotalesDiaPrev(tdp)
+      setLoading(false)
     }).catch(() => setLoading(false))
   }, [dateFrom, dateTo])
 
@@ -162,6 +173,12 @@ export default function GA4({ accent, secondary }: Props) {
     .filter(r => udnSel === 'todas' || r.udn === udnSel)
     .filter(r => canalSel === 'todos' || r.canal_grupo === canalSel)
   , [totalesPrev, udnSel, canalSel])
+  const totalesDiaFiltrados = useMemo(() => totalesDia
+    .filter(r => udnSel === 'todas' || r.udn === udnSel)
+  , [totalesDia, udnSel])
+  const totalesDiaPrevFiltrados = useMemo(() => totalesDiaPrev
+    .filter(r => udnSel === 'todas' || r.udn === udnSel)
+  , [totalesDiaPrev, udnSel])
   const paginasFiltradas = useMemo(() => paginas
     .filter(r => udnSel === 'todas' || r.udn === udnSel)
     .filter(r => canalSel === 'todos' || r.canal_grupo === canalSel)
@@ -170,8 +187,8 @@ export default function GA4({ accent, secondary }: Props) {
   const hoyStr = toDateStr(new Date())
   const registrosHoy = useMemo(() => filtrados.filter(r => r.fecha === hoyStr).length, [filtrados, hoyStr])
 
-  const kpis = useMemo(() => agregarKpis(filtrados), [filtrados])
-  const kpisPrev = useMemo(() => agregarKpis(filtradosPrev), [filtradosPrev])
+  const kpis = useMemo(() => agregarKpis(filtrados, canalSel === 'todos' ? totalesDiaFiltrados : undefined), [filtrados, canalSel, totalesDiaFiltrados])
+  const kpisPrev = useMemo(() => agregarKpis(filtradosPrev, canalSel === 'todos' ? totalesDiaPrevFiltrados : undefined), [filtradosPrev, canalSel, totalesDiaPrevFiltrados])
 
   const tendenciaMensual = useMemo(() => {
     const porMes: Record<string, { nuevos: number; recurrentes: number }> = {}
