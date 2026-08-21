@@ -216,13 +216,13 @@ export default function GA4({ accent, secondary }: Props) {
 
   const kpiDefs: { label: string; value: string; delta: number | null; invert?: boolean; info: string; sub?: string }[] = [
     { label: 'Usuarios activos', value: fmt(kpis.totalUsers), delta: pctDelta(kpis.totalUsers, kpisPrev.totalUsers),
-      info: `Usuarios únicos que interactuaron con el sitio (totalUsers de GA4). Nota: GA4 solo entrega este dato desglosado por canal/fuente; al sumar esas filas, un mismo usuario que llegó por más de un canal el mismo día se cuenta más de una vez, por lo que esta cifra es una aproximación por exceso frente al total exacto de GA4. % compara contra el mismo número de días justo antes del período seleccionado (${rangoTexto}).` },
+      info: `Usuarios únicos que interactuaron con el sitio (totalUsers de GA4). Puede estar sobreestimado: GA4 solo lo entrega desglosado por canal, y un mismo usuario activo en 2 canales el mismo día se cuenta 2 veces. % vs mismo número de días antes (${rangoTexto}).` },
     { label: 'Sesiones', value: fmt(kpis.sessions), delta: pctDelta(kpis.sessions, kpisPrev.sessions),
       info: 'Número total de sesiones iniciadas en el sitio (sessions de GA4).' },
     { label: 'Usuarios nuevos', value: fmt(kpis.newUsers), delta: pctDelta(kpis.newUsers, kpisPrev.newUsers),
       info: 'Usuarios que visitaron el sitio por primera vez en el período (newUsers de GA4).' },
     { label: 'Usuarios recurrentes', value: fmt(kpis.recurrentUsers), delta: pctDelta(kpis.recurrentUsers, kpisPrev.recurrentUsers),
-      info: 'Usuarios totales menos usuarios nuevos: visitantes que ya conocían el sitio y regresaron. Al heredar la aproximación de "Usuarios activos" (ver esa tarjeta), esta cifra también puede estar sobreestimada frente al dato exacto de GA4; Usuarios nuevos, en cambio, sí es exacto.' },
+      info: 'Usuarios totales menos usuarios nuevos: visitantes que ya conocían el sitio y regresaron. Hereda la misma sobreestimación de "Usuarios activos".' },
     { label: 'Tiempo prom. Sesión', value: fmtSeg(kpis.avgDuration), delta: pctDelta(kpis.avgDuration, kpisPrev.avgDuration), sub: 'hh:mm:ss',
       info: 'Duración promedio de una sesión (averageSessionDuration). Más alto suele indicar mayor interés en el contenido.' },
     { label: 'Tasa de ER', value: `${kpis.engagementRate.toFixed(1)}%`, delta: pctDelta(kpis.engagementRate, kpisPrev.engagementRate),
