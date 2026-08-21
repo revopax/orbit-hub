@@ -2,7 +2,7 @@
 import { useState, useEffect, useMemo } from 'react'
 
 interface Rama { codigo: string; nombre: string; count: number }
-interface Subrama { codigo: string; scian2: string; count: number }
+interface Subrama { codigo: string; scian2: string; nombre: string; count: number }
 interface Establecimiento {
   raz_social: string | null; nom_estab: string | null; codigo_act: string; nombre_act: string
   per_ocu: string; latitud: number | null; longitud: number | null
@@ -83,7 +83,7 @@ export default function ProspeccionDenue() {
                         background: subramaSel?.codigo === s.codigo ? '#ede9fe' : 'transparent',
                         color: subramaSel?.codigo === s.codigo ? '#6d28d9' : '#64748b',
                       }}>
-                      <span style={{ flex: 1 }}>{s.codigo}</span>
+                      <span style={{ flex: 1 }}>{s.nombre}</span>
                       <span style={{ fontSize: 11 }}>{s.count.toLocaleString('es-MX')}</span>
                     </div>
                   ))}

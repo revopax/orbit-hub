@@ -46,10 +46,11 @@ export async function GET(request: Request) {
       });
       if (error) return NextResponse.json({ error: error.message }, { status: 400 });
 
-      const rows = (data || []) as { codigo_act: string; cnt: number }[];
+      const rows = (data || []) as { codigo_act: string; nombre_act: string; cnt: number }[];
 
       const ramaCount: Record<string, number> = {};
-      const subramaCount: Record<string, { count: number; scian2: string }> = {};
+      const subramaCount: Record<string, number> = {};
+      const subramaNombreCandidato: Record<string, { nombre: string; cnt: number }> = {};
       let total = 0;
 
       for (const row of rows) {
@@ -58,8 +59,10 @@ export async function GET(request: Request) {
         const s2 = codigo.slice(0, 2);
         const s4 = codigo.slice(0, 4);
         ramaCount[s2] = (ramaCount[s2] || 0) + cnt;
-        if (!subramaCount[s4]) subramaCount[s4] = { count: 0, scian2: s2 };
-        subramaCount[s4].count += cnt;
+        subramaCount[s4] = (subramaCount[s4] || 0) + cnt;
+        if (!subramaNombreCandidato[s4] || cnt > subramaNombreCandidato[s4].cnt) {
+          subramaNombreCandidato[s4] = { nombre: row.nombre_act, cnt };
+        }
         total += cnt;
       }
 
@@ -68,7 +71,7 @@ export async function GET(request: Request) {
         .sort((a, b) => b.count - a.count);
 
       const subramas = Object.entries(subramaCount)
-        .map(([codigo, v]) => ({ codigo, scian2: v.scian2, count: v.count }))
+        .map(([codigo, count]) => ({ codigo, scian2: codigo.slice(0, 2), nombre: subramaNombreCandidato[codigo]?.nombre || codigo, count }))
         .sort((a, b) => b.count - a.count);
 
       return NextResponse.json({ ramas, subramas, total });
