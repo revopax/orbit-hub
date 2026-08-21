@@ -1,6 +1,6 @@
 'use client'
-import { useState, useEffect, useMemo } from 'react'
-import { InfoTip } from '../KPICard'
+import { useState, useEffect, useMemo, useRef } from 'react'
+import KPICard, { InfoTip } from '../KPICard'
 import { BarChart, Bar, LineChart, Line, PieChart, Pie, Cell, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid, Legend } from 'recharts'
 
 const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL_MBR || 'https://wuwhcljeigskajjoyghv.supabase.co'
@@ -47,6 +47,7 @@ function mesLabel(fecha: string) {
   const [y,m] = fecha.split('-')
   return `${meses[parseInt(m)-1]} ${y.slice(2)}`
 }
+function toDateStr(d: Date) { return d.toISOString().slice(0,10) }
 function addDays(dateStr: string, days: number) {
   const d = new Date(dateStr + 'T00:00:00Z')
   d.setUTCDate(d.getUTCDate() + days)
@@ -56,6 +57,13 @@ function daysBetween(from: string, to: string) {
   const a = new Date(from + 'T00:00:00Z'), b = new Date(to + 'T00:00:00Z')
   return Math.round((b.getTime() - a.getTime()) / 86400000) + 1
 }
+
+const PRESETS = [
+  { label:'Últimos 30 días',   fn:()=>{ const d=new Date(),s=new Date(); s.setDate(s.getDate()-30);  return [toDateStr(s),toDateStr(d)] as [string,string] } },
+  { label:'Últimos 90 días',   fn:()=>{ const d=new Date(),s=new Date(); s.setDate(s.getDate()-90);  return [toDateStr(s),toDateStr(d)] as [string,string] } },
+  { label:'Este año',          fn:()=>[ `${new Date().getFullYear()}-01-01`, toDateStr(new Date())] as [string,string] },
+  { label:'Todo el historial', fn:()=>['2025-01-01', toDateStr(new Date())] as [string,string] },
+]
 
 const CANAL_COLORS: Record<string,string> = {
   'Organic Search':'#4285F4', 'Paid Search':'#F9AB00', 'Direct':'#34A853',
@@ -86,8 +94,29 @@ export default function GA4({ accent, secondary }: Props) {
   const [paginas, setPaginas] = useState<RowPagina[]>([])
   const [loading, setLoading] = useState(true)
   const [udnSel, setUdnSel] = useState<string>('todas')
-  const [dateFrom] = useState(`${new Date().getFullYear()}-01-01`)
-  const [dateTo] = useState(new Date().toISOString().slice(0,10))
+  const [canalSel, setCanalSel] = useState<string>('todos')
+  const [dateFrom, setDateFrom] = useState(`${new Date().getFullYear()}-01-01`)
+  const [dateTo, setDateTo] = useState(toDateStr(new Date()))
+  const [tempFrom, setTempFrom] = useState(dateFrom)
+  const [tempTo, setTempTo] = useState(dateTo)
+  const [activePreset, setActivePreset] = useState('Este año')
+  const [showPicker, setShowPicker] = useState(false)
+  const pickerRef = useRef<HTMLDivElement>(null)
+
+  useEffect(() => {
+    function onClickOutside(e: MouseEvent) {
+      if (pickerRef.current && !pickerRef.current.contains(e.target as Node)) setShowPicker(false)
+    }
+    document.addEventListener('mousedown', onClickOutside)
+    return () => document.removeEventListener('mousedown', onClickOutside)
+  }, [])
+
+  function applyPreset(label: string, fn: () => [string,string]) {
+    const [f,t] = fn(); setDateFrom(f); setDateTo(t); setTempFrom(f); setTempTo(t)
+    setActivePreset(label); setShowPicker(false)
+  }
+  function applyCustom() { setDateFrom(tempFrom); setDateTo(tempTo); setActivePreset('Personalizado'); setShowPicker(false) }
+  const periodLabel = activePreset === 'Personalizado' ? `${dateFrom} → ${dateTo}` : activePreset
 
   const rangeDays = daysBetween(dateFrom, dateTo)
   const prevTo = addDays(dateFrom, -1)
@@ -96,20 +125,31 @@ export default function GA4({ accent, secondary }: Props) {
   useEffect(() => {
     setLoading(true)
     Promise.all([
-      fetchSB('ga4_totales', { fecha: `gte.${dateFrom}`, order: 'fecha.asc' }),
-      fetchSB('ga4_totales', { fecha: `gte.${prevFrom}`, 'fecha': `lte.${prevTo}` }),
-      fetchSB('ga4_paginas', { fecha: `gte.${dateFrom}`, order: 'fecha.asc' }),
+      fetchSB('ga4_totales', { fecha: `gte.${dateFrom}`, 'fecha.1': `lte.${dateTo}`, order: 'fecha.asc' }),
+      fetchSB('ga4_totales', { fecha: `gte.${prevFrom}`, 'fecha.1': `lte.${prevTo}` }),
+      fetchSB('ga4_paginas', { fecha: `gte.${dateFrom}`, 'fecha.1': `lte.${dateTo}`, order: 'fecha.asc' }),
     ]).then(([t, tp, p]) => {
       setTotales(t); setTotalesPrev(tp); setPaginas(p); setLoading(false)
     }).catch(() => setLoading(false))
-  }, [dateFrom])
+  }, [dateFrom, dateTo])
 
   const udns = useMemo(() => Array.from(new Set(totales.map(r => r.udn))).sort(), [totales])
-  const filtrados = useMemo(() => udnSel === 'todas' ? totales : totales.filter(r => r.udn === udnSel), [totales, udnSel])
-  const filtradosPrev = useMemo(() => udnSel === 'todas' ? totalesPrev : totalesPrev.filter(r => r.udn === udnSel), [totalesPrev, udnSel])
-  const paginasFiltradas = useMemo(() => udnSel === 'todas' ? paginas : paginas.filter(r => r.udn === udnSel), [paginas, udnSel])
+  const canales = useMemo(() => Array.from(new Set(totales.map(r => r.canal_grupo))).sort(), [totales])
 
-  const hoyStr = new Date().toISOString().slice(0,10)
+  const filtrados = useMemo(() => totales
+    .filter(r => udnSel === 'todas' || r.udn === udnSel)
+    .filter(r => canalSel === 'todos' || r.canal_grupo === canalSel)
+  , [totales, udnSel, canalSel])
+  const filtradosPrev = useMemo(() => totalesPrev
+    .filter(r => udnSel === 'todas' || r.udn === udnSel)
+    .filter(r => canalSel === 'todos' || r.canal_grupo === canalSel)
+  , [totalesPrev, udnSel, canalSel])
+  const paginasFiltradas = useMemo(() => paginas
+    .filter(r => udnSel === 'todas' || r.udn === udnSel)
+    .filter(r => canalSel === 'todos' || r.canal_grupo === canalSel)
+  , [paginas, udnSel, canalSel])
+
+  const hoyStr = toDateStr(new Date())
   const registrosHoy = useMemo(() => filtrados.filter(r => r.fecha === hoyStr).length, [filtrados, hoyStr])
 
   const kpis = useMemo(() => agregarKpis(filtrados), [filtrados])
@@ -148,9 +188,32 @@ export default function GA4({ accent, secondary }: Props) {
       .sort((a,b) => b.usuarios - a.usuarios).slice(0, 15)
   }, [paginasFiltradas])
 
-  if (loading) {
-    return <div style={{ padding: 60, textAlign: 'center', color: '#94a3b8', fontSize: 13 }}>Cargando datos de GA4...</div>
+  const rangoTexto = `${prevFrom} a ${prevTo}`
+  const isFiltered = udnSel !== 'todas' || canalSel !== 'todos' || activePreset !== 'Este año'
+  function resetFilters() {
+    setUdnSel('todas'); setCanalSel('todos')
+    const [f,t] = PRESETS[2].fn()
+    setDateFrom(f); setDateTo(t); setTempFrom(f); setTempTo(t); setActivePreset('Este año')
   }
+
+  const kpiDefs: { label: string; value: string; delta: number | null; invert?: boolean; info: string; sub?: string }[] = [
+    { label: 'Usuarios activos', value: fmt(kpis.totalUsers), delta: pctDelta(kpis.totalUsers, kpisPrev.totalUsers),
+      info: `Usuarios únicos que interactuaron con el sitio (totalUsers de GA4). % compara contra el mismo número de días justo antes del período seleccionado (${rangoTexto}).` },
+    { label: 'Sesiones', value: fmt(kpis.sessions), delta: pctDelta(kpis.sessions, kpisPrev.sessions),
+      info: 'Número total de sesiones iniciadas en el sitio (sessions de GA4).' },
+    { label: 'Usuarios nuevos', value: fmt(kpis.newUsers), delta: pctDelta(kpis.newUsers, kpisPrev.newUsers),
+      info: 'Usuarios que visitaron el sitio por primera vez en el período (newUsers de GA4).' },
+    { label: 'Usuarios recurrentes', value: fmt(kpis.recurrentUsers), delta: pctDelta(kpis.recurrentUsers, kpisPrev.recurrentUsers),
+      info: 'Usuarios totales menos usuarios nuevos: visitantes que ya conocían el sitio y regresaron.' },
+    { label: 'Tiempo prom. Sesión', value: fmtSeg(kpis.avgDuration), delta: pctDelta(kpis.avgDuration, kpisPrev.avgDuration), sub: 'hh:mm:ss',
+      info: 'Duración promedio de una sesión (averageSessionDuration). Más alto suele indicar mayor interés en el contenido.' },
+    { label: 'Tasa de ER', value: `${kpis.engagementRate.toFixed(1)}%`, delta: pctDelta(kpis.engagementRate, kpisPrev.engagementRate),
+      info: 'Engagement Rate: % de sesiones con 10+ segundos, 2+ páginas vistas, o una conversión. Mide calidad de la visita.' },
+    { label: 'Tasa de Rebote', value: `${kpis.bounceRate.toFixed(1)}%`, delta: pctDelta(kpis.bounceRate, kpisPrev.bounceRate), invert: true,
+      info: 'Bounce Rate: % de sesiones NO comprometidas (1 - Tasa de ER). Más alto es negativo: el visitante entró y se fue sin interactuar. Por eso aquí verde = bajó.' },
+    { label: 'Número de eventos', value: fmt(kpis.eventCount), delta: pctDelta(kpis.eventCount, kpisPrev.eventCount),
+      info: 'Total de eventos registrados (clics, scrolls, vistas de página, conversiones, etc.).' },
+  ]
 
   return (
     <div style={{ padding: 24, maxWidth: 1400, margin: '0 auto', fontFamily: 'Inter,-apple-system,sans-serif' }}>
@@ -159,41 +222,84 @@ export default function GA4({ accent, secondary }: Props) {
         <div>
           <div style={{ fontSize:22,fontWeight:800,color:'#fff',letterSpacing:'-0.5px' }}>GA4 — Tráfico Web</div>
           <div style={{ fontSize:13,color:'rgba(255,255,255,0.85)',marginTop:2 }}>
-            Google Analytics 4 · {fmt(topPaginas.reduce((s,p)=>s+p.vistas,0))} vistas en {dateFrom.slice(0,4)} · {registrosHoy > 0 ? `${registrosHoy} registros hoy` : 'sin datos hoy aún'}
+            Google Analytics 4{loading ? ' · Cargando...' : ` · ${fmt(topPaginas.reduce((s,p)=>s+p.vistas,0))} vistas en el período · ${registrosHoy > 0 ? `${registrosHoy} registros hoy` : 'sin datos hoy aún'}`}
           </div>
         </div>
-        <div style={{ marginLeft:'auto' }}>
+        <div style={{ marginLeft:'auto', display:'flex', gap:10, flexWrap:'wrap', alignItems:'center' }}>
           <select value={udnSel} onChange={e => setUdnSel(e.target.value)} style={{
             background:'#fff', border:'1px solid rgba(255,255,255,0.6)', borderRadius:9, color:'#334155', padding:'8px 14px', fontSize:12.5, fontWeight:600, cursor:'pointer',
           }}>
             <option value="todas">Todas las UDN</option>
             {udns.map(u => <option key={u} value={u}>{u}</option>)}
           </select>
+          <select value={canalSel} onChange={e => setCanalSel(e.target.value)} style={{
+            background:'#fff', border:'1px solid rgba(255,255,255,0.6)', borderRadius:9, color:'#334155', padding:'8px 14px', fontSize:12.5, fontWeight:600, cursor:'pointer',
+          }}>
+            <option value="todos">Todos los canales</option>
+            {canales.map(c => <option key={c} value={c}>{c}</option>)}
+          </select>
+          <div style={{ position:'relative' }} ref={pickerRef}>
+            <button onClick={()=>setShowPicker(!showPicker)}
+              style={{background:'rgba(255,255,255,0.2)',border:'1px solid rgba(255,255,255,0.4)',borderRadius:9,color:'#fff',padding:'7px 14px',fontSize:12,cursor:'pointer',display:'flex',alignItems:'center',gap:8}}>
+              📅 {periodLabel}
+            </button>
+            {showPicker && (
+              <div style={{position:'absolute',right:0,top:'calc(100% + 8px)',background:'#fff',borderRadius:16,boxShadow:'0 8px 40px rgba(0,0,0,0.18)',padding:20,zIndex:100,minWidth:300}}>
+                <div style={{display:'flex',flexDirection:'column',gap:4,marginBottom:16}}>
+                  {PRESETS.map(p=>(
+                    <button key={p.label} onClick={()=>applyPreset(p.label,p.fn)}
+                      style={{padding:'8px 12px',borderRadius:8,border:'none',textAlign:'left',cursor:'pointer',fontSize:13,fontWeight:600,
+                        background:activePreset===p.label?`${accent}18`:'transparent',color:activePreset===p.label?accent:'#374151'}}>
+                      {p.label}
+                    </button>
+                  ))}
+                </div>
+                <div style={{borderTop:'1px solid #f1f5f9',paddingTop:14}}>
+                  <div style={{fontSize:11,color:'#94a3b8',fontWeight:600,marginBottom:10}}>RANGO PERSONALIZADO</div>
+                  <div style={{display:'flex',gap:8,alignItems:'center',marginBottom:12}}>
+                    <input type='date' value={tempFrom} onChange={e=>setTempFrom(e.target.value)} style={{flex:1,padding:'6px 10px',borderRadius:8,border:'1px solid #e2e8f0',fontSize:12}}/>
+                    <span style={{color:'#94a3b8',fontSize:12}}>→</span>
+                    <input type='date' value={tempTo}   onChange={e=>setTempTo(e.target.value)}   style={{flex:1,padding:'6px 10px',borderRadius:8,border:'1px solid #e2e8f0',fontSize:12}}/>
+                  </div>
+                  <div style={{display:'flex',gap:8}}>
+                    <button onClick={()=>setShowPicker(false)} style={{flex:1,padding:'8px',borderRadius:8,border:'1px solid #e2e8f0',background:'#fff',color:'#64748b',fontSize:12,cursor:'pointer'}}>Cancelar</button>
+                    <button onClick={applyCustom} style={{flex:1,padding:'8px',borderRadius:8,border:'none',background:accent,color:'#fff',fontSize:12,fontWeight:700,cursor:'pointer'}}>Aplicar</button>
+                  </div>
+                </div>
+              </div>
+            )}
+          </div>
+          {isFiltered && (
+            <button onClick={resetFilters}
+              style={{background:'rgba(255,255,255,0.15)',border:'1px solid rgba(255,255,255,0.5)',borderRadius:9,color:'#fff',padding:'7px 14px',fontSize:12,cursor:'pointer',display:'flex',alignItems:'center',gap:6,fontWeight:600}}>
+              ✕ Borrar filtros
+            </button>
+          )}
         </div>
       </div>
 
-      <div style={{ display:'grid', gridTemplateColumns:'repeat(4, 1fr)', gap:12, marginBottom:24 }}>
-        <KpiBox label="Usuarios activos" value={fmt(kpis.totalUsers)} delta={pctDelta(kpis.totalUsers, kpisPrev.totalUsers)} accent={accent}
-          info="Usuarios únicos que interactuaron con el sitio en el período (totalUsers de GA4)." />
-        <KpiBox label="Sesiones" value={fmt(kpis.sessions)} delta={pctDelta(kpis.sessions, kpisPrev.sessions)} accent={accent}
-          info="Número total de sesiones iniciadas en el sitio (sessions de GA4)." />
-        <KpiBox label="Usuarios nuevos" value={fmt(kpis.newUsers)} delta={pctDelta(kpis.newUsers, kpisPrev.newUsers)} accent={accent}
-          info="Usuarios que visitaron el sitio por primera vez en el período (newUsers de GA4)." />
-        <KpiBox label="Usuarios recurrentes" value={fmt(kpis.recurrentUsers)} delta={pctDelta(kpis.recurrentUsers, kpisPrev.recurrentUsers)} accent={accent}
-          info="Usuarios totales menos usuarios nuevos: visitantes que ya conocían el sitio y regresaron." />
-        <KpiBox label="Tiempo prom. Sesión" value={fmtSeg(kpis.avgDuration)} delta={pctDelta(kpis.avgDuration, kpisPrev.avgDuration)} accent={secondary} sub="hh:mm:ss"
-          info="Duración promedio de una sesión (averageSessionDuration de GA4). Más alto suele indicar mayor interés en el contenido." />
-        <KpiBox label="Tasa de ER" value={`${kpis.engagementRate.toFixed(1)}%`} delta={pctDelta(kpis.engagementRate, kpisPrev.engagementRate)} accent={secondary}
-          info="Engagement Rate: % de sesiones que duraron 10+ segundos, tuvieron 2+ páginas vistas, o un evento de conversión. Mide calidad de la visita." />
-        <KpiBox label="Tasa de Rebote" value={`${kpis.bounceRate.toFixed(1)}%`} delta={pctDelta(kpis.bounceRate, kpisPrev.bounceRate)} accent={accent} invertColor
-          info="Bounce Rate: % de sesiones NO comprometidas (1 - Tasa de ER). Un valor más alto es negativo: significa que el visitante entró y se fue sin interactuar." />
-        <KpiBox label="Número de eventos" value={fmt(kpis.eventCount)} delta={pctDelta(kpis.eventCount, kpisPrev.eventCount)} accent={secondary}
-          info="Total de eventos registrados por GA4 (clics, scrolls, vistas de página, conversiones, etc.)." />
+      <div style={{ display:'flex',gap:12,flexWrap:'wrap',marginBottom:24 }}>
+        {kpiDefs.map((k, i) => {
+          const esPositivo = k.delta !== null ? (k.invert ? k.delta < 0 : k.delta > 0) : undefined
+          return (
+            <KPICard
+              key={i}
+              label={k.label}
+              value={loading ? '…' : k.value}
+              accent={i % 2 === 0 ? accent : secondary}
+              delta={!loading && k.delta !== null ? Math.abs(k.delta).toFixed(1) + '%' : undefined}
+              deltaUp={esPositivo}
+              deltaSuffix="vs periodo anterior"
+              info={k.info}
+            />
+          )
+        })}
       </div>
 
       <div style={{ background:'#fff',border:'1px solid #e2e8f0',borderRadius:12,padding:20,marginBottom:24 }}>
         <div style={{ fontSize:13,fontWeight:700,color:'#0f172a',marginBottom:4 }}>Tendencia Histórica (Usuarios Nuevos vs. Recurrentes)</div>
         <div style={{ fontSize:11,color:'#64748b',marginBottom:16 }}>Nuevos usuarios vs. usuarios que regresan, por mes</div>
+        {loading ? <div style={{ padding: 40, textAlign: 'center', color: '#94a3b8', fontSize: 12.5 }}>Cargando gráfica...</div> : (
         <ResponsiveContainer width="100%" height={280}>
           <LineChart data={tendenciaMensual} margin={{ top: 10, right: 20, left: 0, bottom: 20 }}>
             <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" />
@@ -205,11 +311,13 @@ export default function GA4({ accent, secondary }: Props) {
             <Line type="monotone" dataKey="Usuarios recurrentes" stroke={secondary} strokeWidth={2} dot={{ r: 3 }} />
           </LineChart>
         </ResponsiveContainer>
+        )}
       </div>
 
       <div style={{ display:'flex', gap: 16, flexWrap: 'wrap', marginBottom: 24 }}>
         <div style={{ background:'#fff',border:'1px solid #e2e8f0',borderRadius:12,padding:20,flex:1,minWidth:320 }}>
           <div style={{ fontSize:13,fontWeight:700,color:'#0f172a',marginBottom:16 }}>Adquisición de Sesiones (Distribución del Tráfico)</div>
+          {loading ? <div style={{ padding: 40, textAlign: 'center', color: '#94a3b8', fontSize: 12.5 }}>Cargando...</div> : (
           <ResponsiveContainer width="100%" height={260}>
             <BarChart data={distribucionCanal} margin={{ top: 10, right: 20, left: 0, bottom: 40 }}>
               <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" />
@@ -221,9 +329,11 @@ export default function GA4({ accent, secondary }: Props) {
               </Bar>
             </BarChart>
           </ResponsiveContainer>
+          )}
         </div>
         <div style={{ background:'#fff',border:'1px solid #e2e8f0',borderRadius:12,padding:20,flex:1,minWidth:280 }}>
           <div style={{ fontSize:13,fontWeight:700,color:'#0f172a',marginBottom:16 }}>Distribución por Canal (%)</div>
+          {loading ? <div style={{ padding: 40, textAlign: 'center', color: '#94a3b8', fontSize: 12.5 }}>Cargando...</div> : (
           <ResponsiveContainer width="100%" height={260}>
             <PieChart>
               <Pie data={distribucionCanal} dataKey="sesiones" nameKey="canal" cx="50%" cy="50%" outerRadius={90} label={({ pct }: any) => `${pct.toFixed(1)}%`} labelLine={false}>
@@ -233,6 +343,7 @@ export default function GA4({ accent, secondary }: Props) {
               <Legend wrapperStyle={{ fontSize: 10.5 }} />
             </PieChart>
           </ResponsiveContainer>
+          )}
         </div>
       </div>
 
@@ -241,6 +352,7 @@ export default function GA4({ accent, secondary }: Props) {
           <div style={{ fontSize:13,fontWeight:700,color:'#0f172a' }}>Ranking de Contenidos (Páginas Principales)</div>
           <InfoTip text="Top 15 páginas por usuarios reales en el período. Conversiones = eventos clave (key events) registrados en esa página." />
         </div>
+        {loading ? <div style={{ padding: 40, textAlign: 'center', color: '#94a3b8', fontSize: 12.5 }}>Cargando tabla...</div> : (
         <table style={{ width:'100%',borderCollapse:'collapse',fontSize:12 }}>
           <thead><tr style={{ borderBottom:'1px solid #e2e8f0' }}>
             {['Página','Usuarios reales','Volumen de vistas','Conversiones'].map(h=>
@@ -256,25 +368,8 @@ export default function GA4({ accent, secondary }: Props) {
             </tr>
           ))}</tbody>
         </table>
+        )}
       </div>
-    </div>
-  )
-}
-
-function KpiBox({ label, value, delta, accent, sub, info, invertColor }: { label: string; value: string; delta: number | null; accent: string; sub?: string; info: string; invertColor?: boolean }) {
-  const esPositivo = delta !== null ? (invertColor ? delta < 0 : delta > 0) : null
-  return (
-    <div style={{ background:'#fff', border:'1px solid #e2e8f0', borderRadius:12, padding:'16px 18px', borderTop:`3px solid ${accent}` }}>
-      <div style={{ fontSize:10.5,color:'#64748b',textTransform:'uppercase',letterSpacing:'0.05em',marginBottom:6,fontWeight:600,display:'flex',alignItems:'center' }}>
-        {label}<InfoTip text={info} />
-      </div>
-      <div style={{ fontSize:22,fontWeight:800,color:'#0f172a',whiteSpace:'nowrap' }}>{value}</div>
-      {sub && <div style={{ fontSize:9.5,color:'#94a3b8',marginTop:2 }}>{sub}</div>}
-      {delta !== null && (
-        <div style={{ fontSize:11.5,fontWeight:700,marginTop:6,color: esPositivo ? '#22c55e' : '#ef4444' }}>
-          {esPositivo ? '▲' : '▼'} {Math.abs(delta).toFixed(1)}% vs periodo anterior
-        </div>
-      )}
     </div>
   )
 }
