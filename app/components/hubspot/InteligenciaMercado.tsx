@@ -64,6 +64,8 @@ function ScoreCard({ label, value, sub, accent, icon }: { label: string; value: 
   );
 }
 
+import ProspeccionDenue from './ProspeccionDenue'
+
 export default function InteligenciaMercado() {
   const [filtroUdn, setFiltroUdn] = useState<string>('Todas');
   const udns = ['Todas', 'UIX', 'Marketing United', 'Promo Espacio', 'Zeus', 'Neracode', 'House Of Films', 'Research Land', 'Mexa Creativa'];
@@ -82,10 +84,7 @@ export default function InteligenciaMercado() {
         <ScoreCard label="Cambios de puesto" value={cambiosPuesto} sub="este mes" accent="#d97706" icon="💼" />
       </div>
 
-      <div style={cardStyle}>
-        <h3 style={{ fontSize: 15, fontWeight: 700, margin: '0 0 6px', color: '#0f172a' }}>Potencial de mercado por UDN</h3>
-        <p style={{ fontSize: 13, color: '#64748b', margin: 0 }}>Cruce DENUE (filtro empleados) vs. cartera actual — pendiente de conectar pipeline real.</p>
-      </div>
+      <ProspeccionDenue />
 
       <div style={cardStyle}>
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 4 }}>
