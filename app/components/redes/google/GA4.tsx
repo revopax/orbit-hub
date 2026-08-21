@@ -47,6 +47,15 @@ function mesLabel(fecha: string) {
   const [y,m] = fecha.split('-')
   return `${meses[parseInt(m)-1]} ${y.slice(2)}`
 }
+function addDays(dateStr: string, days: number) {
+  const d = new Date(dateStr + 'T00:00:00Z')
+  d.setUTCDate(d.getUTCDate() + days)
+  return d.toISOString().slice(0,10)
+}
+function daysBetween(from: string, to: string) {
+  const a = new Date(from + 'T00:00:00Z'), b = new Date(to + 'T00:00:00Z')
+  return Math.round((b.getTime() - a.getTime()) / 86400000) + 1
+}
 
 const CANAL_COLORS: Record<string,string> = {
   'Organic Search':'#4285F4', 'Paid Search':'#F9AB00', 'Direct':'#34A853',
@@ -54,42 +63,57 @@ const CANAL_COLORS: Record<string,string> = {
   'Referral':'#00ACC1', 'Organic Social':'#FB8C00', 'Cross-network':'#8E24AA',
 }
 
+function agregarKpis(rows: RowTotal[]) {
+  const sessions = rows.reduce((s,r) => s + r.sessions, 0)
+  const totalUsers = rows.reduce((s,r) => s + r.total_users, 0)
+  const newUsers = rows.reduce((s,r) => s + r.new_users, 0)
+  const recurrentUsers = Math.max(0, totalUsers - newUsers)
+  const engagedSessions = rows.reduce((s,r) => s + r.engaged_sessions, 0)
+  const eventCount = rows.reduce((s,r) => s + r.event_count, 0)
+  const avgDuration = rows.length ? rows.reduce((s,r) => s + r.avg_session_duration, 0) / rows.length : 0
+  const engagementRate = sessions > 0 ? (engagedSessions/sessions*100) : 0
+  const bounceRate = sessions > 0 ? (1 - engagedSessions/sessions)*100 : 0
+  return { sessions, totalUsers, newUsers, recurrentUsers, eventCount, avgDuration, engagementRate, bounceRate }
+}
+function pctDelta(actual: number, anterior: number): number | null {
+  if (!anterior) return null
+  return ((actual - anterior) / anterior) * 100
+}
+
 export default function GA4({ accent, secondary }: Props) {
   const [totales, setTotales] = useState<RowTotal[]>([])
+  const [totalesPrev, setTotalesPrev] = useState<RowTotal[]>([])
   const [paginas, setPaginas] = useState<RowPagina[]>([])
   const [loading, setLoading] = useState(true)
   const [udnSel, setUdnSel] = useState<string>('todas')
   const [dateFrom] = useState(`${new Date().getFullYear()}-01-01`)
   const [dateTo] = useState(new Date().toISOString().slice(0,10))
 
+  const rangeDays = daysBetween(dateFrom, dateTo)
+  const prevTo = addDays(dateFrom, -1)
+  const prevFrom = addDays(prevTo, -(rangeDays - 1))
+
   useEffect(() => {
     setLoading(true)
     Promise.all([
       fetchSB('ga4_totales', { fecha: `gte.${dateFrom}`, order: 'fecha.asc' }),
+      fetchSB('ga4_totales', { fecha: `gte.${prevFrom}`, 'fecha': `lte.${prevTo}` }),
       fetchSB('ga4_paginas', { fecha: `gte.${dateFrom}`, order: 'fecha.asc' }),
-    ]).then(([t, p]) => {
-      setTotales(t); setPaginas(p); setLoading(false)
+    ]).then(([t, tp, p]) => {
+      setTotales(t); setTotalesPrev(tp); setPaginas(p); setLoading(false)
     }).catch(() => setLoading(false))
   }, [dateFrom])
 
   const udns = useMemo(() => Array.from(new Set(totales.map(r => r.udn))).sort(), [totales])
   const filtrados = useMemo(() => udnSel === 'todas' ? totales : totales.filter(r => r.udn === udnSel), [totales, udnSel])
+  const filtradosPrev = useMemo(() => udnSel === 'todas' ? totalesPrev : totalesPrev.filter(r => r.udn === udnSel), [totalesPrev, udnSel])
   const paginasFiltradas = useMemo(() => udnSel === 'todas' ? paginas : paginas.filter(r => r.udn === udnSel), [paginas, udnSel])
 
   const hoyStr = new Date().toISOString().slice(0,10)
   const registrosHoy = useMemo(() => filtrados.filter(r => r.fecha === hoyStr).length, [filtrados, hoyStr])
 
-  const kpis = useMemo(() => {
-    const sessions = filtrados.reduce((s,r) => s + r.sessions, 0)
-    const totalUsers = filtrados.reduce((s,r) => s + r.total_users, 0)
-    const newUsers = filtrados.reduce((s,r) => s + r.new_users, 0)
-    const engagedSessions = filtrados.reduce((s,r) => s + r.engaged_sessions, 0)
-    const eventCount = filtrados.reduce((s,r) => s + r.event_count, 0)
-    const avgDuration = filtrados.length ? filtrados.reduce((s,r) => s + r.avg_session_duration, 0) / filtrados.length : 0
-    const engagementRate = sessions > 0 ? (engagedSessions/sessions*100) : 0
-    const bounceRate = sessions > 0 ? (1 - engagedSessions/sessions)*100 : 0
-    return { sessions, totalUsers, newUsers, eventCount, avgDuration, engagementRate, bounceRate }
-  }, [filtrados])
+  const kpis = useMemo(() => agregarKpis(filtrados), [filtrados])
+  const kpisPrev = useMemo(() => agregarKpis(filtradosPrev), [filtradosPrev])
 
   const tendenciaMensual = useMemo(() => {
     const porMes: Record<string, { nuevos: number; recurrentes: number }> = {}
@@ -140,21 +164,31 @@ export default function GA4({ accent, secondary }: Props) {
         </div>
         <div style={{ marginLeft:'auto' }}>
           <select value={udnSel} onChange={e => setUdnSel(e.target.value)} style={{
-            background:'rgba(255,255,255,0.2)', border:'1px solid rgba(255,255,255,0.4)', borderRadius:9, color:'#fff', padding:'7px 12px', fontSize:12, cursor:'pointer',
+            background:'#fff', border:'1px solid rgba(255,255,255,0.6)', borderRadius:9, color:'#334155', padding:'8px 14px', fontSize:12.5, fontWeight:600, cursor:'pointer',
           }}>
-            <option value="todas" style={{ color: '#334155' }}>Todas las UDN</option>
-            {udns.map(u => <option key={u} value={u} style={{ color: '#334155' }}>{u}</option>)}
+            <option value="todas">Todas las UDN</option>
+            {udns.map(u => <option key={u} value={u}>{u}</option>)}
           </select>
         </div>
       </div>
 
-      <div style={{ display:'flex',gap:12,flexWrap:'wrap',marginBottom:24 }}>
-        <KpiBox label="Sesiones" value={fmt(kpis.sessions)} accent={accent} />
-        <KpiBox label="Usuarios nuevos" value={fmt(kpis.newUsers)} accent={accent} />
-        <KpiBox label="Tiempo prom. Sesión" value={fmtSeg(kpis.avgDuration)} accent={secondary} sub="hh:mm:ss" />
-        <KpiBox label="Tasa de ER" value={`${kpis.engagementRate.toFixed(1)}%`} accent={secondary} />
-        <KpiBox label="Tasa de Rebote" value={`${kpis.bounceRate.toFixed(1)}%`} accent={accent} />
-        <KpiBox label="Número de eventos" value={fmt(kpis.eventCount)} accent={secondary} />
+      <div style={{ display:'grid', gridTemplateColumns:'repeat(4, 1fr)', gap:12, marginBottom:24 }}>
+        <KpiBox label="Usuarios activos" value={fmt(kpis.totalUsers)} delta={pctDelta(kpis.totalUsers, kpisPrev.totalUsers)} accent={accent}
+          info="Usuarios únicos que interactuaron con el sitio en el período (totalUsers de GA4)." />
+        <KpiBox label="Sesiones" value={fmt(kpis.sessions)} delta={pctDelta(kpis.sessions, kpisPrev.sessions)} accent={accent}
+          info="Número total de sesiones iniciadas en el sitio (sessions de GA4)." />
+        <KpiBox label="Usuarios nuevos" value={fmt(kpis.newUsers)} delta={pctDelta(kpis.newUsers, kpisPrev.newUsers)} accent={accent}
+          info="Usuarios que visitaron el sitio por primera vez en el período (newUsers de GA4)." />
+        <KpiBox label="Usuarios recurrentes" value={fmt(kpis.recurrentUsers)} delta={pctDelta(kpis.recurrentUsers, kpisPrev.recurrentUsers)} accent={accent}
+          info="Usuarios totales menos usuarios nuevos: visitantes que ya conocían el sitio y regresaron." />
+        <KpiBox label="Tiempo prom. Sesión" value={fmtSeg(kpis.avgDuration)} delta={pctDelta(kpis.avgDuration, kpisPrev.avgDuration)} accent={secondary} sub="hh:mm:ss"
+          info="Duración promedio de una sesión (averageSessionDuration de GA4). Más alto suele indicar mayor interés en el contenido." />
+        <KpiBox label="Tasa de ER" value={`${kpis.engagementRate.toFixed(1)}%`} delta={pctDelta(kpis.engagementRate, kpisPrev.engagementRate)} accent={secondary}
+          info="Engagement Rate: % de sesiones que duraron 10+ segundos, tuvieron 2+ páginas vistas, o un evento de conversión. Mide calidad de la visita." />
+        <KpiBox label="Tasa de Rebote" value={`${kpis.bounceRate.toFixed(1)}%`} delta={pctDelta(kpis.bounceRate, kpisPrev.bounceRate)} accent={accent} invertColor
+          info="Bounce Rate: % de sesiones NO comprometidas (1 - Tasa de ER). Un valor más alto es negativo: significa que el visitante entró y se fue sin interactuar." />
+        <KpiBox label="Número de eventos" value={fmt(kpis.eventCount)} delta={pctDelta(kpis.eventCount, kpisPrev.eventCount)} accent={secondary}
+          info="Total de eventos registrados por GA4 (clics, scrolls, vistas de página, conversiones, etc.)." />
       </div>
 
       <div style={{ background:'#fff',border:'1px solid #e2e8f0',borderRadius:12,padding:20,marginBottom:24 }}>
@@ -227,12 +261,20 @@ export default function GA4({ accent, secondary }: Props) {
   )
 }
 
-function KpiBox({ label, value, accent, sub }: { label: string; value: string; accent: string; sub?: string }) {
+function KpiBox({ label, value, delta, accent, sub, info, invertColor }: { label: string; value: string; delta: number | null; accent: string; sub?: string; info: string; invertColor?: boolean }) {
+  const esPositivo = delta !== null ? (invertColor ? delta < 0 : delta > 0) : null
   return (
-    <div style={{ flex:1, minWidth:150, background:'#fff', border:'1px solid #e2e8f0', borderRadius:12, padding:'16px 18px', borderTop:`3px solid ${accent}` }}>
-      <div style={{ fontSize:10.5,color:'#64748b',textTransform:'uppercase',letterSpacing:'0.05em',marginBottom:6,fontWeight:600 }}>{label}</div>
-      <div style={{ fontSize:24,fontWeight:800,color:'#0f172a' }}>{value}</div>
+    <div style={{ background:'#fff', border:'1px solid #e2e8f0', borderRadius:12, padding:'16px 18px', borderTop:`3px solid ${accent}` }}>
+      <div style={{ fontSize:10.5,color:'#64748b',textTransform:'uppercase',letterSpacing:'0.05em',marginBottom:6,fontWeight:600,display:'flex',alignItems:'center' }}>
+        {label}<InfoTip text={info} />
+      </div>
+      <div style={{ fontSize:22,fontWeight:800,color:'#0f172a',whiteSpace:'nowrap' }}>{value}</div>
       {sub && <div style={{ fontSize:9.5,color:'#94a3b8',marginTop:2 }}>{sub}</div>}
+      {delta !== null && (
+        <div style={{ fontSize:11.5,fontWeight:700,marginTop:6,color: esPositivo ? '#22c55e' : '#ef4444' }}>
+          {esPositivo ? '▲' : '▼'} {Math.abs(delta).toFixed(1)}% vs periodo anterior
+        </div>
+      )}
     </div>
   )
 }
