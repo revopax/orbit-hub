@@ -63,8 +63,8 @@ export default function MapaProspeccion({ establecimientos }: { establecimientos
       <MapContainer center={centro} zoom={puntos.length > 0 ? 11 : 5} style={{ height: '100%', width: '100%' }}
         whenReady={() => {}}>
         <TileLayer
-          url="https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png"
-          attribution='&copy; OpenStreetMap &copy; CARTO'
+          url="https://tile.openstreetmap.org/{z}/{x}/{y}.png"
+          attribution='&copy; OpenStreetMap contributors'
         />
         <BoundsWatcher onMove={cargarManzanas} />
 

@@ -162,7 +162,7 @@ export default function ProspeccionDenue() {
 
         {/* Dropdown de Actividad económica */}
         {tabActivo === 'actividad' && (
-          <div style={{ position: 'absolute', top: '100%', left: 0, zIndex: 20, marginTop: 6, width: 420, maxHeight: 380, overflowY: 'auto', background: '#fff', border: '1px solid #e2e8f0', borderRadius: 10, boxShadow: '0 8px 24px rgba(0,0,0,0.12)', padding: 12 }}>
+          <div style={{ position: 'absolute', top: '100%', left: 0, zIndex: 1000, marginTop: 6, width: 420, maxHeight: 380, overflowY: 'auto', background: '#fff', border: '1px solid #e2e8f0', borderRadius: 10, boxShadow: '0 8px 24px rgba(0,0,0,0.12)', padding: 12 }}>
             <label style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 12.5, fontWeight: 700, color: '#334155', cursor: 'pointer', padding: '4px 2px', marginBottom: 4, borderBottom: '1px solid #f1f5f9' }}>
               <input type="checkbox" checked={!pendSubrama} onChange={() => setPendSubrama(null)} />
               Todas las unidades
@@ -201,7 +201,7 @@ export default function ProspeccionDenue() {
 
         {/* Dropdown de Tamaño */}
         {tabActivo === 'tamano' && (
-          <div style={{ position: 'absolute', top: '100%', left: 0, zIndex: 20, marginTop: 6, width: 260, background: '#fff', border: '1px solid #e2e8f0', borderRadius: 10, boxShadow: '0 8px 24px rgba(0,0,0,0.12)', padding: 12 }}>
+          <div style={{ position: 'absolute', top: '100%', left: 0, zIndex: 1000, marginTop: 6, width: 260, background: '#fff', border: '1px solid #e2e8f0', borderRadius: 10, boxShadow: '0 8px 24px rgba(0,0,0,0.12)', padding: 12 }}>
             <label style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 12.5, fontWeight: 700, color: '#334155', cursor: 'pointer', padding: '4px 2px', marginBottom: 6, borderBottom: '1px solid #f1f5f9' }}>
               <input type="checkbox" checked={pendPerOcu.length === 0} onChange={() => setPendPerOcu([])} />
               Todos los tamaños
@@ -217,7 +217,7 @@ export default function ProspeccionDenue() {
 
         {/* Dropdown de Área geográfica */}
         {tabActivo === 'geografia' && (
-          <div style={{ position: 'absolute', top: '100%', left: 0, zIndex: 20, marginTop: 6, width: 460, maxHeight: 340, overflowY: 'auto', background: '#fff', border: '1px solid #e2e8f0', borderRadius: 10, boxShadow: '0 8px 24px rgba(0,0,0,0.12)', padding: 12 }}>
+          <div style={{ position: 'absolute', top: '100%', left: 0, zIndex: 1000, marginTop: 6, width: 460, maxHeight: 340, overflowY: 'auto', background: '#fff', border: '1px solid #e2e8f0', borderRadius: 10, boxShadow: '0 8px 24px rgba(0,0,0,0.12)', padding: 12 }}>
             <label style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 12.5, fontWeight: 700, color: '#334155', cursor: 'pointer', padding: '4px 2px', marginBottom: 6, borderBottom: '1px solid #f1f5f9' }}>
               <input type="checkbox" checked={pendEstados.length === 0} onChange={() => setPendEstados([])} />
               Todo el país
