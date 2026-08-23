@@ -8,7 +8,8 @@ const MapaProspeccion = dynamic(() => import('./MapaProspeccion'), {
 })
 
 interface Rama { codigo: string; nombre: string; count: number }
-interface Subrama { codigo: string; scian2: string; nombre: string; count: number }
+interface Subsector { codigo: string; scian2: string; nombre: string; count: number }
+interface Subrama { codigo: string; scian3: string; nombre: string; count: number }
 interface Establecimiento {
   raz_social: string | null; nom_estab: string | null; codigo_act: string; nombre_act: string
   per_ocu: string; latitud: number | null; longitud: number | null
@@ -39,6 +40,7 @@ type TabFiltro = 'actividad' | 'tamano' | 'geografia' | null
 
 export default function ProspeccionDenue() {
   const [ramas, setRamas] = useState<Rama[]>([])
+  const [subsectores, setSubsectores] = useState<Subsector[]>([])
   const [subramas, setSubramas] = useState<Subrama[]>([])
   const [total, setTotal] = useState(0)
   const [loadingTree, setLoadingTree] = useState(true)
@@ -48,6 +50,7 @@ export default function ProspeccionDenue() {
   const [pendEstados, setPendEstados] = useState<string[]>([])
   const [pendSubrama, setPendSubrama] = useState<{ scian2: string; codigo: string; nombre: string } | null>(null)
   const [ramaExpandida, setRamaExpandida] = useState<string | null>(null)
+  const [subsectorExpandido, setSubsectorExpandido] = useState<string | null>(null)
 
   // Selecciones APLICADAS (solo cambian al presionar Consultar)
   const [appliedPerOcu, setAppliedPerOcu] = useState<string[]>([])
@@ -64,7 +67,7 @@ export default function ProspeccionDenue() {
     setLoadingTree(true)
     fetch(`/api/prospeccion?mode=tree`)
       .then(r => r.json())
-      .then(d => { setRamas(d.ramas || []); setSubramas(d.subramas || []); setTotal(d.total || 0); setLoadingTree(false) })
+      .then(d => { setRamas(d.ramas || []); setSubsectores(d.subsectores || []); setSubramas(d.subramas || []); setTotal(d.total || 0); setLoadingTree(false) })
       .catch(() => setLoadingTree(false))
   }, [])
 
@@ -97,9 +100,15 @@ export default function ProspeccionDenue() {
     setDetalle([]); setTabActivo(null)
   }
 
-  const subramasPorRama = useMemo(() => {
+  const subsectoresPorRama = useMemo(() => {
+    const m: Record<string, Subsector[]> = {}
+    for (const s of subsectores) { if (!m[s.scian2]) m[s.scian2] = []; m[s.scian2].push(s) }
+    for (const k in m) m[k].sort((a, b) => b.count - a.count)
+    return m
+  }, [subsectores])
+  const subramasPorSubsector = useMemo(() => {
     const m: Record<string, Subrama[]> = {}
-    for (const s of subramas) { if (!m[s.scian2]) m[s.scian2] = []; m[s.scian2].push(s) }
+    for (const s of subramas) { if (!m[s.scian3]) m[s.scian3] = []; m[s.scian3].push(s) }
     for (const k in m) m[k].sort((a, b) => b.count - a.count)
     return m
   }, [subramas])
@@ -174,23 +183,40 @@ export default function ProspeccionDenue() {
                   <span style={{
                     width: 15, height: 15, borderRadius: 4, border: '1px solid #cbd5e1', display: 'flex',
                     alignItems: 'center', justifyContent: 'center', fontSize: 11, fontWeight: 700, color: '#94a3b8', flexShrink: 0,
-                  }}>{ramaExpandida === r.codigo ? '−' : '+'}</span>
+                  }}>{ramaExpandida === r.codigo ? '\u2212' : '+'}</span>
                   <span style={{ width: 9, height: 9, borderRadius: '50%', background: colorRama(r.codigo), flexShrink: 0 }} />
                   <span style={{ flex: 1 }}>({r.codigo}) {r.nombre}</span>
                 </div>
                 {ramaExpandida === r.codigo && (
                   <div style={{ marginLeft: 24, borderLeft: '2px solid #e2e8f0', paddingLeft: 10 }}>
-                    {(subramasPorRama[r.codigo] || []).map(s => (
-                      <label key={s.codigo} style={{
-                        display: 'flex', alignItems: 'center', gap: 6, cursor: 'pointer', padding: '4px 6px', fontSize: 12, borderRadius: 6,
-                        background: pendSubrama?.codigo === s.codigo ? '#ede9fe' : 'transparent',
-                        color: pendSubrama?.codigo === s.codigo ? '#6d28d9' : '#64748b',
-                      }}>
-                        <input type="radio" name="subrama" checked={pendSubrama?.codigo === s.codigo}
-                          onChange={() => setPendSubrama({ scian2: r.codigo, codigo: s.codigo, nombre: s.nombre })} />
-                        <span style={{ width: 7, height: 7, borderRadius: '50%', background: colorRama(r.codigo), opacity: 0.6, flexShrink: 0 }} />
-                        <span>({s.codigo}) {s.nombre}</span>
-                      </label>
+                    {(subsectoresPorRama[r.codigo] || []).map(ss => (
+                      <div key={ss.codigo} style={{ marginBottom: 1 }}>
+                        <div onClick={() => setSubsectorExpandido(subsectorExpandido === ss.codigo ? null : ss.codigo)}
+                          style={{ display: 'flex', alignItems: 'center', gap: 6, cursor: 'pointer', padding: '4px 4px', fontSize: 12, color: '#475569' }}>
+                          <span style={{
+                            width: 13, height: 13, borderRadius: 3, border: '1px solid #cbd5e1', display: 'flex',
+                            alignItems: 'center', justifyContent: 'center', fontSize: 10, fontWeight: 700, color: '#94a3b8', flexShrink: 0,
+                          }}>{subsectorExpandido === ss.codigo ? '\u2212' : '+'}</span>
+                          <span style={{ width: 7, height: 7, borderRadius: '50%', background: colorRama(r.codigo), opacity: 0.75, flexShrink: 0 }} />
+                          <span style={{ flex: 1 }}>({ss.codigo}) {ss.nombre}</span>
+                        </div>
+                        {subsectorExpandido === ss.codigo && (
+                          <div style={{ marginLeft: 20, borderLeft: '2px solid #f1f5f9', paddingLeft: 10 }}>
+                            {(subramasPorSubsector[ss.codigo] || []).map(s => (
+                              <label key={s.codigo} style={{
+                                display: 'flex', alignItems: 'center', gap: 6, cursor: 'pointer', padding: '4px 6px', fontSize: 11.5, borderRadius: 6,
+                                background: pendSubrama?.codigo === s.codigo ? '#ede9fe' : 'transparent',
+                                color: pendSubrama?.codigo === s.codigo ? '#6d28d9' : '#64748b',
+                              }}>
+                                <input type="radio" name="subrama" checked={pendSubrama?.codigo === s.codigo}
+                                  onChange={() => setPendSubrama({ scian2: r.codigo, codigo: s.codigo, nombre: s.nombre })} />
+                                <span style={{ width: 6, height: 6, borderRadius: '50%', background: colorRama(r.codigo), opacity: 0.5, flexShrink: 0 }} />
+                                <span>({s.codigo}) {s.nombre}</span>
+                              </label>
+                            ))}
+                          </div>
+                        )}
+                      </div>
                     ))}
                   </div>
                 )}

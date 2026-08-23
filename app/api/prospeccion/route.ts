@@ -45,36 +45,40 @@ export async function GET(request: Request) {
         per_ocu_filtro: perOcuList.length > 0 ? perOcuList : null,
       });
       if (error) return NextResponse.json({ error: error.message }, { status: 400 });
-
-      const rows = (data || []) as { codigo_act: string; nombre_act: string; cnt: number }[];
-
+      const rows = (data || []) as { codigo_act: string; nombre_act: string; nombre_subsector: string; cnt: number }[];
       const ramaCount: Record<string, number> = {};
+      const subsectorCount: Record<string, number> = {};
+      const subsectorNombreCandidato: Record<string, { nombre: string; cnt: number }> = {};
       const subramaCount: Record<string, number> = {};
       const subramaNombreCandidato: Record<string, { nombre: string; cnt: number }> = {};
       let total = 0;
-
       for (const row of rows) {
         const codigo = row.codigo_act || '';
         const cnt = Number(row.cnt) || 0;
         const s2 = codigo.slice(0, 2);
+        const s3 = codigo.slice(0, 3);
         const s4 = codigo.slice(0, 4);
         ramaCount[s2] = (ramaCount[s2] || 0) + cnt;
+        subsectorCount[s3] = (subsectorCount[s3] || 0) + cnt;
+        if (!subsectorNombreCandidato[s3] || cnt > subsectorNombreCandidato[s3].cnt) {
+          subsectorNombreCandidato[s3] = { nombre: row.nombre_subsector, cnt };
+        }
         subramaCount[s4] = (subramaCount[s4] || 0) + cnt;
         if (!subramaNombreCandidato[s4] || cnt > subramaNombreCandidato[s4].cnt) {
           subramaNombreCandidato[s4] = { nombre: row.nombre_act, cnt };
         }
         total += cnt;
       }
-
       const ramas = Object.entries(ramaCount)
         .map(([codigo, count]) => ({ codigo, nombre: SCIAN_MAP[codigo] || codigo, count }))
         .sort((a, b) => b.count - a.count);
-
-      const subramas = Object.entries(subramaCount)
-        .map(([codigo, count]) => ({ codigo, scian2: codigo.slice(0, 2), nombre: subramaNombreCandidato[codigo]?.nombre || codigo, count }))
+      const subsectores = Object.entries(subsectorCount)
+        .map(([codigo, count]) => ({ codigo, scian2: codigo.slice(0, 2), nombre: subsectorNombreCandidato[codigo]?.nombre || codigo, count }))
         .sort((a, b) => b.count - a.count);
-
-      return NextResponse.json({ ramas, subramas, total });
+      const subramas = Object.entries(subramaCount)
+        .map(([codigo, count]) => ({ codigo, scian3: codigo.slice(0, 3), nombre: subramaNombreCandidato[codigo]?.nombre || codigo, count }))
+        .sort((a, b) => b.count - a.count);
+      return NextResponse.json({ ramas, subsectores, subramas, total });
     }
 
     if (mode === 'detalle') {
