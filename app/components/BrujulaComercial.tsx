@@ -26,7 +26,14 @@ function tienePermiso(permisos: Permisos | null | undefined, modulo: string, tab
 
 export default function BrujulaComercial({ permisos }: { permisos?: Permisos | null }) {
   const { perfil } = useAuth();
-  const [sub, setSub] = useState<SubTab>('comercial');
+  const [sub, setSub] = useState<SubTab>(() => {
+    if (typeof window === 'undefined') return 'comercial'
+    const saved = window.localStorage.getItem('brujula-comercial-subtab') as SubTab | null
+    return saved || 'comercial'
+  });
+  useEffect(() => {
+    window.localStorage.setItem('brujula-comercial-subtab', sub)
+  }, [sub]);
   const [udnActiva, setUdnActiva] = useState<UDN>(UDNS[0]);
 
   const MIN_MES = '2025-01';

@@ -59,7 +59,7 @@ export default function MapaProspeccion({ establecimientos }: { establecimientos
     : [23.6345, -102.5528] // centro de México
 
   return (
-    <div style={{ height: 420, borderRadius: 10, overflow: 'hidden', border: '1px solid #e2e8f0' }}>
+    <div style={{ height: 420, borderRadius: 10, overflow: 'hidden', border: '1px solid #e2e8f0', position: 'relative', zIndex: 0 }}>
       <MapContainer center={centro} zoom={puntos.length > 0 ? 11 : 5} style={{ height: '100%', width: '100%' }}
         whenReady={() => {}}>
         <TileLayer
