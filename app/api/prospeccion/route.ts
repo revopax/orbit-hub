@@ -94,6 +94,21 @@ export async function GET(request: Request) {
       return NextResponse.json({ data: data || [] });
     }
 
+    if (mode === 'manzanas') {
+      const bbox = searchParams.get('bbox');
+      if (!bbox) return NextResponse.json({ error: 'falta parámetro bbox' }, { status: 400 });
+      const parts = bbox.split(',').map(Number);
+      if (parts.length !== 4 || parts.some(isNaN)) {
+        return NextResponse.json({ error: 'bbox inválido, formato: minLng,minLat,maxLng,maxLat' }, { status: 400 });
+      }
+      const [minLng, minLat, maxLng, maxLat] = parts;
+      const { data, error } = await supabaseAdmin.rpc('manzanas_en_bbox', {
+        min_lng: minLng, min_lat: minLat, max_lng: maxLng, max_lat: maxLat,
+      });
+      if (error) return NextResponse.json({ error: error.message }, { status: 400 });
+      return NextResponse.json({ data: data || [] });
+    }
+
     return NextResponse.json({ error: 'mode inválido, usa tree o detalle' }, { status: 400 });
   } catch (e: any) {
     return NextResponse.json({ error: e.message }, { status: 500 });
