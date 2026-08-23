@@ -1,5 +1,8 @@
 'use client'
 import { useState, useEffect, useMemo } from 'react'
+import dynamic from 'next/dynamic'
+
+const MapaProspeccion = dynamic(() => import('./MapaProspeccion'), { ssr: false, loading: () => <div style={{ height: 420, display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#94a3b8', fontSize: 13 }}>Cargando mapa...</div> })
 
 interface Rama { codigo: string; nombre: string; count: number }
 interface Subrama { codigo: string; scian2: string; nombre: string; count: number }
@@ -110,6 +113,10 @@ export default function ProspeccionDenue() {
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: 200, color: '#94a3b8', fontSize: 13, border: '1px dashed #e2e8f0', borderRadius: 10 }}>
               Selecciona una subrama del árbol para ver establecimientos
             </div>
+          )}
+
+          {subramaSel && !loadingDetalle && detalle.length > 0 && (
+            <MapaProspeccion establecimientos={detalle} />
           )}
 
           {subramaSel && (
