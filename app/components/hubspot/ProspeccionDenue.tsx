@@ -38,7 +38,7 @@ function colorRama(codigo: string) { return COLOR_POR_RAMA[codigo] || '#94a3b8' 
 const cardStyle: React.CSSProperties = { background: '#fff', border: '1px solid #e2e8f0', borderRadius: 14, padding: 20 }
 type TabFiltro = 'actividad' | 'tamano' | 'geografia' | null
 
-export default function ProspeccionDenue() {
+export default function ProspeccionDenue({ onTotalChange }: { onTotalChange?: (total: number) => void } = {}) {
   const [ramas, setRamas] = useState<Rama[]>([])
   const [subsectores, setSubsectores] = useState<Subsector[]>([])
   const [subramas, setSubramas] = useState<Subrama[]>([])
@@ -67,7 +67,7 @@ export default function ProspeccionDenue() {
     setLoadingTree(true)
     fetch(`/api/prospeccion?mode=tree`)
       .then(r => r.json())
-      .then(d => { setRamas(d.ramas || []); setSubsectores(d.subsectores || []); setSubramas(d.subramas || []); setTotal(d.total || 0); setLoadingTree(false) })
+      .then(d => { setRamas(d.ramas || []); setSubsectores(d.subsectores || []); setSubramas(d.subramas || []); setTotal(d.total || 0); setLoadingTree(false); if (onTotalChange) onTotalChange(d.total || 0) })
       .catch(() => setLoadingTree(false))
   }, [])
 
@@ -135,7 +135,7 @@ export default function ProspeccionDenue() {
     <div style={cardStyle}>
       <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', marginBottom: 4 }}>
         <h3 style={{ fontSize: 15, fontWeight: 700, margin: 0, color: '#0f172a' }}>Universo de prospección DENUE</h3>
-        <span style={{ fontSize: 12, color: '#64748b' }}>{loadingTree ? 'Cargando...' : `${total.toLocaleString('es-MX')} empresas sin cartera activa`}</span>
+
       </div>
       <p style={{ fontSize: 13, color: '#64748b', margin: '0 0 16px' }}>Establecimientos del DENUE que no han sido tocados aún — filtra por sector, tamaño y ubicación para encontrar prospectos.</p>
 

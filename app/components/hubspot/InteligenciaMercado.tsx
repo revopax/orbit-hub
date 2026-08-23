@@ -71,7 +71,7 @@ export default function InteligenciaMercado() {
   const udns = ['Todas', 'UIX', 'Marketing United', 'Promo Espacio', 'Zeus', 'Neracode', 'House Of Films', 'Research Land', 'Mexa Creativa'];
   const senalesFiltradas = filtroUdn === 'Todas' ? SENALES_DUMMY : SENALES_DUMMY.filter(s => s.udn === filtroUdn);
 
-  const potencialSinCubrir = 3240;
+  const [potencialSinCubrir, setPotencialSinCubrir] = useState(0);
   const senalesActivas = SENALES_DUMMY.filter(s => s.estado === 'nueva' || s.estado === 'asignada').length;
   const cambiosPuesto = SENALES_DUMMY.filter(s => s.tipo === 'Cambio de puesto').length;
 
@@ -79,12 +79,12 @@ export default function InteligenciaMercado() {
     <div style={{ display: 'flex', flexDirection: 'column', gap: 24 }}>
 
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 16 }}>
-        <ScoreCard label="Potencial sin cubrir" value={potencialSinCubrir.toLocaleString()} sub="empresas objetivo (DENUE)" accent="#8C59FE" icon="🎯" />
+        <ScoreCard label="Potencial sin cubrir" value={potencialSinCubrir.toLocaleString()} sub="empresas sin cartera activa" accent="#8C59FE" icon="" />
         <ScoreCard label="Señales activas" value={senalesActivas} sub="últimos 7 días" accent="#059669" icon="📡" />
         <ScoreCard label="Cambios de puesto" value={cambiosPuesto} sub="este mes" accent="#d97706" icon="💼" />
       </div>
 
-      <ProspeccionDenue />
+      <ProspeccionDenue onTotalChange={setPotencialSinCubrir} />
 
       <div style={cardStyle}>
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 4 }}>

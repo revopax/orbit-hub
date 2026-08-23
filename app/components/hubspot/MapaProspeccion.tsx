@@ -4,6 +4,8 @@ import { MapContainer, TileLayer, Polygon, Marker, Popup, useMap, useMapEvents }
 import MarkerClusterGroup from 'react-leaflet-cluster'
 import L from 'leaflet'
 import 'leaflet/dist/leaflet.css'
+import 'leaflet.markercluster/dist/MarkerCluster.css'
+import 'leaflet.markercluster/dist/MarkerCluster.Default.css'
 
 // Fix de iconos default de Leaflet (rutas rotas con bundlers modernos)
 delete (L.Icon.Default.prototype as any)._getIconUrl
