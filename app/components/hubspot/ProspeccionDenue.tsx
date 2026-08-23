@@ -1,5 +1,5 @@
 'use client'
-import { useState, useEffect, useMemo } from 'react'
+import { useState, useEffect, useMemo, useRef } from 'react'
 import dynamic from 'next/dynamic'
 
 const MapaProspeccion = dynamic(() => import('./MapaProspeccion'), {
@@ -23,43 +23,79 @@ const ESTADOS_MX = [
   'San Luis Potosí','Sinaloa','Sonora','Tabasco','Tamaulipas','Tlaxcala','Veracruz de Ignacio de la Llave',
   'Yucatán','Zacatecas'
 ]
-const COLORES_RAMA = ['#8b5cf6','#0ea5e9','#10b981','#f59e0b','#ef4444','#ec4899','#6366f1','#14b8a6']
+// Paleta fija replicando el portal DENUE por rama SCIAN
+const COLOR_POR_RAMA: Record<string, string> = {
+  '11': '#eab308', '21': '#92400e', '22': '#0ea5e9', '23': '#7c3aed',
+  '31': '#16a34a', '32': '#16a34a', '33': '#16a34a',
+  '43': '#2563eb', '46': '#2563eb', '48': '#f97316', '49': '#f97316',
+  '51': '#c026d3', '52': '#c026d3', '53': '#c026d3', '54': '#c026d3', '55': '#c026d3',
+  '56': '#c026d3', '61': '#c026d3', '62': '#c026d3', '71': '#c026d3', '72': '#c026d3', '81': '#c026d3',
+  '93': '#dc2626',
+}
+function colorRama(codigo: string) { return COLOR_POR_RAMA[codigo] || '#94a3b8' }
 
 const cardStyle: React.CSSProperties = { background: '#fff', border: '1px solid #e2e8f0', borderRadius: 14, padding: 20 }
-type TabFiltro = 'actividad' | 'tamano' | 'geografia'
+type TabFiltro = 'actividad' | 'tamano' | 'geografia' | null
 
 export default function ProspeccionDenue() {
   const [ramas, setRamas] = useState<Rama[]>([])
   const [subramas, setSubramas] = useState<Subrama[]>([])
   const [total, setTotal] = useState(0)
   const [loadingTree, setLoadingTree] = useState(true)
-  const [perOcuSel, setPerOcuSel] = useState<string[]>([...PER_OCU_OPTS])
-  const [estadoSel, setEstadoSel] = useState<string[]>([])
+
+  // Selecciones PENDIENTES (se editan libremente, no disparan queries)
+  const [pendPerOcu, setPendPerOcu] = useState<string[]>([])
+  const [pendEstados, setPendEstados] = useState<string[]>([])
+  const [pendSubrama, setPendSubrama] = useState<{ scian2: string; codigo: string; nombre: string } | null>(null)
   const [ramaExpandida, setRamaExpandida] = useState<string | null>(null)
-  const [ramaSel, setRamaSel] = useState<string | null>(null)
-  const [subramaSel, setSubramaSel] = useState<{ scian2: string; codigo: string } | null>(null)
+
+  // Selecciones APLICADAS (solo cambian al presionar Consultar)
+  const [appliedPerOcu, setAppliedPerOcu] = useState<string[]>([])
+  const [appliedEstados, setAppliedEstados] = useState<string[]>([])
+  const [appliedSubrama, setAppliedSubrama] = useState<{ scian2: string; codigo: string; nombre: string } | null>(null)
+
   const [detalle, setDetalle] = useState<Establecimiento[]>([])
   const [loadingDetalle, setLoadingDetalle] = useState(false)
-  const [tabActivo, setTabActivo] = useState<TabFiltro>('actividad')
+  const [tabActivo, setTabActivo] = useState<TabFiltro>(null)
+  const panelRef = useRef<HTMLDivElement>(null)
 
+  // Cargar árbol una sola vez (conteos generales, sin filtro de tamaño aplicado en vivo)
   useEffect(() => {
     setLoadingTree(true)
-    const perOcuParam = perOcuSel.length < PER_OCU_OPTS.length ? `&per_ocu=${encodeURIComponent(perOcuSel.join(','))}` : ''
-    fetch(`/api/prospeccion?mode=tree${perOcuParam}`)
+    fetch(`/api/prospeccion?mode=tree`)
       .then(r => r.json())
       .then(d => { setRamas(d.ramas || []); setSubramas(d.subramas || []); setTotal(d.total || 0); setLoadingTree(false) })
       .catch(() => setLoadingTree(false))
-  }, [perOcuSel])
+  }, [])
 
+  // Cerrar dropdown al hacer clic fuera
   useEffect(() => {
-    if (!subramaSel) { setDetalle([]); return }
+    function onClick(e: MouseEvent) {
+      if (panelRef.current && !panelRef.current.contains(e.target as Node)) setTabActivo(null)
+    }
+    document.addEventListener('mousedown', onClick)
+    return () => document.removeEventListener('mousedown', onClick)
+  }, [])
+
+  function ejecutarConsulta() {
+    setAppliedPerOcu(pendPerOcu)
+    setAppliedEstados(pendEstados)
+    setAppliedSubrama(pendSubrama)
+    setTabActivo(null)
+    if (!pendSubrama) { setDetalle([]); return }
     setLoadingDetalle(true)
-    const perOcuParam = perOcuSel.length < PER_OCU_OPTS.length ? `&per_ocu=${encodeURIComponent(perOcuSel.join(','))}` : ''
-    fetch(`/api/prospeccion?mode=detalle&subrama4d=${subramaSel.codigo}${perOcuParam}`)
+    const perOcuParam = pendPerOcu.length > 0 ? `&per_ocu=${encodeURIComponent(pendPerOcu.join(','))}` : ''
+    fetch(`/api/prospeccion?mode=detalle&subrama4d=${pendSubrama.codigo}${perOcuParam}`)
       .then(r => r.json())
       .then(d => { setDetalle(d.data || []); setLoadingDetalle(false) })
       .catch(() => setLoadingDetalle(false))
-  }, [subramaSel, perOcuSel])
+  }
+
+  function borrarTodo() {
+    setPendPerOcu([]); setPendEstados([]); setPendSubrama(null); setRamaExpandida(null)
+    setAppliedPerOcu([]); setAppliedEstados([]); setAppliedSubrama(null)
+    setDetalle([]); setTabActivo(null)
+  }
 
   const subramasPorRama = useMemo(() => {
     const m: Record<string, Subrama[]> = {}
@@ -68,27 +104,23 @@ export default function ProspeccionDenue() {
     return m
   }, [subramas])
 
-  const detalleFiltradoPorEstado = useMemo(() => {
-    if (estadoSel.length === 0) return detalle
-    return detalle.filter(e => estadoSel.includes(e.entidad))
-  }, [detalle, estadoSel])
+  const detalleFiltrado = useMemo(() => {
+    if (appliedEstados.length === 0) return detalle
+    return detalle.filter(e => appliedEstados.includes(e.entidad))
+  }, [detalle, appliedEstados])
 
   function togglePerOcu(opt: string) {
-    setPerOcuSel(prev => prev.includes(opt) ? prev.filter(o => o !== opt) : [...prev, opt])
+    setPendPerOcu(prev => prev.includes(opt) ? prev.filter(o => o !== opt) : [...prev, opt])
   }
   function toggleEstado(estado: string) {
-    setEstadoSel(prev => prev.includes(estado) ? prev.filter(e => e !== estado) : [...prev, estado])
-  }
-  function colorRama(codigo: string) {
-    const idx = ramas.findIndex(r => r.codigo === codigo)
-    return COLORES_RAMA[idx % COLORES_RAMA.length]
+    setPendEstados(prev => prev.includes(estado) ? prev.filter(e => e !== estado) : [...prev, estado])
   }
 
-  const TABS: { id: TabFiltro; label: string }[] = [
-    { id: 'actividad', label: 'Actividad económica' },
-    { id: 'tamano', label: 'Tamaño del establecimiento' },
-    { id: 'geografia', label: 'Área geográfica' },
-  ]
+  const labelActividad = pendSubrama ? pendSubrama.nombre : 'Actividad económica'
+  const labelTamano = pendPerOcu.length === 0 ? 'Tamaño del establecimiento' : `${pendPerOcu.length} tamaño(s)`
+  const labelGeografia = pendEstados.length === 0 ? 'Área geográfica' : `${pendEstados.length} estado(s)`
+
+  const hayFiltrosActivos = appliedSubrama || appliedPerOcu.length > 0 || appliedEstados.length > 0
 
   return (
     <div style={cardStyle}>
@@ -98,47 +130,67 @@ export default function ProspeccionDenue() {
       </div>
       <p style={{ fontSize: 13, color: '#64748b', margin: '0 0 16px' }}>Establecimientos del DENUE que no han sido tocados aún — filtra por sector, tamaño y ubicación para encontrar prospectos.</p>
 
-      {/* Tabs tipo DENUE */}
-      <div style={{ display: 'flex', gap: 2, borderBottom: '1px solid #e2e8f0', marginBottom: 16 }}>
-        {TABS.map(t => (
-          <button key={t.id} onClick={() => setTabActivo(t.id)} style={{
-            padding: '10px 16px', fontSize: 13, fontWeight: 600, border: 'none', background: 'transparent',
-            color: tabActivo === t.id ? '#6d28d9' : '#64748b',
-            borderBottom: tabActivo === t.id ? '2px solid #6d28d9' : '2px solid transparent',
-            cursor: 'pointer', marginBottom: -1,
-          }}>{t.label}</button>
-        ))}
-      </div>
+      {/* Barra de tabs tipo DENUE */}
+      <div ref={panelRef} style={{ position: 'relative', marginBottom: 16 }}>
+        <div style={{ display: 'flex', gap: 8, alignItems: 'center', borderBottom: '1px solid #e2e8f0', paddingBottom: 10, flexWrap: 'wrap' }}>
+          {([
+            { id: 'actividad' as const, label: labelActividad },
+            { id: 'tamano' as const, label: labelTamano },
+            { id: 'geografia' as const, label: labelGeografia },
+          ]).map(t => (
+            <button key={t.id} onClick={() => setTabActivo(tabActivo === t.id ? null : t.id)} style={{
+              padding: '8px 14px', fontSize: 12.5, fontWeight: 600, borderRadius: 8,
+              border: tabActivo === t.id ? '1px solid #6d28d9' : '1px solid #e2e8f0',
+              background: tabActivo === t.id ? '#ede9fe' : '#fff',
+              color: tabActivo === t.id ? '#6d28d9' : '#334155',
+              cursor: 'pointer', maxWidth: 220, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
+            }}>{t.label} ▾</button>
+          ))}
+          <div style={{ marginLeft: 'auto', display: 'flex', gap: 8 }}>
+            {hayFiltrosActivos && (
+              <button onClick={borrarTodo} style={{
+                padding: '8px 14px', fontSize: 12.5, fontWeight: 600, borderRadius: 8, border: '1px solid #fca5a5',
+                background: '#fff', color: '#dc2626', cursor: 'pointer',
+              }}>Borrar todo</button>
+            )}
+            <button onClick={ejecutarConsulta} style={{
+              padding: '8px 18px', fontSize: 12.5, fontWeight: 700, borderRadius: 8, border: 'none',
+              background: '#6d28d9', color: '#fff', cursor: 'pointer',
+            }}>Consultar</button>
+          </div>
+        </div>
 
-      {/* Panel del tab activo */}
-      <div style={{ marginBottom: 16, maxHeight: 320, overflowY: 'auto', border: '1px solid #e2e8f0', borderRadius: 10, padding: 14 }}>
+        {/* Dropdown de Actividad económica */}
         {tabActivo === 'actividad' && (
-          <div>
+          <div style={{ position: 'absolute', top: '100%', left: 0, zIndex: 20, marginTop: 6, width: 420, maxHeight: 380, overflowY: 'auto', background: '#fff', border: '1px solid #e2e8f0', borderRadius: 10, boxShadow: '0 8px 24px rgba(0,0,0,0.12)', padding: 12 }}>
+            <label style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 12.5, fontWeight: 700, color: '#334155', cursor: 'pointer', padding: '4px 2px', marginBottom: 4, borderBottom: '1px solid #f1f5f9' }}>
+              <input type="checkbox" checked={!pendSubrama} onChange={() => setPendSubrama(null)} />
+              Todas las unidades
+            </label>
             {ramas.map(r => (
               <div key={r.codigo} style={{ marginBottom: 2 }}>
                 <div onClick={() => setRamaExpandida(ramaExpandida === r.codigo ? null : r.codigo)}
-                  style={{ display: 'flex', alignItems: 'center', gap: 8, cursor: 'pointer', padding: '5px 2px', fontSize: 13, color: '#334155' }}>
+                  style={{ display: 'flex', alignItems: 'center', gap: 8, cursor: 'pointer', padding: '5px 2px', fontSize: 12.5, color: '#334155' }}>
                   <span style={{
-                    width: 16, height: 16, borderRadius: 4, border: '1px solid #cbd5e1', display: 'flex',
+                    width: 15, height: 15, borderRadius: 4, border: '1px solid #cbd5e1', display: 'flex',
                     alignItems: 'center', justifyContent: 'center', fontSize: 11, fontWeight: 700, color: '#94a3b8', flexShrink: 0,
                   }}>{ramaExpandida === r.codigo ? '−' : '+'}</span>
                   <span style={{ width: 9, height: 9, borderRadius: '50%', background: colorRama(r.codigo), flexShrink: 0 }} />
-                  <span style={{ flex: 1 }}>{r.nombre}</span>
-                  <span style={{ fontSize: 11, color: '#94a3b8' }}>{r.count.toLocaleString('es-MX')}</span>
+                  <span style={{ flex: 1 }}>({r.codigo}) {r.nombre}</span>
                 </div>
                 {ramaExpandida === r.codigo && (
                   <div style={{ marginLeft: 24, borderLeft: '2px solid #e2e8f0', paddingLeft: 10 }}>
                     {(subramasPorRama[r.codigo] || []).map(s => (
-                      <div key={s.codigo} onClick={() => setSubramaSel({ scian2: r.codigo, codigo: s.codigo })}
-                        style={{
-                          display: 'flex', alignItems: 'center', gap: 6, cursor: 'pointer', padding: '4px 6px', fontSize: 12.5, borderRadius: 6,
-                          background: subramaSel?.codigo === s.codigo ? '#ede9fe' : 'transparent',
-                          color: subramaSel?.codigo === s.codigo ? '#6d28d9' : '#64748b',
-                        }}>
+                      <label key={s.codigo} style={{
+                        display: 'flex', alignItems: 'center', gap: 6, cursor: 'pointer', padding: '4px 6px', fontSize: 12, borderRadius: 6,
+                        background: pendSubrama?.codigo === s.codigo ? '#ede9fe' : 'transparent',
+                        color: pendSubrama?.codigo === s.codigo ? '#6d28d9' : '#64748b',
+                      }}>
+                        <input type="radio" name="subrama" checked={pendSubrama?.codigo === s.codigo}
+                          onChange={() => setPendSubrama({ scian2: r.codigo, codigo: s.codigo, nombre: s.nombre })} />
                         <span style={{ width: 7, height: 7, borderRadius: '50%', background: colorRama(r.codigo), opacity: 0.6, flexShrink: 0 }} />
-                        <span style={{ flex: 1 }}>{s.nombre}</span>
-                        <span style={{ fontSize: 11 }}>{s.count.toLocaleString('es-MX')}</span>
-                      </div>
+                        <span>({s.codigo}) {s.nombre}</span>
+                      </label>
                     ))}
                   </div>
                 )}
@@ -147,42 +199,54 @@ export default function ProspeccionDenue() {
           </div>
         )}
 
+        {/* Dropdown de Tamaño */}
         {tabActivo === 'tamano' && (
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+          <div style={{ position: 'absolute', top: '100%', left: 0, zIndex: 20, marginTop: 6, width: 260, background: '#fff', border: '1px solid #e2e8f0', borderRadius: 10, boxShadow: '0 8px 24px rgba(0,0,0,0.12)', padding: 12 }}>
+            <label style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 12.5, fontWeight: 700, color: '#334155', cursor: 'pointer', padding: '4px 2px', marginBottom: 6, borderBottom: '1px solid #f1f5f9' }}>
+              <input type="checkbox" checked={pendPerOcu.length === 0} onChange={() => setPendPerOcu([])} />
+              Todos los tamaños
+            </label>
             {PER_OCU_OPTS.map(opt => (
-              <label key={opt} style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 13, color: '#334155', cursor: 'pointer' }}>
-                <input type="checkbox" checked={perOcuSel.includes(opt)} onChange={() => togglePerOcu(opt)} />
+              <label key={opt} style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 12.5, color: '#334155', cursor: 'pointer', padding: '4px 2px' }}>
+                <input type="checkbox" checked={pendPerOcu.includes(opt)} onChange={() => togglePerOcu(opt)} />
                 {opt}
               </label>
             ))}
           </div>
         )}
 
+        {/* Dropdown de Área geográfica */}
         {tabActivo === 'geografia' && (
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: 6 }}>
-            {ESTADOS_MX.map(estado => (
-              <label key={estado} style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 12.5, color: '#334155', cursor: 'pointer' }}>
-                <input type="checkbox" checked={estadoSel.includes(estado)} onChange={() => toggleEstado(estado)} />
-                {estado}
-              </label>
-            ))}
+          <div style={{ position: 'absolute', top: '100%', left: 0, zIndex: 20, marginTop: 6, width: 460, maxHeight: 340, overflowY: 'auto', background: '#fff', border: '1px solid #e2e8f0', borderRadius: 10, boxShadow: '0 8px 24px rgba(0,0,0,0.12)', padding: 12 }}>
+            <label style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 12.5, fontWeight: 700, color: '#334155', cursor: 'pointer', padding: '4px 2px', marginBottom: 6, borderBottom: '1px solid #f1f5f9' }}>
+              <input type="checkbox" checked={pendEstados.length === 0} onChange={() => setPendEstados([])} />
+              Todo el país
+            </label>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: 4 }}>
+              {ESTADOS_MX.map(estado => (
+                <label key={estado} style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 12, color: '#334155', cursor: 'pointer', padding: '3px 2px' }}>
+                  <input type="checkbox" checked={pendEstados.includes(estado)} onChange={() => toggleEstado(estado)} />
+                  {estado}
+                </label>
+              ))}
+            </div>
           </div>
         )}
       </div>
 
       {/* Mapa: siempre visible */}
       <div style={{ marginBottom: 16 }}>
-        <MapaProspeccion establecimientos={subramaSel ? detalleFiltradoPorEstado : []} />
+        <MapaProspeccion establecimientos={appliedSubrama ? detalleFiltrado : []} />
       </div>
 
       {/* Tabla de resultados */}
-      {!subramaSel && (
+      {!appliedSubrama && (
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: 100, color: '#94a3b8', fontSize: 13, border: '1px dashed #e2e8f0', borderRadius: 10 }}>
-          Selecciona una actividad económica en el árbol para ver establecimientos
+          Selecciona una actividad económica y presiona "Consultar" para ver establecimientos
         </div>
       )}
 
-      {subramaSel && (
+      {appliedSubrama && (
         <div style={{ border: '1px solid #e2e8f0', borderRadius: 10, overflow: 'hidden' }}>
           <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 12.5 }}>
             <thead>
@@ -196,9 +260,9 @@ export default function ProspeccionDenue() {
             <tbody>
               {loadingDetalle ? (
                 <tr><td colSpan={4} style={{ padding: 16, textAlign: 'center', color: '#94a3b8' }}>Cargando...</td></tr>
-              ) : detalleFiltradoPorEstado.length === 0 ? (
+              ) : detalleFiltrado.length === 0 ? (
                 <tr><td colSpan={4} style={{ padding: 16, textAlign: 'center', color: '#94a3b8' }}>Sin resultados con estos filtros</td></tr>
-              ) : detalleFiltradoPorEstado.map((e, i) => (
+              ) : detalleFiltrado.map((e, i) => (
                 <tr key={i} style={{ borderBottom: '1px solid #f1f5f9' }}>
                   <td style={{ padding: '7px 10px' }}>{e.raz_social || e.nom_estab || '—'}</td>
                   <td style={{ padding: '7px 10px', color: '#64748b' }}>{e.municipio}, {e.entidad}</td>
