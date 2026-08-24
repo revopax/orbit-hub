@@ -111,6 +111,7 @@ export interface EmpresaPico {
   generadoPor: string;
   fechaCreacion: string;
   motivoPerdida: string;
+  idRegistro?: string;
   valor: string;
   fechaPerdido: string;
 }

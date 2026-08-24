@@ -372,6 +372,7 @@ export function PicosEmpresasTable({ picos, rescue, empresasPico, brandColor }: 
                           <td style={thSub}>Motivo pérdida</td>
                           <td style={thSub}>Fecha perdido</td>
                           <td style={thSub}>Valor</td>
+                          <td style={thSub}>Link</td>
                         </tr>
 
                         {/* Empresas de esta subrama */}
@@ -432,6 +433,20 @@ export function PicosEmpresasTable({ picos, rescue, empresasPico, brandColor }: 
                                 <span className="font-mono" style={{ fontSize: 12, fontWeight: 800, color: 'var(--txt-1)' }}>
                                   {typeof emp.valor === 'number' ? formatValor(emp.valor) : emp.valor}
                                 </span>
+                              </td>
+                              <td style={{ padding: '8px 16px' }}>
+                                {emp.tipoObjeto === 'negocio' && emp.idRegistro ? (
+                                  <a
+                                    href={'https://app.hubspot.com/contacts/24172997/record/0-3/' + emp.idRegistro}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    style={{ fontSize: 11, fontWeight: 600, color: brandColor, textDecoration: 'none' }}
+                                  >
+                                    Ver en HubSpot
+                                  </a>
+                                ) : (
+                                  <span style={{ fontSize: 11, color: 'var(--txt-6)' }}>—</span>
+                                )}
                               </td>
                             </tr>
                           );
