@@ -68,36 +68,49 @@ export default function BrujulaComercial({ permisos }: { permisos?: Permisos | n
           <span style={{ fontWeight: 700, fontSize: 15, color: 'var(--txt-1)' }}>
             Brújula <span style={{ color: ACCENT }}>Comercial</span>
           </span>
-          <div style={{ display: 'flex', gap: 4, overflowX: 'auto', flex: 1 }}>
-            {(['comercial', 'demanda', 'mercado'] as SubTab[]).map(t => {
-              const permitido = tienePermiso(permisos, 'brujula', t);
-              return (
-              <button
-                key={t}
-                onClick={() => { if (permitido) setSub(t); }}
-                style={{
-                  padding: '6px 16px', borderRadius: 8, border: 'none',
-                  cursor: permitido ? 'pointer' : 'not-allowed',
-                  fontSize: 13, fontWeight: sub === t ? 700 : 500,
-                  background: sub === t ? ACCENT : 'transparent',
-                  color: !permitido ? 'var(--txt-5)' : (sub === t ? '#fff' : 'var(--txt-2)'),
-                  whiteSpace: 'nowrap',
-                  display: 'flex', alignItems: 'center', gap: 6,
-                  opacity: permitido ? 1 : 0.6,
-                }}
-              >
-                {t === 'comercial' ? 'Comercial' : t === 'demanda' ? 'Demanda' : 'Mercado'}
-                {!permitido && (
-                  <span style={{
-                    fontSize: 9, fontWeight: 700, padding: '2px 6px', borderRadius: 5,
-                    background: '#f1f5f9', color: '#94a3b8', whiteSpace: 'nowrap',
-                  }}>
-                    Sin acceso
-                  </span>
-                )}
-              </button>
-              );
-            })}
+          <div style={{
+            display: 'flex', alignItems: 'center', gap: 10,
+            border: '1px solid var(--border)', borderRadius: 10,
+            padding: '4px 4px 4px 12px', flex: 1, overflowX: 'auto',
+          }}>
+            <span style={{
+              fontSize: 10, fontWeight: 700, color: 'var(--txt-4)',
+              textTransform: 'uppercase', letterSpacing: 0.5, whiteSpace: 'nowrap',
+            }}>
+              Inteligencia
+            </span>
+            <div style={{ width: 1, height: 20, background: 'var(--border)', flexShrink: 0 }} />
+            <div style={{ display: 'flex', gap: 4 }}>
+              {(['comercial', 'demanda', 'mercado'] as SubTab[]).map(t => {
+                const permitido = tienePermiso(permisos, 'brujula', t);
+                return (
+                <button
+                  key={t}
+                  onClick={() => { if (permitido) setSub(t); }}
+                  style={{
+                    padding: '6px 16px', borderRadius: 8, border: 'none',
+                    cursor: permitido ? 'pointer' : 'not-allowed',
+                    fontSize: 13, fontWeight: sub === t ? 700 : 500,
+                    background: sub === t ? ACCENT : 'transparent',
+                    color: !permitido ? 'var(--txt-5)' : (sub === t ? '#fff' : 'var(--txt-2)'),
+                    whiteSpace: 'nowrap',
+                    display: 'flex', alignItems: 'center', gap: 6,
+                    opacity: permitido ? 1 : 0.6,
+                  }}
+                >
+                  {t === 'comercial' ? 'Comercial' : t === 'demanda' ? 'Demanda' : 'Mercado'}
+                  {!permitido && (
+                    <span style={{
+                      fontSize: 9, fontWeight: 700, padding: '2px 6px', borderRadius: 5,
+                      background: '#f1f5f9', color: '#94a3b8', whiteSpace: 'nowrap',
+                    }}>
+                      Sin acceso
+                    </span>
+                  )}
+                </button>
+                );
+              })}
+            </div>
           </div>
         </div>
       </div>
