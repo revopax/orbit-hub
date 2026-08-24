@@ -44,7 +44,7 @@ type Permisos = Record<string, 'all' | string[]>;
 
 const MODULOS_PERMISOS: { id: string; label: string; tabs: { val: string; label: string }[] }[] = [
   { id: 'brujula', label: 'Brújula Comercial', tabs: [
-    { val: 'comercial', label: 'Inteligencia Comercial' }, { val: 'demanda', label: 'Inteligencia de Demanda' },
+    { val: 'comercial', label: 'Comercial' }, { val: 'demanda', label: 'Demanda' }, { val: 'mercado', label: 'Mercado' },
   ]},
   { id: 'redes', label: 'Redes UPAX', tabs: [
     { val: 'meta-org', label: 'META Orgánico' }, { val: 'meta-ads', label: 'META Ads' }, { val: 'google-ads', label: 'Google Ads' },
@@ -583,7 +583,7 @@ export default function IAMPage() {
             </div>
             <div style={{ marginBottom:14 }}>
               <label style={labelStyle}>Módulos y vistas habilitadas</label>
-              <PermisosSelector value={editForm.permisos} onChange={p => setEditForm(f => ({ ...f, permisos: p, vistas: Array.isArray(p.brujula) ? p.brujula : (p.brujula === 'all' ? ['comercial','demanda'] : []) }))} />
+              <PermisosSelector value={editForm.permisos} onChange={p => setEditForm(f => ({ ...f, permisos: p, vistas: Array.isArray(p.brujula) ? p.brujula : (p.brujula === 'all' ? ['comercial','demanda','mercado'] : []) }))} />
               <p style={{ fontSize:10, color:'var(--txt-5)', marginTop:4 }}>Sin módulos seleccionados se usará el comportamiento por defecto según el rol.</p>
             </div>
             <div style={{ marginBottom:14 }}>

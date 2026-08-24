@@ -86,7 +86,7 @@ export default function BrujulaComercial({ permisos }: { permisos?: Permisos | n
                   opacity: permitido ? 1 : 0.6,
                 }}
               >
-                {t === 'comercial' ? 'Inteligencia Comercial' : t === 'demanda' ? 'Inteligencia de Demanda' : 'Inteligencia de Mercado'}
+                {t === 'comercial' ? 'Comercial' : t === 'demanda' ? 'Demanda' : 'Mercado'}
                 {!permitido && (
                   <span style={{
                     fontSize: 9, fontWeight: 700, padding: '2px 6px', borderRadius: 5,
@@ -101,15 +101,19 @@ export default function BrujulaComercial({ permisos }: { permisos?: Permisos | n
           </div>
         </div>
       </div>
-      <div style={{ padding: '4px 20px 0', fontSize: 11, fontWeight: 700, color: 'var(--txt-4)', textTransform: 'uppercase', letterSpacing: 0.5 }}>
-        Inteligencia
-      </div>
-      <UDNBar
-        udns={udnsVisibles}
-        udnActiva={udnActiva}
-        onSelect={(u) => setUdnActiva(u)}
-        isDark={false}
-      />
+      {sub !== 'mercado' && (
+        <>
+          <div style={{ padding: '4px 20px 0', fontSize: 11, fontWeight: 700, color: 'var(--txt-4)', textTransform: 'uppercase', letterSpacing: 0.5 }}>
+            Inteligencia
+          </div>
+          <UDNBar
+            udns={udnsVisibles}
+            udnActiva={udnActiva}
+            onSelect={(u) => setUdnActiva(u)}
+            isDark={false}
+          />
+        </>
+      )}
       {sub === 'demanda' && (
         <div style={{ padding: 20 }}>
           <div style={{ maxWidth: 1400, margin: '0 auto', display: 'flex', flexDirection: 'column', gap: 20 }}>
@@ -138,7 +142,7 @@ export default function BrujulaComercial({ permisos }: { permisos?: Permisos | n
       {sub === 'comercial' && tienePermiso(permisos, 'brujula', 'comercial') && (
         <InteligenciaComercial udnId={udnActiva.id} brandColor={udnActiva.color} />
       )}
-      {sub === 'mercado' && (
+      {sub === 'mercado' && tienePermiso(permisos, 'brujula', 'mercado') && (
         <div style={{ padding: 20 }}>
           <div style={{ maxWidth: 1400, margin: '0 auto' }}>
             <InteligenciaMercado />
