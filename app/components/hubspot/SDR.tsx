@@ -636,7 +636,12 @@ export default function SDR() {
             <XAxis dataKey="mes" tick={{ fontSize: 11, fill: '#64748b' }} axisLine={false} tickLine={false} />
             <YAxis tick={{ fontSize: 11, fill: '#64748b' }} axisLine={false} tickLine={false} />
             <Tooltip cursor={{ fill: 'rgba(0,0,0,0.03)' }} content={<CustomTooltip />} />
-            {udnsPresentes.map((udn, i) => (
+            {udnsPresentes.map((udn) => {
+              const esUltimoConDatoEnAlgunMes = chartDataUdn.some((row: any) => {
+                const lastConValor = [...udnsPresentes].reverse().find(u => (row[u] || 0) > 0)
+                return lastConValor === udn
+              })
+              return (
               <Bar
                 key={udn} dataKey={udn} stackId="a" fill={getUdnColor(udn)} name={udn}
                 shape={(props: any) => {
@@ -645,11 +650,26 @@ export default function SDR() {
                   return lastConValor === udn ? <RoundedTopBar {...props} /> : <GlossyBar {...props} />
                 }}
               >
-                {i === udnsPresentes.length - 1 && (
-                  <LabelList dataKey="total" position="top" formatter={(v: number) => fmtNum(v)} style={{ fontSize: 11, fontWeight: 700, fill: '#0f172a' }} />
+                {esUltimoConDatoEnAlgunMes && (
+                  <LabelList
+                    dataKey="total"
+                    position="top"
+                    content={(props: any) => {
+                      const { x, y, width, value, index } = props
+                      const row = chartDataUdn[index]
+                      const lastConValor = [...udnsPresentes].reverse().find(u => (row?.[u] || 0) > 0)
+                      if (lastConValor !== udn) return null
+                      return (
+                        <text x={x + width / 2} y={y - 6} textAnchor="middle" fontSize={11} fontWeight={700} fill="#0f172a">
+                          {fmtNum(value)}
+                        </text>
+                      )
+                    }}
+                  />
                 )}
               </Bar>
-            ))}
+              )
+            })}
           </BarChart>
         </ResponsiveContainer>
       </div>
@@ -675,7 +695,7 @@ export default function SDR() {
           <BarChart data={chartDataReuniones} margin={{ top: 24, right: 8, left: 0, bottom: 8 }} barCategoryGap="20%" maxBarSize={96}>
             <CartesianGrid vertical={false} stroke="#f1f5f9" />
             <XAxis dataKey="mes" tick={{ fontSize: 11, fill: '#64748b' }} axisLine={false} tickLine={false} />
-            <YAxis tick={{ fontSize: 11, fill: '#64748b' }} axisLine={false} tickLine={false} />
+            <YAxis tick={{ fontSize: 11, fill: '#64748b' }} axisLine={false} tickLine={false} domain={[0, (dataMax: number) => Math.max(dataMax, sdrsAMostrar.length * 20 * 1.1)]} />
             <Tooltip cursor={{ fill: 'rgba(0,0,0,0.03)' }} content={<CustomTooltip />} />
             <ReferenceLine
               y={sdrsAMostrar.length * 20}
