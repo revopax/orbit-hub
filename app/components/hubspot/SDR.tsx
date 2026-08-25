@@ -294,8 +294,8 @@ export default function SDR() {
   const desde = dateFrom.slice(0, 7)
   const hasta = dateTo.slice(0, 7)
   const [mqlsAnioAnteriorPorMes, setMqlsAnioAnteriorPorMes] = useState<Record<string, number>>({})
-  const [fuenteMqlSel, setFuenteMqlSel] = useState<'todas' | 'outbound' | 'inbound'>('todas')
-  const [fuenteReunionSel, setFuenteReunionSel] = useState<'todas' | 'outbound' | 'inbound'>('todas')
+  const [fuenteMqlSel, setFuenteMqlSel] = useState<'todas' | 'outbound' | 'inbound'>('outbound')
+  const [fuenteReunionSel, setFuenteReunionSel] = useState<'todas' | 'outbound' | 'inbound'>('outbound')
   const [slaPorSdr, setSlaPorSdr] = useState<{ sdr: string; sla_promedio: number; contactos: number }[]>([])
   const [slaPorDia, setSlaPorDia] = useState<{ dia: string; sla_promedio: number; contactos: number }[]>([])
   useEffect(() => {
@@ -361,18 +361,21 @@ export default function SDR() {
   }, [mqlsFiltrados, fuenteMqlSel])
 
   const totales = useMemo(() => {
-    const totalActividad = actividadFiltrada.reduce((s, r) => s + r.total_actividad, 0)
     const contactosConectados = actividadFiltrada.reduce((s, r) => s + r.contactos_conectados, 0)
-    const reunionesCompletadas = actividadFiltrada.reduce((s, r) => s + r.reuniones_completadas, 0)
-    const mqls = mqlsFiltrados.reduce((s, r) => s + r.mqls, 0)
+    const reunionesCompletadas = fuenteMqlSel === 'inbound'
+      ? actividadFiltrada.reduce((s, r) => s + r.reuniones_completadas_inbound, 0)
+      : fuenteMqlSel === 'outbound'
+      ? actividadFiltrada.reduce((s, r) => s + r.reuniones_completadas_outbound, 0)
+      : actividadFiltrada.reduce((s, r) => s + r.reuniones_completadas, 0)
+    const mqls = mqlsFiltradosGrafica.reduce((s, r) => s + r.mqls, 0)
     const sdrsIds = sdrSel === 'todos' ? SDRS_VIGENTES : [sdrSel]
     const totalLlamadas = actividadTipo
       .filter(r => r.tipo === 'llamada' && sdrsIds.includes(r.sdr))
       .reduce((s, r) => s + r.total, 0)
     const tasaConectado = totalLlamadas > 0 ? ((contactosConectados / totalLlamadas) * 100).toFixed(1) : null
     const tasaMqlReunionGlobal = mqls > 0 ? ((reunionesCompletadas / mqls) * 100).toFixed(1) : null
-    return { totalActividad, contactosConectados, mqls, reunionesCompletadas, totalLlamadas, tasaConectado, tasaMqlReunionGlobal }
-  }, [actividadFiltrada, mqlsFiltrados, actividadTipo, sdrSel])
+    return { contactosConectados, mqls, reunionesCompletadas, totalLlamadas, tasaConectado, tasaMqlReunionGlobal }
+  }, [actividadFiltrada, mqlsFiltradosGrafica, actividadTipo, sdrSel, fuenteMqlSel])
 
   const [comparativoDinamico, setComparativoDinamico] = useState<{
     actual: number; anterior: number; delta: string | null; labelActual: string; labelAnterior: string
@@ -509,7 +512,7 @@ export default function SDR() {
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 20, flexWrap: 'wrap', gap: 12 }}>
         <div>
           <h2 style={{ fontSize: 18, fontWeight: 800, color: '#172033', margin: 0 }}>Gestión SDR</h2>
-          <p style={{ fontSize: 12, color: '#64748b', margin: '2px 0 0' }}>Rendimiento de prospección · hasta antes de SQL</p>
+          <p style={{ fontSize: 12, color: '#64748b', margin: '2px 0 0' }}>Performance de prospección · hasta antes de SQL</p>
         </div>
         <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', alignItems: 'center' }}>
           <select value={udnSel} onChange={e => setUdnSel(e.target.value)} style={{
@@ -522,7 +525,11 @@ export default function SDR() {
             padding: '7px 12px', borderRadius: 8, border: '1px solid #e2e8f0', fontSize: 12.5, color: '#172033', background: '#fff',
           }}>
             <option value="todos">Todos los SDR</option>
-            {SDRS_VIGENTES.map(s => <option key={s} value={s}>{s}</option>)}
+            {SDRS_VIGENTES.map(s => {
+              const partes = s.trim().split(' ');
+              const nombreCorto = partes.length >= 2 ? `${partes[0]} ${partes[1]}` : s;
+              return <option key={s} value={s}>{nombreCorto}</option>;
+            })}
           </select>
           <PeriodoPicker dateFrom={dateFrom} dateTo={dateTo} activePreset={activePreset}
             onChange={(f, t, label) => { setDateFrom(f); setDateTo(t); setActivePreset(label) }} />
@@ -579,9 +586,8 @@ export default function SDR() {
           <InfoTip text="Actividad: llamadas, mensajes y WhatsApp gestionados. Contacto conectado: llamadas donde la persona contestó. MQL calificado: contactos que cumplieron BANT. Reunión completada: reunión de credenciales con el Comercial ya realizada. Estas cifras son volumen total del período, no un funnel de conversión secuencial (Actividad y Reuniones no son directamente proporcionales entre sí)." />
         </div>
         <div style={{ display: 'flex', alignItems: 'stretch', gap: 16, flexWrap: 'wrap' }}>
-          <KPICard label="Actividad" value={String(totales.totalActividad)} accent="#6366f1" info="Llamadas, mensajes y WhatsApp gestionados en el periodo" />
           <KPICard
-            label="Contacto conectado"
+            label="Llamadas conectadas"
             value={`${totales.contactosConectados.toLocaleString()} / ${totales.totalLlamadas.toLocaleString()}`}
             accent="#0ea5e9"
             delta={totales.tasaConectado !== null ? `${totales.tasaConectado}% de las llamadas` : undefined}
