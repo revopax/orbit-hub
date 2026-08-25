@@ -10,9 +10,10 @@ import { UDNS } from '../lib/data';
 import { useAuth } from '../hooks/useAuth';
 import type { UDN } from '../lib/types';
 import InteligenciaComercial from './brujula-comercial/InteligenciaComercial';
+import Overview from './brujula-comercial/Overview';
 import InteligenciaMercado from './hubspot/InteligenciaMercado';
 
-type SubTab = 'comercial' | 'demanda' | 'mercado';
+type SubTab = 'overview' | 'comercial' | 'demanda' | 'mercado';
 const ACCENT = '#8C59FE';
 
 type Permisos = Record<string, 'all' | string[]>;
@@ -81,8 +82,8 @@ export default function BrujulaComercial({ permisos }: { permisos?: Permisos | n
             </span>
             <div style={{ width: 1, height: 20, background: 'var(--border)', flexShrink: 0 }} />
             <div style={{ display: 'flex', gap: 4 }}>
-              {(['comercial', 'demanda', 'mercado'] as SubTab[]).map(t => {
-                const permitido = tienePermiso(permisos, 'brujula', t);
+              {(['overview', 'comercial', 'demanda', 'mercado'] as SubTab[]).map(t => {
+                const permitido = t === 'overview' ? perfil?.rol === 'admin' : tienePermiso(permisos, 'brujula', t);
                 return (
                 <button
                   key={t}
@@ -98,7 +99,7 @@ export default function BrujulaComercial({ permisos }: { permisos?: Permisos | n
                     opacity: permitido ? 1 : 0.6,
                   }}
                 >
-                  {t === 'comercial' ? 'Comercial' : t === 'demanda' ? 'Demanda' : 'Mercado'}
+                  {t === 'overview' ? 'Overview' : t === 'comercial' ? 'Comercial' : t === 'demanda' ? 'Demanda' : 'Mercado'}
                   {!permitido && (
                     <span style={{
                       fontSize: 9, fontWeight: 700, padding: '2px 6px', borderRadius: 5,
@@ -151,6 +152,9 @@ export default function BrujulaComercial({ permisos }: { permisos?: Permisos | n
             </div>
           </div>
         </div>
+      )}
+      {sub === 'overview' && perfil?.rol === 'admin' && (
+        <Overview udnNombre={udnActiva.nombre} />
       )}
       {sub === 'comercial' && tienePermiso(permisos, 'brujula', 'comercial') && (
         <InteligenciaComercial udnId={udnActiva.id} brandColor={udnActiva.color} />
