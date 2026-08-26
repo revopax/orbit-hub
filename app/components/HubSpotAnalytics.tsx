@@ -28,8 +28,6 @@ const GlossyBar = (props: any) => {
   if (!height || height <= 0) return null
   return <rect x={x} y={y} width={width} height={height} fill={fill} />
 }
-const SUPABASE_MBR_URL = process.env.NEXT_PUBLIC_SUPABASE_URL_MBR!
-const SUPABASE_MBR_KEY = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY_MBR!
 
 // Colores fijos por UDN (definidos por el usuario)
 const UDN_COLORS: Record<string, string> = {
@@ -189,13 +187,11 @@ async function fetchFunnelTotales(
   filtros: FiltrosHome = FILTROS_VACIOS,
 ): Promise<FunnelTotales> {
   // Funcion RPC funnel_totales: hace todos los counts/sums directamente en Postgres
-  const url = `${SUPABASE_MBR_URL}/rest/v1/rpc/funnel_totales`
+  const url = `/api/mbr-rpc/funnel_totales`
   const res = await fetch(url, {
     method: 'POST',
     headers: {
-      apikey: SUPABASE_MBR_KEY,
-      Authorization: `Bearer ${SUPABASE_MBR_KEY}`,
-      'Content-Type': 'application/json',
+            'Content-Type': 'application/json',
     },
     body: JSON.stringify({ fecha_desde: fechaDesde, fecha_hasta: fechaHasta, ...filtrosParams(filtros) }),
   })
@@ -231,13 +227,11 @@ async function fetchGanadosPorFacturarDetalle(
   fechaHasta: string | null = null,
   filtros: FiltrosHome = FILTROS_VACIOS,
 ): Promise<GanadoPorFacturarRow[]> {
-  const url = `${SUPABASE_MBR_URL}/rest/v1/rpc/get_ganados_por_facturar_detalle`
+  const url = `/api/mbr-rpc/get_ganados_por_facturar_detalle`
   const res = await fetch(url, {
     method: 'POST',
     headers: {
-      apikey: SUPABASE_MBR_KEY,
-      Authorization: `Bearer ${SUPABASE_MBR_KEY}`,
-      'Content-Type': 'application/json',
+            'Content-Type': 'application/json',
     },
     body: JSON.stringify({ fecha_desde: fechaDesde, fecha_hasta: fechaHasta, ...filtrosParams3(filtros) }),
   })
@@ -597,13 +591,11 @@ async function fetchFunnelTotalesPorEquipo(
   fechaHasta: string | null = null,
   filtros: FiltrosHome = FILTROS_VACIOS,
 ): Promise<{ marketing: TeamTotales; comercial: TeamTotales }> {
-  const url = `${SUPABASE_MBR_URL}/rest/v1/rpc/funnel_totales_por_equipo`
+  const url = `/api/mbr-rpc/funnel_totales_por_equipo`
   const res = await fetch(url, {
     method: 'POST',
     headers: {
-      apikey: SUPABASE_MBR_KEY,
-      Authorization: `Bearer ${SUPABASE_MBR_KEY}`,
-      'Content-Type': 'application/json',
+            'Content-Type': 'application/json',
     },
     body: JSON.stringify({ fecha_desde: fechaDesde, fecha_hasta: fechaHasta, ...filtrosParams(filtros) }),
   })
@@ -627,10 +619,10 @@ async function fetchFunnelTotalesPorEquipo(
 type MetaEtapa = { etapa: string; meta_total: number | null; meta_marketing: number | null; meta_comercial: number | null; meta_money: number | null; es_prorrateado?: boolean | null }
 
 async function fetchMetasForecast(fechaDesde: string, fechaHasta: string, udn: string | null): Promise<Record<string, MetaEtapa>> {
-  const url = `${SUPABASE_MBR_URL}/rest/v1/rpc/metas_forecast_rango`
+  const url = `/api/mbr-rpc/metas_forecast_rango`
   const res = await fetch(url, {
     method: 'POST',
-    headers: { apikey: SUPABASE_MBR_KEY, Authorization: `Bearer ${SUPABASE_MBR_KEY}`, 'Content-Type': 'application/json' },
+    headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ fecha_desde: fechaDesde, fecha_hasta: fechaHasta, p_udn: udn }),
   })
   if (!res.ok) throw new Error(`Error RPC metas_forecast_rango: ${res.status}`)
@@ -974,13 +966,11 @@ async function fetchContactosCreadosEnElTiempo(
 ): Promise<{ porMes: ContactosPorMes[]; porEquipo: { equipo: string; contactos: number; fuentes: FuenteDetalle[] }[] }> {
   // Usamos la funcion RPC contactos_por_mes_udn, que hace el GROUP BY directamente en Postgres
   // (mucho mas rapido que traer las ~90K filas crudas y agregar en el navegador).
-  const url = `${SUPABASE_MBR_URL}/rest/v1/rpc/contactos_por_mes_udn`
+  const url = `/api/mbr-rpc/contactos_por_mes_udn`
   const res = await fetch(url, {
     method: 'POST',
     headers: {
-      apikey: SUPABASE_MBR_KEY,
-      Authorization: `Bearer ${SUPABASE_MBR_KEY}`,
-      'Content-Type': 'application/json',
+            'Content-Type': 'application/json',
     },
     body: JSON.stringify({ fecha_desde: fechaDesde, fecha_hasta: fechaHasta, ...filtrosParams(filtros) }),
   })
@@ -1010,13 +1000,11 @@ async function fetchContactosCreadosEnElTiempo(
   })
 
   // Segunda llamada RPC: desglose por equipo + fuente de adquisicion (para el acordeon)
-  const urlFuente = `${SUPABASE_MBR_URL}/rest/v1/rpc/contactos_por_equipo_fuente`
+  const urlFuente = `/api/mbr-rpc/contactos_por_equipo_fuente`
   const resFuente = await fetch(urlFuente, {
     method: 'POST',
     headers: {
-      apikey: SUPABASE_MBR_KEY,
-      Authorization: `Bearer ${SUPABASE_MBR_KEY}`,
-      'Content-Type': 'application/json',
+            'Content-Type': 'application/json',
     },
     body: JSON.stringify({ fecha_desde: fechaDesde, fecha_hasta: fechaHasta, ...filtrosParams(filtros) }),
   })
@@ -1040,13 +1028,11 @@ async function fetchMqlCreadosEnElTiempo(
   fechaHasta: string | null = null,
   filtros: FiltrosHome = FILTROS_VACIOS,
 ): Promise<{ porMes: ContactosPorMes[]; porEquipo: { equipo: string; contactos: number; fuentes: FuenteDetalle[] }[] }> {
-  const url = `${SUPABASE_MBR_URL}/rest/v1/rpc/mql_por_mes_udn`
+  const url = `/api/mbr-rpc/mql_por_mes_udn`
   const res = await fetch(url, {
     method: 'POST',
     headers: {
-      apikey: SUPABASE_MBR_KEY,
-      Authorization: `Bearer ${SUPABASE_MBR_KEY}`,
-      'Content-Type': 'application/json',
+            'Content-Type': 'application/json',
     },
     body: JSON.stringify({ fecha_desde: fechaDesde, fecha_hasta: fechaHasta, ...filtrosParams(filtros) }),
   })
@@ -1071,13 +1057,11 @@ async function fetchMqlCreadosEnElTiempo(
     return { mes: label, total, ...bucket }
   })
 
-  const urlFuente = `${SUPABASE_MBR_URL}/rest/v1/rpc/mql_por_equipo_fuente`
+  const urlFuente = `/api/mbr-rpc/mql_por_equipo_fuente`
   const resFuente = await fetch(urlFuente, {
     method: 'POST',
     headers: {
-      apikey: SUPABASE_MBR_KEY,
-      Authorization: `Bearer ${SUPABASE_MBR_KEY}`,
-      'Content-Type': 'application/json',
+            'Content-Type': 'application/json',
     },
     body: JSON.stringify({ fecha_desde: fechaDesde, fecha_hasta: fechaHasta, ...filtrosParams(filtros) }),
   })
@@ -1101,13 +1085,11 @@ async function fetchMqlDescalificadosEnElTiempo(
   fechaHasta: string | null = null,
   filtros: FiltrosHome = FILTROS_VACIOS,
 ): Promise<{ porMes: ContactosPorMes[]; porMotivo: { motivo: string; total: number }[] }> {
-  const url = `${SUPABASE_MBR_URL}/rest/v1/rpc/mql_descalificados_por_mes_udn`
+  const url = `/api/mbr-rpc/mql_descalificados_por_mes_udn`
   const res = await fetch(url, {
     method: 'POST',
     headers: {
-      apikey: SUPABASE_MBR_KEY,
-      Authorization: `Bearer ${SUPABASE_MBR_KEY}`,
-      'Content-Type': 'application/json',
+            'Content-Type': 'application/json',
     },
     body: JSON.stringify({ fecha_desde: fechaDesde, fecha_hasta: fechaHasta, ...filtrosParams(filtros) }),
   })
@@ -1130,13 +1112,11 @@ async function fetchMqlDescalificadosEnElTiempo(
     return { mes: label, total, ...bucket }
   })
 
-  const urlMotivo = `${SUPABASE_MBR_URL}/rest/v1/rpc/mql_descalificados_por_motivo`
+  const urlMotivo = `/api/mbr-rpc/mql_descalificados_por_motivo`
   const resMotivo = await fetch(urlMotivo, {
     method: 'POST',
     headers: {
-      apikey: SUPABASE_MBR_KEY,
-      Authorization: `Bearer ${SUPABASE_MBR_KEY}`,
-      'Content-Type': 'application/json',
+            'Content-Type': 'application/json',
     },
     body: JSON.stringify({ fecha_desde: fechaDesde, fecha_hasta: fechaHasta, ...filtrosParams(filtros) }),
   })
@@ -1624,13 +1604,11 @@ async function fetchSqlCredencialesCalificadas(
   fechaHasta: string | null = null,
   filtros: FiltrosHome = FILTROS_VACIOS,
 ): Promise<{ porMes: ContactosPorMes[]; porOrigen: { origen: string; total: number }[] }> {
-  const url = `${SUPABASE_MBR_URL}/rest/v1/rpc/sql_credenciales_completadas_por_mes_udn`
+  const url = `/api/mbr-rpc/sql_credenciales_completadas_por_mes_udn`
   const res = await fetch(url, {
     method: 'POST',
     headers: {
-      apikey: SUPABASE_MBR_KEY,
-      Authorization: `Bearer ${SUPABASE_MBR_KEY}`,
-      'Content-Type': 'application/json',
+            'Content-Type': 'application/json',
     },
     body: JSON.stringify({ fecha_desde: fechaDesde, fecha_hasta: fechaHasta, ...filtrosParams3(filtros) }),
   })
@@ -1653,13 +1631,11 @@ async function fetchSqlCredencialesCalificadas(
     return { mes: label, total, ...bucket }
   })
 
-  const urlOrigen = `${SUPABASE_MBR_URL}/rest/v1/rpc/sql_credenciales_completadas_por_origen`
+  const urlOrigen = `/api/mbr-rpc/sql_credenciales_completadas_por_origen`
   const resOrigen = await fetch(urlOrigen, {
     method: 'POST',
     headers: {
-      apikey: SUPABASE_MBR_KEY,
-      Authorization: `Bearer ${SUPABASE_MBR_KEY}`,
-      'Content-Type': 'application/json',
+            'Content-Type': 'application/json',
     },
     body: JSON.stringify({ fecha_desde: fechaDesde, fecha_hasta: fechaHasta, ...filtrosParams3(filtros) }),
   })
@@ -1810,13 +1786,11 @@ async function fetchPropuestasCreadas(
   fechaHasta: string | null = null,
   filtros: FiltrosHome = FILTROS_VACIOS,
 ): Promise<{ porMes: ContactosPorMes[]; porOrigen: { origen: string; total: number }[] }> {
-  const url = `${SUPABASE_MBR_URL}/rest/v1/rpc/propuestas_creadas_por_mes_udn`
+  const url = `/api/mbr-rpc/propuestas_creadas_por_mes_udn`
   const res = await fetch(url, {
     method: 'POST',
     headers: {
-      apikey: SUPABASE_MBR_KEY,
-      Authorization: `Bearer ${SUPABASE_MBR_KEY}`,
-      'Content-Type': 'application/json',
+            'Content-Type': 'application/json',
     },
     body: JSON.stringify({ fecha_desde: fechaDesde, fecha_hasta: fechaHasta, ...filtrosParams3(filtros) }),
   })
@@ -1839,13 +1813,11 @@ async function fetchPropuestasCreadas(
     return { mes: label, total, ...bucket }
   })
 
-  const urlOrigen = `${SUPABASE_MBR_URL}/rest/v1/rpc/propuestas_creadas_por_origen`
+  const urlOrigen = `/api/mbr-rpc/propuestas_creadas_por_origen`
   const resOrigen = await fetch(urlOrigen, {
     method: 'POST',
     headers: {
-      apikey: SUPABASE_MBR_KEY,
-      Authorization: `Bearer ${SUPABASE_MBR_KEY}`,
-      'Content-Type': 'application/json',
+            'Content-Type': 'application/json',
     },
     body: JSON.stringify({ fecha_desde: fechaDesde, fecha_hasta: fechaHasta, ...filtrosParams3(filtros) }),
   })
@@ -1996,13 +1968,11 @@ async function fetchPropuestasPerdidas(
   fechaHasta: string | null = null,
   filtros: FiltrosHome = FILTROS_VACIOS,
 ): Promise<{ porMes: ContactosPorMes[]; porOrigen: { origen: string; total: number }[] }> {
-  const url = `${SUPABASE_MBR_URL}/rest/v1/rpc/propuestas_perdidas_por_mes_udn`
+  const url = `/api/mbr-rpc/propuestas_perdidas_por_mes_udn`
   const res = await fetch(url, {
     method: 'POST',
     headers: {
-      apikey: SUPABASE_MBR_KEY,
-      Authorization: `Bearer ${SUPABASE_MBR_KEY}`,
-      'Content-Type': 'application/json',
+            'Content-Type': 'application/json',
     },
     body: JSON.stringify({ fecha_desde: fechaDesde, fecha_hasta: fechaHasta, ...filtrosParams3(filtros) }),
   })
@@ -2025,13 +1995,11 @@ async function fetchPropuestasPerdidas(
     return { mes: label, total, ...bucket }
   })
 
-  const urlOrigen = `${SUPABASE_MBR_URL}/rest/v1/rpc/propuestas_perdidas_por_origen`
+  const urlOrigen = `/api/mbr-rpc/propuestas_perdidas_por_origen`
   const resOrigen = await fetch(urlOrigen, {
     method: 'POST',
     headers: {
-      apikey: SUPABASE_MBR_KEY,
-      Authorization: `Bearer ${SUPABASE_MBR_KEY}`,
-      'Content-Type': 'application/json',
+            'Content-Type': 'application/json',
     },
     body: JSON.stringify({ fecha_desde: fechaDesde, fecha_hasta: fechaHasta, ...filtrosParams3(filtros) }),
   })
@@ -2188,13 +2156,11 @@ async function fetchPropuestasActivasPorUdn(
   fechaHasta: string | null = null,
   filtros: FiltrosHome = FILTROS_VACIOS,
 ): Promise<{ udn: string; registros: number; valor: number }[]> {
-  const url = `${SUPABASE_MBR_URL}/rest/v1/rpc/propuestas_activas_por_udn`
+  const url = `/api/mbr-rpc/propuestas_activas_por_udn`
   const res = await fetch(url, {
     method: 'POST',
     headers: {
-      apikey: SUPABASE_MBR_KEY,
-      Authorization: `Bearer ${SUPABASE_MBR_KEY}`,
-      'Content-Type': 'application/json',
+            'Content-Type': 'application/json',
     },
     body: JSON.stringify({ fecha_desde: fechaDesde, fecha_hasta: fechaHasta, ...filtrosParams3(filtros) }),
   })
@@ -2208,13 +2174,11 @@ async function fetchPropuestasActivasPorUdnEtapa(
   fechaHasta: string | null = null,
   filtros: FiltrosHome = FILTROS_VACIOS,
 ): Promise<{ udn: string; etapa: string; registros: number; valor: number }[]> {
-  const url = `${SUPABASE_MBR_URL}/rest/v1/rpc/propuestas_activas_por_udn_etapa`
+  const url = `/api/mbr-rpc/propuestas_activas_por_udn_etapa`
   const res = await fetch(url, {
     method: 'POST',
     headers: {
-      apikey: SUPABASE_MBR_KEY,
-      Authorization: `Bearer ${SUPABASE_MBR_KEY}`,
-      'Content-Type': 'application/json',
+            'Content-Type': 'application/json',
     },
     body: JSON.stringify({ fecha_desde: fechaDesde, fecha_hasta: fechaHasta, ...filtrosParams3(filtros) }),
   })
@@ -2427,13 +2391,11 @@ async function fetchPropuestasGanadasFacturar(
   fechaHasta: string | null = null,
   filtros: FiltrosHome = FILTROS_VACIOS,
 ): Promise<{ porMes: ContactosPorMes[]; porOrigen: { origen: string; registros: number; valor: number }[] }> {
-  const url = `${SUPABASE_MBR_URL}/rest/v1/rpc/propuestas_ganadas_facturar_por_mes_udn`
+  const url = `/api/mbr-rpc/propuestas_ganadas_facturar_por_mes_udn`
   const res = await fetch(url, {
     method: 'POST',
     headers: {
-      apikey: SUPABASE_MBR_KEY,
-      Authorization: `Bearer ${SUPABASE_MBR_KEY}`,
-      'Content-Type': 'application/json',
+            'Content-Type': 'application/json',
     },
     body: JSON.stringify({ fecha_desde: fechaDesde, fecha_hasta: fechaHasta, ...filtrosParams3(filtros) }),
   })
@@ -2456,13 +2418,11 @@ async function fetchPropuestasGanadasFacturar(
     return { mes: label, total, ...bucket }
   })
 
-  const urlOrigen = `${SUPABASE_MBR_URL}/rest/v1/rpc/propuestas_ganadas_facturar_por_origen`
+  const urlOrigen = `/api/mbr-rpc/propuestas_ganadas_facturar_por_origen`
   const resOrigen = await fetch(urlOrigen, {
     method: 'POST',
     headers: {
-      apikey: SUPABASE_MBR_KEY,
-      Authorization: `Bearer ${SUPABASE_MBR_KEY}`,
-      'Content-Type': 'application/json',
+            'Content-Type': 'application/json',
     },
     body: JSON.stringify({ fecha_desde: fechaDesde, fecha_hasta: fechaHasta, ...filtrosParams3(filtros) }),
   })
@@ -2615,13 +2575,11 @@ async function fetchPropuestasFacturadas(
   fechaHasta: string | null = null,
   filtros: FiltrosHome = FILTROS_VACIOS,
 ): Promise<{ porMes: ContactosPorMes[]; porOrigen: { origen: string; registros: number; valor: number }[] }> {
-  const url = `${SUPABASE_MBR_URL}/rest/v1/rpc/propuestas_facturadas_por_mes_udn`
+  const url = `/api/mbr-rpc/propuestas_facturadas_por_mes_udn`
   const res = await fetch(url, {
     method: 'POST',
     headers: {
-      apikey: SUPABASE_MBR_KEY,
-      Authorization: `Bearer ${SUPABASE_MBR_KEY}`,
-      'Content-Type': 'application/json',
+            'Content-Type': 'application/json',
     },
     body: JSON.stringify({ fecha_desde: fechaDesde, fecha_hasta: fechaHasta, ...filtrosParams3(filtros) }),
   })
@@ -2644,13 +2602,11 @@ async function fetchPropuestasFacturadas(
     return { mes: label, total, ...bucket }
   })
 
-  const urlOrigen = `${SUPABASE_MBR_URL}/rest/v1/rpc/propuestas_facturadas_por_origen`
+  const urlOrigen = `/api/mbr-rpc/propuestas_facturadas_por_origen`
   const resOrigen = await fetch(urlOrigen, {
     method: 'POST',
     headers: {
-      apikey: SUPABASE_MBR_KEY,
-      Authorization: `Bearer ${SUPABASE_MBR_KEY}`,
-      'Content-Type': 'application/json',
+            'Content-Type': 'application/json',
     },
     body: JSON.stringify({ fecha_desde: fechaDesde, fecha_hasta: fechaHasta, ...filtrosParams3(filtros) }),
   })
@@ -2965,9 +2921,9 @@ export default function HubSpotAnalytics({ permisos, perfil }: { permisos?: Perm
   }, [sub])
   const [ultimaSync, setUltimaSync] = useState<Date | null>(null)
   useEffect(() => {
-    fetch(`${SUPABASE_MBR_URL}/rest/v1/rpc/mbr_ultima_sincronizacion`, {
+    fetch(`/api/mbr-rpc/mbr_ultima_sincronizacion`, {
       method: 'POST',
-      headers: { apikey: SUPABASE_MBR_KEY, Authorization: `Bearer ${SUPABASE_MBR_KEY}`, 'Content-Type': 'application/json' },
+      headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({}),
     }).then(r => r.json()).then(ts => {
       if (!ts) return

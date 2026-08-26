@@ -1,11 +1,15 @@
 'use client';
 import { useEffect, useState } from 'react';
-import { createClient } from '@supabase/supabase-js';
 
-const supa = createClient(
-  'https://wuwhcljeigskajjoyghv.supabase.co',
-  'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Ind1d2hjbGplaWdza2Fqam95Z2h2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQ1Njk4MTksImV4cCI6MjA5MDE0NTgxOX0.dDw2ogt3LXEnpKln6zPRUp7Thj5Bs47CPIsZlaE9F_A'
-);
+async function rpc(fn: string, params: Record<string, unknown>) {
+  const res = await fetch(`/api/mbr-rpc/${fn}`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(params),
+  });
+  if (!res.ok) return { data: null };
+  return { data: await res.json() };
+}
 
 interface KeywordRow {
   keyword: string;
@@ -125,7 +129,7 @@ export function TablaKeywords({ udn, desde, hasta }: { udn: string; desde: strin
     if (!desde || !hasta) return;
     setLoading(true);
     setRows([]);
-    supa.rpc('get_keywords_table', { p_udn: udn, p_desde: desde, p_hasta: hasta })
+    rpc('get_keywords_table', { p_udn: udn, p_desde: desde, p_hasta: hasta })
       .then(({ data }) => { if (data) setRows(data); })
       .finally(() => setLoading(false));
   }, [udn, desde, hasta]);

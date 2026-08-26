@@ -4,13 +4,11 @@ import { BarChart, Bar, XAxis, YAxis, Tooltip, Legend, ResponsiveContainer, Cart
 
 const ACCENT = '#FF6B35'
 const HUBSPOT_PORTAL_ID = '24172997'
-const SUPABASE_MBR_URL = process.env.NEXT_PUBLIC_SUPABASE_URL_MBR!
-const SUPABASE_MBR_KEY = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY_MBR!
 
 async function rpc<T>(fn: string, params: Record<string, unknown>): Promise<T> {
-  const res = await fetch(`${SUPABASE_MBR_URL}/rest/v1/rpc/${fn}`, {
+  const res = await fetch(`/api/mbr-rpc/${fn}`, {
     method: 'POST',
-    headers: { apikey: SUPABASE_MBR_KEY, Authorization: `Bearer ${SUPABASE_MBR_KEY}`, 'Content-Type': 'application/json' },
+    headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(params),
   })
   if (!res.ok) throw new Error(`Error RPC ${fn}: ${res.status}`)

@@ -1,12 +1,16 @@
 'use client';
 import { useEffect, useState } from 'react';
-import { createClient } from '@supabase/supabase-js';
 import { InfoTip } from './redes/KPICard';
 
-const supa = createClient(
-  'https://wuwhcljeigskajjoyghv.supabase.co',
-  'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Ind1d2hjbGplaWdza2Fqam95Z2h2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQ1Njk4MTksImV4cCI6MjA5MDE0NTgxOX0.dDw2ogt3LXEnpKln6zPRUp7Thj5Bs47CPIsZlaE9F_A'
-);
+async function rpc(fn: string, params: Record<string, unknown>) {
+  const res = await fetch(`/api/mbr-rpc/${fn}`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(params),
+  });
+  if (!res.ok) return { data: null };
+  return { data: await res.json() };
+}
 
 const MESES_ES = ['Ene','Feb','Mar','Abr','May','Jun','Jul','Ago','Sep','Oct','Nov','Dic'];
 function fmtMes(m: string) {
@@ -37,7 +41,7 @@ export function KpiScoreCards({ udn, desde, hasta }: Props) {
   useEffect(() => {
     if (!desde || !hasta) return;
     setLoading(true);
-    supa.rpc('get_kpis_udn', { p_udn: udn, p_desde: desde, p_hasta: hasta })
+    rpc('get_kpis_udn', { p_udn: udn, p_desde: desde, p_hasta: hasta })
       .then(({ data: d }) => { if (d?.[0]) setData(d[0]); })
       .finally(() => setLoading(false));
   }, [udn, desde, hasta]);

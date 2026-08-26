@@ -4,15 +4,13 @@ import { BarChart, Bar, Line, ComposedChart, XAxis, YAxis, Tooltip, ResponsiveCo
 import KPICard, { InfoTip } from '../redes/KPICard'
 
 const ACCENT = '#7038E5'
-const SUPABASE_MBR_URL = process.env.NEXT_PUBLIC_SUPABASE_URL_MBR!
 const SUPABASE_IAM_URL = process.env.NEXT_PUBLIC_SUPABASE_URL!
 const SUPABASE_IAM_KEY = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-const SUPABASE_MBR_KEY = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY_MBR!
 
 async function rpc<T>(fn: string, params: Record<string, unknown>): Promise<T> {
-  const res = await fetch(`${SUPABASE_MBR_URL}/rest/v1/rpc/${fn}`, {
+  const res = await fetch(`/api/mbr-rpc/${fn}`, {
     method: 'POST',
-    headers: { apikey: SUPABASE_MBR_KEY, Authorization: `Bearer ${SUPABASE_MBR_KEY}`, 'Content-Type': 'application/json' },
+    headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(params),
   })
   if (!res.ok) throw new Error(`Error RPC ${fn}: ${res.status}`)
