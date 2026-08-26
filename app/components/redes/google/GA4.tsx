@@ -3,8 +3,8 @@ import { useState, useEffect, useMemo, useRef } from 'react'
 import KPICard, { InfoTip } from '../KPICard'
 import { BarChart, Bar, LineChart, Line, PieChart, Pie, Cell, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid, Legend } from 'recharts'
 
-const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL_MBR || 'https://wuwhcljeigskajjoyghv.supabase.co'
-const SUPABASE_KEY = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY_MBR || ''
+const SUPABASE_URL = '/api/mbr-tabla'
+const SUPABASE_KEY = 'proxy'
 
 interface RowTotal {
   udn: string; fecha: string; canal_grupo: string; fuente_medio: string
@@ -23,8 +23,8 @@ async function fetchSB(table: string, params: [string,string][] = []) {
   let all: any[] = []
   let from = 0
   while (true) {
-    const r = await fetch(`${SUPABASE_URL}/rest/v1/${table}?${q}`, {
-      headers: { apikey: SUPABASE_KEY, Authorization: `Bearer ${SUPABASE_KEY}`, Range: `${from}-${from+PAGE-1}`, Prefer: 'count=exact' }
+    const r = await fetch(`${SUPABASE_URL}?table=${table}&${q}`, {
+      headers: { Range: `${from}-${from+PAGE-1}` }
     })
     if (!r.ok) break
     const chunk = await r.json()
