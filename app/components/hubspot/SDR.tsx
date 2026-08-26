@@ -511,6 +511,14 @@ export default function SDR() {
         <div>
           <h2 style={{ fontSize: 18, fontWeight: 800, color: '#172033', margin: 0 }}>Gestión SDR</h2>
           <p style={{ fontSize: 12, color: '#64748b', margin: '2px 0 0' }}>Performance de prospección · hasta antes de SQL</p>
+          <div class="mt-3 p-3 bg-indigo-50/70 border border-indigo-100 rounded-lg flex items-start gap-2.5 max-w-2xl">
+            <svg class="w-4 h-4 text-indigo-600 mt-0.5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+            <p class="text-xs text-indigo-950 leading-relaxed">
+              <span class="font-semibold text-indigo-900">Alcance de los datos:</span> Esta vista concentra la prospección <span class="font-medium text-indigo-700">Outbound</span> realizada por el equipo de SDRs. Las métricas <span class="font-medium text-indigo-700">Inbound</span> se habilitan al cambiar la opción en los filtros superiores.
+            </p>
+          </div>
           <p class="text-xs text-slate-500">
             Outbound / Inbound
           </p>
