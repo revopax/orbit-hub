@@ -95,7 +95,7 @@ const GlossyBar = (props: any) => {
   return <rect x={x} y={y} width={width} height={height} fill={fill} />
 }
 
-function ChartLegend({ items, colors, historicos }: { items: string[]; colors: Record<string, string>; historicos?: Set<string> }) {
+function ChartLegend({ items, colors, historicos, shortenNames }: { items: string[]; colors: Record<string, string>; historicos?: Set<string>; shortenNames?: boolean }) {
   const colorsUpper: Record<string, string> = Object.fromEntries(Object.entries(colors).map(([k, v]) => [k.toUpperCase(), v]))
   const lookup = (item: string) => colors[item] || colorsUpper[item?.toUpperCase()] || '#94a3b8'
   return (
@@ -105,7 +105,7 @@ function ChartLegend({ items, colors, historicos }: { items: string[]; colors: R
         return (
           <div key={item} style={{ display: 'flex', alignItems: 'center', gap: 5, opacity: esHistorico ? 0.55 : 1 }}>
             <span style={{ width: 9, height: 9, borderRadius: '50%', background: lookup(item), display: 'inline-block', flexShrink: 0 }} />
-            <span style={{ color: '#475569' }}>{item}{esHistorico && ' (anterior)'}</span>
+            <span style={{ color: '#475569' }}>{shortenNames ? nombreCorto(item) : item}{esHistorico && ' (anterior)'}</span>
           </div>
         )
       })}
@@ -262,6 +262,11 @@ function formatSla(horas: number): string {
   if (horas < 24) return `${horas.toFixed(1)}h`
   return `${(horas / 24).toFixed(1)} días`
 }
+function nombreCorto(s: string) {
+  const partes = s.split(' ')
+  return partes.length >= 2 ? `${partes[0]} ${partes[1]}` : s
+}
+
 function TickNombreSDR({ x, y, payload }: any) {
   const palabras = String(payload.value).split(' ')
   return (
@@ -286,14 +291,13 @@ export default function SDR() {
   const [mqlsUdn, setMqlsUdn] = useState<RowMqlUdn[]>([])
   const [actividadTipo, setActividadTipo] = useState<RowActividadTipo[]>([])
   const [loading, setLoading] = useState(true)
-  const [filaExpandida, setFilaExpandida] = useState<string | null>(null)
+  const [filasExpandidas, setFilasExpandidas] = useState<string[]>([])
   const [udnActualPorSdr, setUdnActualPorSdr] = useState<Record<string, string[]>>({})
 
   const desde = dateFrom.slice(0, 7)
   const hasta = dateTo.slice(0, 7)
   const [mqlsAnioAnteriorPorMes, setMqlsAnioAnteriorPorMes] = useState<Record<string, number>>({})
-  const [fuenteMqlSel, setFuenteMqlSel] = useState<'todas' | 'outbound' | 'inbound'>('outbound')
-  const [fuenteReunionSel, setFuenteReunionSel] = useState<'todas' | 'outbound' | 'inbound'>('outbound')
+  const [fuenteVistaSel, setFuenteVistaSel] = useState<'todas' | 'outbound' | 'inbound'>('outbound')
   const [slaPorSdr, setSlaPorSdr] = useState<{ sdr: string; sla_promedio: number; contactos: number }[]>([])
   const [slaPorDia, setSlaPorDia] = useState<{ dia: string; sla_promedio: number; contactos: number }[]>([])
   useEffect(() => {
@@ -355,14 +359,14 @@ export default function SDR() {
     return rows
   }, [mqlsUdn, sdrSel, udnSel])
   const mqlsFiltradosGrafica = useMemo(() => {
-    return fuenteMqlSel === 'todas' ? mqlsFiltrados : mqlsFiltrados.filter(r => r.fuente_tipo === fuenteMqlSel)
-  }, [mqlsFiltrados, fuenteMqlSel])
+    return fuenteVistaSel === 'todas' ? mqlsFiltrados : mqlsFiltrados.filter(r => r.fuente_tipo === fuenteVistaSel)
+  }, [mqlsFiltrados, fuenteVistaSel])
 
   const totales = useMemo(() => {
     const contactosConectados = actividadFiltrada.reduce((s, r) => s + r.contactos_conectados, 0)
-    const reunionesCompletadas = fuenteMqlSel === 'inbound'
+    const reunionesCompletadas = fuenteVistaSel === 'inbound'
       ? actividadFiltrada.reduce((s, r) => s + r.reuniones_completadas_inbound, 0)
-      : fuenteMqlSel === 'outbound'
+      : fuenteVistaSel === 'outbound'
       ? actividadFiltrada.reduce((s, r) => s + r.reuniones_completadas_outbound, 0)
       : actividadFiltrada.reduce((s, r) => s + r.reuniones_completadas, 0)
     const mqls = mqlsFiltradosGrafica.reduce((s, r) => s + r.mqls, 0)
@@ -373,7 +377,7 @@ export default function SDR() {
     const tasaConectado = totalLlamadas > 0 ? ((contactosConectados / totalLlamadas) * 100).toFixed(1) : null
     const tasaMqlReunionGlobal = mqls > 0 ? ((reunionesCompletadas / mqls) * 100).toFixed(1) : null
     return { contactosConectados, mqls, reunionesCompletadas, totalLlamadas, tasaConectado, tasaMqlReunionGlobal }
-  }, [actividadFiltrada, mqlsFiltradosGrafica, actividadTipo, sdrSel, fuenteMqlSel])
+  }, [actividadFiltrada, mqlsFiltradosGrafica, actividadTipo, sdrSel, fuenteVistaSel])
 
   const [comparativoDinamico, setComparativoDinamico] = useState<{
     actual: number; anterior: number; delta: string | null; labelActual: string; labelAnterior: string
@@ -443,10 +447,11 @@ export default function SDR() {
       const tasaMqlReunion = mqls > 0 ? ((reunionesCompletadas / mqls) * 100).toFixed(1) : '0.0'
       return { sdr, totalActividad, contactosConectados, mqls, mqlsOutbound, mqlsInbound, reunionesCompletadas, reunionesOutbound, reunionesInbound, tasaConversion, tasaMqlReunion, tipos }
     }).sort((a, b) => {
-      if (b.reunionesOutbound !== a.reunionesOutbound) return b.reunionesOutbound - a.reunionesOutbound
+      const campoOrden = fuenteVistaSel === 'outbound' ? 'reunionesOutbound' : fuenteVistaSel === 'inbound' ? 'reunionesInbound' : 'reunionesCompletadas'
+      if (b[campoOrden] !== a[campoOrden]) return b[campoOrden] - a[campoOrden]
       return b.reunionesCompletadas - a.reunionesCompletadas
     })
-  }, [actividad, mqlsUdn, actividadTipo, udnSel, sdrsAMostrar])
+  }, [actividad, mqlsUdn, actividadTipo, udnSel, sdrsAMostrar, fuenteVistaSel])
   const sdrDeLaSemana = leaderboard.length > 0 && leaderboard[0].reunionesCompletadas > 0 ? leaderboard[0].sdr : null
 
   const chartDataUdn = useMemo(() => {
@@ -486,8 +491,8 @@ export default function SDR() {
 
   const chartDataReuniones = useMemo(() => {
     const base = sdrSel === 'todos' ? actividad : actividad.filter(r => r.sdr === sdrSel)
-    const campo = fuenteReunionSel === 'outbound' ? 'reuniones_completadas_outbound'
-      : fuenteReunionSel === 'inbound' ? 'reuniones_completadas_inbound'
+    const campo = fuenteVistaSel === 'outbound' ? 'reuniones_completadas_outbound'
+      : fuenteVistaSel === 'inbound' ? 'reuniones_completadas_inbound'
       : 'reuniones_completadas'
     const meses = Array.from(new Set(base.map(r => r.mes))).sort()
     return meses.map(mes => {
@@ -499,7 +504,7 @@ export default function SDR() {
       fila.total = sdrsAMostrar.reduce((s, sd) => s + (fila[sd] as number || 0), 0)
       return fila
     })
-  }, [actividad, sdrSel, sdrsAMostrar, fuenteReunionSel])
+  }, [actividad, sdrSel, sdrsAMostrar, fuenteVistaSel])
 
   if (loading) {
     return <div style={{ padding: 60, textAlign: 'center', color: '#94a3b8', fontSize: 13 }}>Cargando datos de SDR...</div>
@@ -507,10 +512,10 @@ export default function SDR() {
 
   return (
     <div style={{ padding: 24, maxWidth: 1400, margin: '0 auto', fontFamily: 'Inter,-apple-system,sans-serif' }}>
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 20, flexWrap: 'wrap', gap: 12 }}>
+      <div style={{ display: 'flex', alignItems: 'center', flexWrap: 'wrap', gap: 12, marginBottom: 20 }}>
         <div style={{
           background: '#F5F3FF', border: '1px solid #E4DEFB', borderRadius: 10,
-          padding: '10px 14px', maxWidth: 620,
+          padding: '10px 14px', maxWidth: 620, flex: '1 1 420px',
         }}>
           <h1 style={{ fontSize: 18, fontWeight: 700, color: '#0f172a', margin: '0 0 4px' }}>Gestión SDR</h1>
           <p style={{ fontSize: 12, color: '#64748b', margin: 0 }}>Performance de prospección · hasta antes de SQL</p>
@@ -519,7 +524,7 @@ export default function SDR() {
             Esta vista concentra la prospección <span style={{ color: '#7038E5', fontWeight: 600 }}>Outbound</span> realizada por el equipo de SDRs. Las métricas <span style={{ color: '#7038E5', fontWeight: 600 }}>Inbound</span> se habilitan al cambiar la opción en los filtros superiores.
           </p>
         </div>
-        <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', alignItems: 'center' }}>
+        <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', alignItems: 'center', justifyContent: 'flex-end', marginLeft: 'auto' }}>
           <select value={udnSel} onChange={e => setUdnSel(e.target.value)} style={{
             padding: '7px 12px', borderRadius: 8, border: '1px solid #e2e8f0', fontSize: 12.5, color: '#172033', background: '#fff',
           }}>
@@ -532,14 +537,20 @@ export default function SDR() {
             <option value="todos">Todos los SDR</option>
             {SDRS_VIGENTES.map(s => {
               const partes = s.trim().split(' ');
-              const nombreCorto = partes.length >= 2 ? `${partes[0]} ${partes[1]}` : s;
-              return <option key={s} value={s}>{nombreCorto}</option>;
+              return <option key={s} value={s}>{nombreCorto(s)}</option>;
             })}
           </select>
           <PeriodoPicker dateFrom={dateFrom} dateTo={dateTo} activePreset={activePreset}
             onChange={(f, t, label) => { setDateFrom(f); setDateTo(t); setActivePreset(label) }} />
-          {(udnSel !== 'todas' || sdrSel !== 'todos' || activePreset !== 'Este año') && (
-            <button onClick={() => { setUdnSel('todas'); setSdrSel('todos'); setDateFrom(`${new Date().getFullYear()}-01-01`); setDateTo(toDateOnly(new Date())); setActivePreset('Este año'); setFuenteMqlSel('todas') }}
+          <select value={fuenteVistaSel} onChange={e => setFuenteVistaSel(e.target.value as any)} style={{
+            padding: '7px 12px', borderRadius: 8, border: '1px solid #e2e8f0', fontSize: 12.5, color: '#172033', background: '#fff', fontWeight: 600,
+          }}>
+            <option value="outbound">Vista: Outbound</option>
+            <option value="inbound">Vista: Inbound</option>
+            <option value="todas">Vista: Todas las fuentes</option>
+          </select>
+          {(udnSel !== 'todas' || sdrSel !== 'todos' || activePreset !== 'Este año' || fuenteVistaSel !== 'outbound') && (
+            <button onClick={() => { setUdnSel('todas'); setSdrSel('todos'); setDateFrom(`${new Date().getFullYear()}-01-01`); setDateTo(toDateOnly(new Date())); setActivePreset('Este año'); setFuenteVistaSel('outbound') }}
               style={{
                 padding: '7px 12px', borderRadius: 8, border: '1px solid #e2e8f0', background: '#fff', color: '#64748b',
                 fontSize: 12.5, cursor: 'pointer', fontWeight: 600, display: 'flex', alignItems: 'center', gap: 5,
@@ -626,20 +637,13 @@ export default function SDR() {
             </div>
             <span style={{ fontSize: 10.5, fontWeight: 600, color: '#94a3b8', background: '#f1f5f9', padding: '2px 8px', borderRadius: 6 }}>{periodLabelGlobal}</span>
           </div>
-          <select value={fuenteMqlSel} onChange={e => setFuenteMqlSel(e.target.value as any)} style={{
-            padding: '5px 10px', borderRadius: 8, border: '1px solid #e2e8f0', fontSize: 11.5, color: '#172033', background: '#fff',
-          }}>
-            <option value="todas">Todas las fuentes</option>
-            <option value="outbound">Solo Outbound (Prospección)</option>
-            <option value="inbound">Solo Inbound</option>
-          </select>
         </div>
         <ChartLegend items={udnsPresentes} colors={UDN_COLORS} historicos={udnsHistoricas} />
         <ResponsiveContainer width="100%" height={300}>
-          <BarChart data={chartDataUdn} margin={{ top: 24, right: 8, left: 0, bottom: 8 }} barCategoryGap="20%" maxBarSize={96}>
+          <BarChart data={chartDataUdn} margin={{ top: 24, right: 8, left: 0, bottom: 24 }} barCategoryGap="20%" maxBarSize={96}>
             <CartesianGrid vertical={false} stroke="#f1f5f9" />
-            <XAxis dataKey="mes" tick={{ fontSize: 11, fill: '#64748b' }} axisLine={false} tickLine={false} />
-            <YAxis tick={{ fontSize: 11, fill: '#64748b' }} axisLine={false} tickLine={false} />
+            <XAxis dataKey="mes" tick={{ fontSize: 11, fill: '#64748b' }} axisLine={false} tickLine={false} label={{ value: 'Mes', position: 'insideBottom', offset: -12, fontSize: 11, fill: '#64748b', fontWeight: 700 }} />
+            <YAxis tick={{ fontSize: 11, fill: '#64748b' }} axisLine={false} tickLine={false} label={{ value: 'MQLs calificados', angle: -90, position: 'insideLeft', offset: 10, style: { textAnchor: 'middle' }, fontSize: 10.5, fill: '#64748b', fontWeight: 700 }} />
             <Tooltip cursor={{ fill: 'rgba(0,0,0,0.03)' }} content={<CustomTooltip />} />
             {udnsPresentes.map((udn) => {
               const esUltimoConDatoEnAlgunMes = chartDataUdn.some((row: any) => {
@@ -686,28 +690,26 @@ export default function SDR() {
               Reuniones completadas por SDR
             </div>
             <span style={{ fontSize: 10.5, fontWeight: 600, color: '#94a3b8', background: '#f1f5f9', padding: '2px 8px', borderRadius: 6 }}>{periodLabelGlobal}</span>
+            <span style={{ fontSize: 10.5, fontWeight: 600, color: '#64748b', background: '#f8fafc', border: '1px dashed #cbd5e1', padding: '2px 8px', borderRadius: 6 }}>Meta: 20 por SDR</span>
           </div>
-          <select value={fuenteReunionSel} onChange={e => setFuenteReunionSel(e.target.value as any)} style={{
-            padding: '5px 10px', borderRadius: 8, border: '1px solid #e2e8f0', fontSize: 11.5, color: '#172033', background: '#fff',
-          }}>
-            <option value="todas">Todas las fuentes</option>
-            <option value="outbound">Solo Outbound (Prospección)</option>
-            <option value="inbound">Solo Inbound</option>
-          </select>
         </div>
-        <ChartLegend items={sdrsAMostrar} colors={SDR_COLORS} />
+        <ChartLegend items={sdrsAMostrar} colors={SDR_COLORS} shortenNames />
         <ResponsiveContainer width="100%" height={300}>
-          <BarChart data={chartDataReuniones} margin={{ top: 24, right: 8, left: 0, bottom: 8 }} barCategoryGap="20%" maxBarSize={96}>
+          <BarChart data={chartDataReuniones} margin={{ top: 24, right: 8, left: 0, bottom: 24 }} barCategoryGap="20%" maxBarSize={96}>
             <CartesianGrid vertical={false} stroke="#f1f5f9" />
-            <XAxis dataKey="mes" tick={{ fontSize: 11, fill: '#64748b' }} axisLine={false} tickLine={false} />
-            <YAxis tick={{ fontSize: 11, fill: '#64748b' }} axisLine={false} tickLine={false} domain={[0, (dataMax: number) => Math.max(dataMax, sdrsAMostrar.length * 20 * 1.1)]} />
+            <XAxis dataKey="mes" tick={{ fontSize: 11, fill: '#64748b' }} axisLine={false} tickLine={false} label={{ value: 'Mes', position: 'insideBottom', offset: -12, fontSize: 11, fill: '#64748b', fontWeight: 700 }} />
+            <YAxis
+              tick={{ fontSize: 11, fill: '#64748b' }} axisLine={false} tickLine={false}
+              domain={[0, (dataMax: number) => Math.max(Math.ceil(dataMax * 1.2), 24)]}
+              label={{ value: 'Reuniones completadas', angle: -90, position: 'insideLeft', offset: 10, style: { textAnchor: 'middle' }, fontSize: 10.5, fill: '#64748b', fontWeight: 700 }}
+            />
             <Tooltip cursor={{ fill: 'rgba(0,0,0,0.03)' }} content={<CustomTooltip />} />
             <ReferenceLine
-              y={sdrsAMostrar.length * 20}
-              stroke="#0f172a"
+              y={20}
+              stroke="#cbd5e1"
               strokeDasharray="4 4"
-              strokeWidth={1.5}
-              label={{ value: `Meta: ${sdrsAMostrar.length * 20} (20/SDR outbound)`, position: 'insideTopRight', fontSize: 10.5, fill: '#0f172a', fontWeight: 700 }}
+              strokeWidth={1.25}
+              ifOverflow="extendDomain"
             />
             {sdrsAMostrar.map((sdr, i) => (
               <Bar
@@ -730,7 +732,7 @@ export default function SDR() {
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '16px 20px 0' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
             <div style={{ fontSize: 12, fontWeight: 700, color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.03em' }}>
-              Comparativo por SDR — ordenado por reuniones outbound completadas
+              {`Comparativo por SDR — ordenado por reuniones ${fuenteVistaSel === 'inbound' ? 'inbound' : fuenteVistaSel === 'todas' ? 'totales' : 'outbound'} completadas`}
             </div>
             <span style={{ fontSize: 10.5, fontWeight: 600, color: '#94a3b8', background: '#f1f5f9', padding: '2px 8px', borderRadius: 6 }}>{periodLabelGlobal}</span>
           </div>
@@ -758,14 +760,14 @@ export default function SDR() {
           </thead>
           <tbody>
             {leaderboard.map(row => {
-              const abierto = filaExpandida === row.sdr
+              const abierto = filasExpandidas.includes(row.sdr)
               return (
                 <React.Fragment key={row.sdr}>
                   <tr style={{ borderBottom: abierto ? 'none' : '1px solid #f1f5f9' }}>
                     <td style={{ padding: '10px 20px', fontWeight: 600, color: '#172033' }}>
                       <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}>
                         <span style={{ width: 8, height: 8, borderRadius: '50%', background: SDR_COLORS[row.sdr], flexShrink: 0 }} />
-                        {row.sdr}
+                        {nombreCorto(row.sdr)}
                         {row.sdr === sdrDeLaSemana && (
                           <span title="Mayor número de reuniones completadas en el periodo seleccionado" style={{
                             display: 'inline-flex', alignItems: 'center', gap: 3, fontSize: 10, fontWeight: 700,
@@ -775,13 +777,13 @@ export default function SDR() {
                             <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="#7c3aed" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
                               <polygon points="12 2 15 9 22 9 16.5 13.5 18.5 21 12 16.5 5.5 21 7.5 13.5 2 9 9 9" />
                             </svg>
-                            Más reuniones
+                            {`Más reuniones${fuenteVistaSel === 'outbound' ? ' OB' : fuenteVistaSel === 'inbound' ? ' IB' : ''}`}
                           </span>
                         )}
                       </span>
                     </td>
                     <td
-                      onClick={() => setFilaExpandida(abierto ? null : row.sdr)}
+                      onClick={() => setFilasExpandidas(prev => abierto ? prev.filter(s => s !== row.sdr) : [...prev, row.sdr])}
                       style={{ padding: '10px 12px', textAlign: 'right', color: '#64748b', cursor: 'pointer', userSelect: 'none' }}
                     >
                       <span style={{ display: 'inline-flex', alignItems: 'center', gap: 5 }}>
@@ -799,8 +801,8 @@ export default function SDR() {
                         return `${tasaConectado}%`
                       })()}
                     </td>
-                    <td style={{ padding: '10px 12px', textAlign: 'right', fontWeight: 700, color: ACCENT }}>{row.mqls.toLocaleString()}</td>
-                    <td style={{ padding: '10px 12px', textAlign: 'right', color: '#64748b' }}>{row.reunionesCompletadas.toLocaleString()}</td>
+                    <td style={{ padding: '10px 12px', textAlign: 'right', fontWeight: 700, color: ACCENT }}>{(fuenteVistaSel === 'outbound' ? row.mqlsOutbound : fuenteVistaSel === 'inbound' ? row.mqlsInbound : row.mqls).toLocaleString()}</td>
+                    <td style={{ padding: '10px 12px', textAlign: 'right', color: '#64748b' }}>{(fuenteVistaSel === 'outbound' ? row.reunionesOutbound : fuenteVistaSel === 'inbound' ? row.reunionesInbound : row.reunionesCompletadas).toLocaleString()}</td>
                     <td style={{ padding: '10px 20px', textAlign: 'right', color: '#64748b' }}>{row.tasaMqlReunion}%</td>
                   </tr>
                   {abierto && (
