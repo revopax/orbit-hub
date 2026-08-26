@@ -247,7 +247,7 @@ export function CalendarioGrid({ meses, filas, brandColor, udnId }: CalendarioGr
           </thead>
           <tbody>
             {filasFiltradas.map((fila, i) => (
-              <>
+              <React.Fragment key={fila.industria}>
                 <tr
                   key={fila.industria}
                   className="table-row"
@@ -321,7 +321,7 @@ export function CalendarioGrid({ meses, filas, brandColor, udnId }: CalendarioGr
                     )}
                   </td>
                 </tr>
-              </>
+              </React.Fragment>
             ))}
           </tbody>
         </table>
