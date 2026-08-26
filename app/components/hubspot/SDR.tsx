@@ -511,6 +511,9 @@ export default function SDR() {
         <div>
           <h2 style={{ fontSize: 18, fontWeight: 800, color: '#172033', margin: 0 }}>Gestión SDR</h2>
           <p style={{ fontSize: 12, color: '#64748b', margin: '2px 0 0' }}>Performance de prospección · hasta antes de SQL</p>
+          <p class="text-xs text-slate-500">
+            Outbound / Inbound
+          </p>
         </div>
         <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', alignItems: 'center' }}>
           <select value={udnSel} onChange={e => setUdnSel(e.target.value)} style={{
