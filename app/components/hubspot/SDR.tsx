@@ -508,9 +508,15 @@ export default function SDR() {
   return (
     <div style={{ padding: 24, maxWidth: 1400, margin: '0 auto', fontFamily: 'Inter,-apple-system,sans-serif' }}>
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 20, flexWrap: 'wrap', gap: 12 }}>
-        <div>
-          
-          <p style={{ fontSize: 12, color: '#64748b', margin: '2px 0 0' }}>Performance de prospección · hasta antes de SQL</p>
+        <div style={{
+          background: '#F5F3FF', border: '1px solid #E4DEFB', borderRadius: 10,
+          padding: '10px 14px', maxWidth: 620,
+        }}>
+          <p style={{ fontSize: 12, color: '#64748b', margin: 0 }}>Performance de prospección · hasta antes de SQL</p>
+          <p style={{ fontSize: 12.5, color: '#334155', margin: '6px 0 0', lineHeight: 1.5 }}>
+            <span style={{ color: '#7038E5', fontWeight: 600 }}>ⓘ Alcance de los datos:</span>{' '}
+            Esta vista concentra la prospección <span style={{ color: '#7038E5', fontWeight: 600 }}>Outbound</span> realizada por el equipo de SDRs. Las métricas <span style={{ color: '#7038E5', fontWeight: 600 }}>Inbound</span> se habilitan al cambiar la opción en los filtros superiores.
+          </p>
         </div>
         <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', alignItems: 'center' }}>
           <select value={udnSel} onChange={e => setUdnSel(e.target.value)} style={{
