@@ -512,6 +512,7 @@ export default function SDR() {
           background: '#F5F3FF', border: '1px solid #E4DEFB', borderRadius: 10,
           padding: '10px 14px', maxWidth: 620,
         }}>
+          <h1 style={{ fontSize: 18, fontWeight: 700, color: '#0f172a', margin: '0 0 4px' }}>Gestión SDR</h1>
           <p style={{ fontSize: 12, color: '#64748b', margin: 0 }}>Performance de prospección · hasta antes de SQL</p>
           <p style={{ fontSize: 12.5, color: '#334155', margin: '6px 0 0', lineHeight: 1.5 }}>
             <span style={{ color: '#7038E5', fontWeight: 600 }}>ⓘ Alcance de los datos:</span>{' '}
