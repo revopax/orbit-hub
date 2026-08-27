@@ -1,3 +1,15 @@
+## [v2.8.0] - 2026-08-26 (madrugada)
+### Investigación pipeline Brújula: sync_mbr_incremental.py validado
+- Aclaración importante: `BRUJULA-COMERCIAL-UPAX` y `brujula-comercial-upax` son LA MISMA carpeta física (macOS no distingue mayúsculas/minúsculas por defecto). No hay "repo viejo vs nuevo" — es un solo git, un solo estado. Toda la confusión de la sesión sobre esto fue por este detalle del filesystem.
+- Corrida ejecutada con éxito: `cd pipeline && python3 sync_mbr_incremental.py` (debe correrse DENTRO de pipeline/, no en la raíz — usa rutas relativas a data/denue_nacional.parquet). Requiere `SUPABASE_URL_MBR` y `SUPABASE_KEY_MBR` en `.env.local` de BRUJULA-COMERCIAL-UPAX (la segunda faltaba, se agregó con la misma service_role key del proyecto wuwhcljeigskajjoyghv).
+- Resultado: 1,135 registros nuevos en mbr (118,642 vs 117,566 legacy). Tardó ~4 min, no horas — la corrida larga que se recordaba debió ser un run completo desde cero de los 117K legacy, no esta incremental.
+- Aclaración de métricas (para no confundir a futuro):
+  - "Cobertura DENUE: X%" = % de los registros NUEVOS que matchearon contra DENUE (match_alto + match_bajo). El resto es sin_match real (marcas internacionales/startups sin presencia en DENUE México).
+  - "Cobertura SCIAN_nombre total: 86.1%" = % de TODO el dataset (legacy + nuevos) con alguna industria asignada, sin importar fuente (denue_match, catalogo_marcas, nombre_match, groq_llama, legacy heredado). Esta es la que se recordaba como "el 80%+" — mide cobertura, NO calidad de match.
+  - Dentro del 86.1%, calidad varía: match_alto/aceptado (confiable) vs catalogo_marcas/nombre_match de baja confianza (ej. nombres genéricos con score perfecto por casualidad).
+  - Pendiente si se retoma: calcular qué % del 86.1% es específicamente match_alto/aceptado.
+- df_maestro_v2.parquet actualizado. Sigue pendiente conectar a match_denue.py (lee data/df_maestro.parquet, nombre distinto) y a generate_data.py (para poblar empresas_pico con el campo `propietario` correcto). Ver entrada previa sobre Overview/Calendario expandible para contexto completo.
+
 ## [v2.7.0] - 2026-08-26
 ### Gestión SDR
 - Header con recuadro de alcance de datos; filtro maestro Outbound/Inbound/Todas controla Volumen, MQLs por UDN, Reuniones por SDR y Comparativo (SLA queda fijo en Inbound).
