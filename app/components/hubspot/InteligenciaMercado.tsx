@@ -64,7 +64,7 @@ function ScoreCard({ label, value, sub, accent, icon }: { label: string; value: 
   );
 }
 
-import ProspeccionDenue from './ProspeccionDenue'
+// ProspeccionDenue movido a Overview seccion 4
 
 export function SenalesMercado() {
   const [filtroUdn, setFiltroUdn] = useState<string>('Todas');
@@ -136,7 +136,6 @@ export default function InteligenciaMercado() {
         <ScoreCard label="Cambios de puesto" value={cambiosPuesto} sub="este mes" accent="#d97706" icon="💼" />
       </div>
 
-      <ProspeccionDenue onTotalChange={setPotencialSinCubrir} />
 
       <SenalesMercado />
 

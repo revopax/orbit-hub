@@ -2,6 +2,7 @@
 import React, { useEffect, useState } from 'react';
 import { CalendarioGrid } from './CalendarioGrid';
 import { SenalesMercado } from '../hubspot/InteligenciaMercado';
+import ProspeccionDenue from '../hubspot/ProspeccionDenue';
 
 const cardStyle: React.CSSProperties = { background: '#fff', borderRadius: 14, border: '1px solid #eef0f3', boxShadow: '0 1px 3px rgba(16,24,40,0.04)', padding: '20px 24px' };
 
@@ -132,12 +133,19 @@ export default function Overview({ udnNombre, udnId, brandColor }: { udnNombre: 
             <p style={{ fontSize: 12.5, color: '#94a3b8' }}>Cargando calendario...</p>
           )}
         </div>
-        <BloquePlaceholder
-          numero={4}
-          titulo="Descubrir nuevas empresas"
-          subtitulo="Universo DENUE - empresas que aun no forman parte de tu cartera."
-          fuente="Mapa Universo DENUE (tab Mercado)"
-        />
+        <div style={cardStyle}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 4 }}>
+            <span style={{
+              width: 22, height: 22, borderRadius: '50%', background: '#8C59FE', color: '#fff',
+              fontSize: 12, fontWeight: 700, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0,
+            }}>4</span>
+            <h3 style={{ fontSize: 16, fontWeight: 700, margin: 0, color: '#0f172a' }}>Descubrir nuevas empresas</h3>
+          </div>
+          <p style={{ fontSize: 13, color: '#64748b', margin: '4px 0 16px' }}>
+            Universo DENUE - empresas que aun no forman parte de tu cartera.
+          </p>
+          <ProspeccionDenue onTotalChange={() => {}} />
+        </div>
       </div>
     </div>
   );
