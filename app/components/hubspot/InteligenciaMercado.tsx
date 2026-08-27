@@ -66,11 +66,63 @@ function ScoreCard({ label, value, sub, accent, icon }: { label: string; value: 
 
 import ProspeccionDenue from './ProspeccionDenue'
 
-export default function InteligenciaMercado() {
+export function SenalesMercado() {
   const [filtroUdn, setFiltroUdn] = useState<string>('Todas');
   const udns = ['Todas', 'UIX', 'Marketing United', 'Promo Espacio', 'Zeus', 'Neracode', 'House Of Films', 'Research Land', 'Mexa Creativa'];
   const senalesFiltradas = filtroUdn === 'Todas' ? SENALES_DUMMY : SENALES_DUMMY.filter(s => s.udn === filtroUdn);
 
+  return (
+    <div style={cardStyle}>
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 4 }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+          <h3 style={{ fontSize: 15, fontWeight: 700, margin: 0, color: '#0f172a' }}>Señales de mercado</h3>
+          <span style={{ display: 'flex', alignItems: 'center', gap: 5, fontSize: 11, fontWeight: 700, color: '#059669' }}>
+            <span style={{ width: 7, height: 7, borderRadius: '50%', background: '#059669', display: 'inline-block', animation: 'pulse 1.6s infinite' }} />
+            EN VIVO
+          </span>
+        </div>
+        <select value={filtroUdn} onChange={(e) => setFiltroUdn(e.target.value)} style={{ fontSize: 13, border: '1px solid #e2e8f0', borderRadius: 8, padding: '6px 10px', color: '#475569' }}>
+          {udns.map(u => <option key={u} value={u}>{u}</option>)}
+        </select>
+      </div>
+      <p style={{ fontSize: 12, color: '#94a3b8', margin: '0 0 16px' }}>Detecciones de Brand24 y Apollo — expansión, inversión y cambios de puesto clave.</p>
+
+      <table style={{ width: '100%', fontSize: 13, borderCollapse: 'collapse' }}>
+        <thead>
+          <tr style={{ textAlign: 'left' }}>
+            {['Fecha', 'Empresa', 'Tipo', 'Señal pública', 'Fuente', 'UDN', 'Estado', 'Dueño'].map(h => (
+              <th key={h} style={{ fontWeight: 500, color: '#94a3b8', fontSize: 11, textTransform: 'uppercase', letterSpacing: 0.4, paddingBottom: 10, paddingRight: 12 }}>{h}</th>
+            ))}
+          </tr>
+        </thead>
+        <tbody>
+          {senalesFiltradas.map((s, i) => (
+            <tr key={i} style={{ borderTop: '1px solid #f1f5f9' }}>
+              <td style={{ padding: '12px 12px 12px 0', color: '#64748b', whiteSpace: 'nowrap' }}>{s.fecha}</td>
+              <td style={{ padding: '12px 12px 12px 0', fontWeight: 600, color: '#0f172a', whiteSpace: 'nowrap' }}>{s.empresa}</td>
+              <td style={{ padding: '12px 12px 12px 0' }}><Badge label={s.tipo} color={TIPO_COLOR[s.tipo]} bg={TIPO_BG[s.tipo]} /></td>
+              <td style={{ padding: '12px 12px 12px 0', color: '#64748b', maxWidth: 320, fontSize: 12.5, lineHeight: 1.4 }}>
+                &ldquo;{s.senalPublica}&rdquo;
+                <div style={{ fontSize: 11, color: '#94a3b8', marginTop: 3 }}>{s.medio}</div>
+              </td>
+              <td style={{ padding: '12px 12px 12px 0', color: '#64748b', whiteSpace: 'nowrap' }}>{s.fuenteSistema}</td>
+              <td style={{ padding: '12px 12px 12px 0', color: '#64748b', whiteSpace: 'nowrap' }}>{s.udn}</td>
+              <td style={{ padding: '12px 12px 12px 0' }}><Badge label={s.estado} color={ESTADO_COLOR[s.estado]} bg={ESTADO_BG[s.estado]} /></td>
+              <td style={{ padding: '12px 0' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                  <Avatar nombre={s.dueno} />
+                  <span style={{ whiteSpace: 'nowrap', color: '#64748b' }}>{s.dueno}</span>
+                </div>
+              </td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+  );
+}
+
+export default function InteligenciaMercado() {
   const [potencialSinCubrir, setPotencialSinCubrir] = useState(0);
   const senalesActivas = SENALES_DUMMY.filter(s => s.estado === 'nueva' || s.estado === 'asignada').length;
   const cambiosPuesto = SENALES_DUMMY.filter(s => s.tipo === 'Cambio de puesto').length;
@@ -86,53 +138,7 @@ export default function InteligenciaMercado() {
 
       <ProspeccionDenue onTotalChange={setPotencialSinCubrir} />
 
-      <div style={cardStyle}>
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 4 }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-            <h3 style={{ fontSize: 15, fontWeight: 700, margin: 0, color: '#0f172a' }}>Señales de mercado</h3>
-            <span style={{ display: 'flex', alignItems: 'center', gap: 5, fontSize: 11, fontWeight: 700, color: '#059669' }}>
-              <span style={{ width: 7, height: 7, borderRadius: '50%', background: '#059669', display: 'inline-block', animation: 'pulse 1.6s infinite' }} />
-              EN VIVO
-            </span>
-          </div>
-          <select value={filtroUdn} onChange={(e) => setFiltroUdn(e.target.value)} style={{ fontSize: 13, border: '1px solid #e2e8f0', borderRadius: 8, padding: '6px 10px', color: '#475569' }}>
-            {udns.map(u => <option key={u} value={u}>{u}</option>)}
-          </select>
-        </div>
-        <p style={{ fontSize: 12, color: '#94a3b8', margin: '0 0 16px' }}>Detecciones de Brand24 y Apollo — expansión, inversión y cambios de puesto clave.</p>
-
-        <table style={{ width: '100%', fontSize: 13, borderCollapse: 'collapse' }}>
-          <thead>
-            <tr style={{ textAlign: 'left' }}>
-              {['Fecha', 'Empresa', 'Tipo', 'Señal pública', 'Fuente', 'UDN', 'Estado', 'Dueño'].map(h => (
-                <th key={h} style={{ fontWeight: 500, color: '#94a3b8', fontSize: 11, textTransform: 'uppercase', letterSpacing: 0.4, paddingBottom: 10, paddingRight: 12 }}>{h}</th>
-              ))}
-            </tr>
-          </thead>
-          <tbody>
-            {senalesFiltradas.map((s, i) => (
-              <tr key={i} style={{ borderTop: '1px solid #f1f5f9' }}>
-                <td style={{ padding: '12px 12px 12px 0', color: '#64748b', whiteSpace: 'nowrap' }}>{s.fecha}</td>
-                <td style={{ padding: '12px 12px 12px 0', fontWeight: 600, color: '#0f172a', whiteSpace: 'nowrap' }}>{s.empresa}</td>
-                <td style={{ padding: '12px 12px 12px 0' }}><Badge label={s.tipo} color={TIPO_COLOR[s.tipo]} bg={TIPO_BG[s.tipo]} /></td>
-                <td style={{ padding: '12px 12px 12px 0', color: '#64748b', maxWidth: 320, fontSize: 12.5, lineHeight: 1.4 }}>
-                  &ldquo;{s.senalPublica}&rdquo;
-                  <div style={{ fontSize: 11, color: '#94a3b8', marginTop: 3 }}>{s.medio}</div>
-                </td>
-                <td style={{ padding: '12px 12px 12px 0', color: '#64748b', whiteSpace: 'nowrap' }}>{s.fuenteSistema}</td>
-                <td style={{ padding: '12px 12px 12px 0', color: '#64748b', whiteSpace: 'nowrap' }}>{s.udn}</td>
-                <td style={{ padding: '12px 12px 12px 0' }}><Badge label={s.estado} color={ESTADO_COLOR[s.estado]} bg={ESTADO_BG[s.estado]} /></td>
-                <td style={{ padding: '12px 0' }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-                    <Avatar nombre={s.dueno} />
-                    <span style={{ whiteSpace: 'nowrap', color: '#64748b' }}>{s.dueno}</span>
-                  </div>
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
+      <SenalesMercado />
 
       <style>{`@keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.3} }`}</style>
     </div>

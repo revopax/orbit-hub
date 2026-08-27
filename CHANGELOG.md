@@ -1,3 +1,19 @@
+## [v2.7.0] - 2026-08-26
+### Gestión SDR
+- Header con recuadro de alcance de datos; filtro maestro Outbound/Inbound/Todas controla Volumen, MQLs por UDN, Reuniones por SDR y Comparativo (SLA queda fijo en Inbound).
+- Nombres unificados (Nombre Apellido) en filtro, leyendas, tabla y ejes; meta de reuniones fija en 20/SDR con badge fijo (ya no se monta sobre barras).
+- Comparativo por SDR: expande múltiples filas a la vez; badge "Más reuniones OB/IB" dinámico.
+- SLA por SDR/día: sin labels flotantes (solo tooltip), barras coloreadas por SDR.
+### Overview (Brújula Comercial)
+- Sección "Señales en vivo" conectada al componente real SenalesMercado (extraído de InteligenciaMercado.tsx).
+- Sección "Calendario de prospección": CalendarioGrid real; al hacer click en una industria expande sus subramas (mismo patrón que PicosEmpresasTable), con tabla de Empresa/Propietario/Fecha creación/Motivo pérdida/Fecha perdido/Valor/Link HubSpot. Filtra tipoObjeto='negocio'.
+- Fix producción: <React.Fragment> sin import de React rompía en runtime (CalendarioGrid.tsx) — solo fallaba en bundle de producción, no en build/dev local.
+### Pendiente — Brújula Comercial (no prioridad)
+- Repo de trabajo real del pipeline: `~/Downloads/BRUJULA-COMERCIAL-UPAX` (mayúsculas) — hay un clon viejo en minúsculas que NO se debe tocar.
+- Pipeline vigente `sync_mbr_incremental.py` renombra "Propietario del contacto/negocio/reunión creada por" -> "propietario" (nombre corto es el vigente).
+- df_maestro.parquet (insumo de Picos/Calendario expandible) sigue siendo LEGACY (generado desde df_brujula.parquet, no desde mbr) — por eso "Propietario del negocio" sale vacío casi siempre. Falta correr match_denue.py apuntando a mbr. Detalle completo en CHANGELOG.md de BRUJULA-COMERCIAL-UPAX (entradas 1.5.0, 1.6.0, 1.9.0).
+- "Tipo de venta" (interna/externa) no se integró: no hay campo equivalente confirmado en el pipeline actual.
+
 ## [v2.6.0] - 2026-08-18
 ### Gestión SDR: reestructuración de bloques y layout
 - Bloque "Comparativo por SDR" reordenado para aparecer después de "Reuniones completadas por SDR", antes de los gráficos de SLA.

@@ -1,4 +1,5 @@
-import { Fragment } from 'react';
+import { Fragment, useState } from 'react';
+import type { EmpresaPico } from '../../lib/types';
 
 
 type Estado = 'pico' | 'prep' | 'ok' | 'vacio';
@@ -8,6 +9,7 @@ interface CalendarioGridProps {
   filas: { industria: string; celdas: Estado[] }[];
   brandColor: string;
   udnId?: string;
+  empresasPico?: EmpresaPico[];
 }
 
 const CELL_CONFIG: Record<Estado, {
@@ -41,6 +43,15 @@ const CELL_CONFIG: Record<Estado, {
 };
 
 const CICLO_ORDEN: Estado[] = ['ok', 'prep', 'pico', 'vacio'];
+
+const thSub: React.CSSProperties = {
+  padding: '5px 16px',
+  fontSize: 9,
+  fontWeight: 700,
+  color: 'var(--txt-5)',
+  textTransform: 'uppercase',
+  letterSpacing: '0.08em',
+};
 
 // Ciclos de venta por UDN y servicio — basado en 6Sense B2B 2025, HubSpot State of Sales 2024
 // y datos empíricos de UIX (William) y MU (Saray). Semanas = ciclo promedio hasta cierre.
@@ -95,7 +106,21 @@ const UDN_COLORS_CAL: Record<string, string> = {
   NC: '#3E31CC', HOF: '#3274FC', RL: '#770EB7', MEXA: '#FD00C7',
 }
 
-export function CalendarioGrid({ meses, filas, brandColor, udnId }: CalendarioGridProps) {
+export function CalendarioGrid({ meses, filas, brandColor, udnId, empresasPico }: CalendarioGridProps) {
+  const [industriasExpandidas, setIndustriasExpandidas] = useState<string[]>([]);
+  const [subramasExpandidas, setSubramasExpandidas] = useState<string[]>([]);
+
+  function toggleIndustria(industria: string) {
+    setIndustriasExpandidas(prev =>
+      prev.includes(industria) ? prev.filter(i => i !== industria) : [...prev, industria]
+    );
+  }
+
+  function toggleSubrama(key: string) {
+    setSubramasExpandidas(prev =>
+      prev.includes(key) ? prev.filter(k => k !== key) : [...prev, key]
+    );
+  }
   // Filtrar meses anteriores al mes actual
   const MESES_ES = ['ene','feb','mar','abr','may','jun','jul','ago','sep','oct','nov','dic'];
   const mesActualIdx = new Date().getMonth();
@@ -254,8 +279,17 @@ export function CalendarioGrid({ meses, filas, brandColor, udnId }: CalendarioGr
                   className="table-row"
                   style={{ borderBottom: 'none' }}
                 >
-                  <td style={{ padding: '8px 12px 4px', fontSize: 11, fontWeight: 500, color: 'var(--txt-3)', width: 110, maxWidth: 110, lineHeight: 1.3, whiteSpace: 'normal', wordBreak: 'break-word' }}>
-                    {fila.industria}
+                  <td
+                    onClick={() => toggleIndustria(fila.industria)}
+                    style={{ padding: '8px 12px 4px', fontSize: 11, fontWeight: 500, color: 'var(--txt-3)', width: 110, maxWidth: 110, lineHeight: 1.3, whiteSpace: 'normal', wordBreak: 'break-word', cursor: 'pointer', userSelect: 'none' }}
+                  >
+                    <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4 }}>
+                      <svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3"
+                        style={{ transform: industriasExpandidas.includes(fila.industria) ? 'rotate(90deg)' : 'rotate(0deg)', transition: 'transform 0.15s', flexShrink: 0 }}>
+                        <polyline points="9 18 15 12 9 6" />
+                      </svg>
+                      {fila.industria}
+                    </span>
                   </td>
                   {fila.celdas.map((estado, j) => {
                     const s = CELL_CONFIG[estado];
@@ -281,6 +315,96 @@ export function CalendarioGrid({ meses, filas, brandColor, udnId }: CalendarioGr
                     );
                   })}
                 </tr>
+                {industriasExpandidas.includes(fila.industria) && (() => {
+                  const empresasIndustria = (empresasPico ?? []).filter(e => e.sector === fila.industria && e.tipoObjeto === 'negocio');
+                  const grupoMap: Record<string, EmpresaPico[]> = {};
+                  for (const e of empresasIndustria) {
+                    const key = (e.subrama && e.subrama.trim() && e.subrama !== 'None') ? e.subrama.trim() : e.sector || 'Sin clasificar';
+                    (grupoMap[key] = grupoMap[key] || []).push(e);
+                  }
+                  const grupos = Object.entries(grupoMap);
+
+                  if (grupos.length === 0) {
+                    return (
+                      <tr>
+                        <td colSpan={mesesFiltrados.length + 1} style={{ padding: '10px 16px', background: 'var(--bg)', fontSize: 11.5, color: 'var(--txt-4)' }}>
+                          Sin negocios registrados para esta industria.
+                        </td>
+                      </tr>
+                    );
+                  }
+
+                  return (
+                    <Fragment>
+                      {grupos.map(([subramaName, emps], gi) => {
+                        const subKey = `cal_${fila.industria}_${gi}`;
+                        const subExp = subramasExpandidas.includes(subKey);
+                        return (
+                          <Fragment key={subKey}>
+                            <tr
+                              onClick={() => toggleSubrama(subKey)}
+                              style={{ background: brandColor + '0A', borderBottom: '1px solid var(--divider)', cursor: 'pointer' }}
+                            >
+                              <td colSpan={mesesFiltrados.length + 1} style={{ padding: '7px 16px' }}>
+                                <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                                  <span style={{ fontSize: 10, color: 'var(--txt-5)' }}>{subExp ? '▾' : '▸'}</span>
+                                  <span style={{ fontSize: 11, fontWeight: 700, color: 'var(--txt-2)' }}>{subramaName}</span>
+                                  <span style={{ fontSize: 10, color: 'var(--txt-5)', fontWeight: 500 }}>
+                                    {emps.length} {emps.length === 1 ? 'empresa' : 'empresas'}
+                                  </span>
+                                </div>
+                              </td>
+                            </tr>
+                            {subExp && (
+                              <tr style={{ background: brandColor + '06', borderBottom: '1px solid var(--divider)' }}>
+                                <td colSpan={mesesFiltrados.length + 1} style={{ padding: 0 }}>
+                                  <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 11.5 }}>
+                                    <thead>
+                                      <tr style={{ borderBottom: '1px solid var(--divider)', textAlign: 'left' }}>
+                                        <th style={thSub}>Empresa</th>
+                                        <th style={thSub}>Propietario del negocio</th>
+                                        <th style={thSub}>Fecha creación</th>
+                                        <th style={thSub}>Motivo pérdida</th>
+                                        <th style={thSub}>Fecha perdido</th>
+                                        <th style={thSub}>Valor</th>
+                                        <th style={thSub}>Link</th>
+                                      </tr>
+                                    </thead>
+                                    <tbody>
+                                      {emps.map((e, ei) => (
+                                        <tr key={ei} style={{ borderBottom: ei < emps.length - 1 ? '1px solid var(--divider)' : 'none', background: 'var(--bg)' }}>
+                                          <td style={{ padding: '8px 16px', fontSize: 12, fontWeight: 500, color: 'var(--txt-2)' }}>{e.empresa}</td>
+                                          <td style={{ padding: '8px 16px', fontSize: 11, color: 'var(--txt-4)' }}>{e.generadoPor && e.generadoPor !== 'nan' ? e.generadoPor : '—'}</td>
+                                          <td style={{ padding: '8px 16px' }}><span className="font-mono" style={{ fontSize: 11, color: 'var(--txt-5)' }}>{e.fechaCreacion || '—'}</span></td>
+                                          <td style={{ padding: '8px 16px', fontSize: 11, color: 'var(--txt-4)' }}>{e.motivoPerdida && e.motivoPerdida !== 'nan' ? e.motivoPerdida : '—'}</td>
+                                          <td style={{ padding: '8px 16px' }}><span className="font-mono" style={{ fontSize: 11, color: 'var(--txt-5)' }}>{e.fechaPerdido && e.fechaPerdido !== 'nan' ? e.fechaPerdido : '—'}</span></td>
+                                          <td style={{ padding: '8px 16px' }}><span className="font-mono" style={{ fontSize: 12, fontWeight: 800, color: 'var(--txt-1)' }}>{typeof e.valor === 'number' ? '$' + Number(e.valor).toLocaleString() : (e.valor || '—')}</span></td>
+                                          <td style={{ padding: '8px 16px' }}>
+                                            {e.tipoObjeto === 'negocio' && e.idRegistro ? (
+                                              <a href={'https://app.hubspot.com/contacts/24172997/record/0-3/' + e.idRegistro}
+                                                target="_blank"
+                                                rel="noopener noreferrer"
+                                                style={{ fontSize: 11, fontWeight: 600, color: brandColor, textDecoration: 'none' }}
+                                              >
+                                                Ver en HubSpot
+                                              </a>
+                                            ) : (
+                                              <span style={{ fontSize: 11, color: 'var(--txt-6)' }}>—</span>
+                                            )}
+                                          </td>
+                                        </tr>
+                                      ))}
+                                    </tbody>
+                                  </table>
+                                </td>
+                              </tr>
+                            )}
+                          </Fragment>
+                        );
+                      })}
+                    </Fragment>
+                  );
+                })()}
                 <tr>
                   <td style={{ padding: '4px 12px 10px 12px', background: 'var(--bg)', width: 110, maxWidth: 110 }}></td>
                   <td colSpan={mesesFiltrados.length} style={{ padding: '4px 16px 10px 16px', background: 'var(--bg)', position: 'relative' }}>
