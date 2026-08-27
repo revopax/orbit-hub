@@ -407,6 +407,7 @@ export function CalendarioGrid({ meses, filas, brandColor, udnId, empresasPico }
                                         <th style={thSub}>SDR</th>
                                         <th style={thSub}>Fecha calificación MQL</th>
                                         <th style={thSub}>Motivo descalificación</th>
+                                        <th style={thSub}>Link</th>
                                       </tr>
                                     </thead>
                                     <tbody>
@@ -416,6 +417,19 @@ export function CalendarioGrid({ meses, filas, brandColor, udnId, empresasPico }
                                           <td style={{ padding: '8px 16px', fontSize: 11, color: 'var(--txt-4)' }}>{e.sdr && e.sdr !== 'nan' ? e.sdr : '—'}</td>
                                           <td style={{ padding: '8px 16px' }}><span className="font-mono" style={{ fontSize: 11, color: 'var(--txt-5)' }}>{e.fechaCalificacionMQL || '—'}</span></td>
                                           <td style={{ padding: '8px 16px', fontSize: 11, color: 'var(--txt-4)' }}>{!e.avanzo && e.motivoPerdida && e.motivoPerdida !== 'nan' ? e.motivoPerdida : '—'}</td>
+                                          <td style={{ padding: '8px 16px' }}>
+                                            {e.idRegistro ? (
+                                              <a href={'https://app.hubspot.com/contacts/24172997/record/0-1/' + e.idRegistro}
+                                                target="_blank"
+                                                rel="noopener noreferrer"
+                                                style={{ fontSize: 11, fontWeight: 600, color: brandColor, textDecoration: 'none' }}
+                                              >
+                                                Ver en HubSpot
+                                              </a>
+                                            ) : (
+                                              <span style={{ fontSize: 11, color: 'var(--txt-6)' }}>—</span>
+                                            )}
+                                          </td>
                                         </tr>
                                       ))}
                                     </tbody>
