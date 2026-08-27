@@ -323,10 +323,10 @@ export function CalendarioGrid({ meses, filas, brandColor, udnId, empresasPico }
                 {industriasExpandidas.includes(fila.industria) && (() => {
                   const empresasIndustria = (empresasPico ?? []).filter(e => {
                     if (e.sector !== fila.industria || e.tipoObjeto !== 'contacto') return false;
-                    if (filtroTipo === 'objetivo') return !!e.es_cuenta_objetivo;
-                    if (filtroTipo === 'icp') return !!e.icp_industria_match && !e.es_cuenta_objetivo;
-                    if (filtroAvanzo === 'avanzo') return !!e.avanzo;
-                    if (filtroAvanzo === 'descalifico') return !e.avanzo;
+                    if (filtroTipo === 'objetivo' && !e.es_cuenta_objetivo) return false;
+                    if (filtroTipo === 'icp' && !(e.icp_industria_match && !e.es_cuenta_objetivo)) return false;
+                    if (filtroAvanzo === 'avanzo' && !e.avanzo) return false;
+                    if (filtroAvanzo === 'descalifico' && e.avanzo) return false;
                     return true;
                   });
                   const grupoMap: Record<string, EmpresaPico[]> = {};
@@ -373,40 +373,32 @@ export function CalendarioGrid({ meses, filas, brandColor, udnId, empresasPico }
                                   <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 11.5 }}>
                                     <thead>
                                       <tr>
-                                        <td colSpan={3} style={{ padding: '6px 16px 4px', borderBottom: '1px solid var(--divider)' }}>
-                                          <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 12 }}>
-                                            <div style={{ display: 'flex', gap: 6 }}>
-                                              {(['all','objetivo','icp'] as const).map(f => {
-                                                const labels = { all: 'Todas', objetivo: '⭐ Objetivo', icp: 'ICP ✓' };
-                                                const active = filtroTipo === f;
-                                                return (
-                                                  <button key={f} onClick={() => setFiltroTipo(f)} style={{
-                                                    padding: '3px 10px', borderRadius: 999, fontSize: 11, fontWeight: 600,
-                                                    cursor: 'pointer', border: active ? `1px solid ${brandColor}` : '1px solid var(--divider)',
-                                                    background: active ? brandColor + '18' : 'transparent',
-                                                    color: active ? brandColor : 'var(--txt-4)', transition: 'all 0.15s',
-                                                  }}>
-                                                    {labels[f]}
-                                                  </button>
-                                                );
-                                              })}
-                                            </div>
-                                            <div style={{ display: 'flex', gap: 6 }}>
-                                              {(['all','avanzo','descalifico'] as const).map(f => {
-                                                const labels = { all: 'Todos', avanzo: 'Avanzaron', descalifico: 'Descalificados' };
-                                                const active = filtroAvanzo === f;
-                                                return (
-                                                  <button key={f} onClick={() => setFiltroAvanzo(f)} style={{
-                                                    padding: '3px 10px', borderRadius: 999, fontSize: 11, fontWeight: 600,
-                                                    cursor: 'pointer', border: active ? `1px solid ${brandColor}` : '1px solid var(--divider)',
-                                                    background: active ? brandColor + '18' : 'transparent',
-                                                    color: active ? brandColor : 'var(--txt-4)', transition: 'all 0.15s',
-                                                  }}>
-                                                    {labels[f]}
-                                                  </button>
-                                                );
-                                              })}
-                                            </div>
+                                        <td colSpan={4} style={{ padding: '6px 16px 4px', borderBottom: '1px solid var(--divider)' }}>
+                                          <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 8 }}>
+                                            <select
+                                              value={filtroTipo}
+                                              onChange={(ev) => setFiltroTipo(ev.target.value as typeof filtroTipo)}
+                                              style={{
+                                                fontSize: 11, fontWeight: 600, padding: '3px 8px', borderRadius: 6,
+                                                border: '1px solid var(--divider)', background: 'var(--bg)', color: 'var(--txt-3)', cursor: 'pointer',
+                                              }}
+                                            >
+                                              <option value="all">Todas</option>
+                                              <option value="objetivo">⭐ Objetivo</option>
+                                              <option value="icp">ICP ✓</option>
+                                            </select>
+                                            <select
+                                              value={filtroAvanzo}
+                                              onChange={(ev) => setFiltroAvanzo(ev.target.value as typeof filtroAvanzo)}
+                                              style={{
+                                                fontSize: 11, fontWeight: 600, padding: '3px 8px', borderRadius: 6,
+                                                border: '1px solid var(--divider)', background: 'var(--bg)', color: 'var(--txt-3)', cursor: 'pointer',
+                                              }}
+                                            >
+                                              <option value="all">Todos</option>
+                                              <option value="avanzo">Avanzaron</option>
+                                              <option value="descalifico">Descalificados</option>
+                                            </select>
                                           </div>
                                         </td>
                                       </tr>
@@ -414,6 +406,7 @@ export function CalendarioGrid({ meses, filas, brandColor, udnId, empresasPico }
                                         <th style={thSub}>Empresa</th>
                                         <th style={thSub}>SDR</th>
                                         <th style={thSub}>Fecha calificación MQL</th>
+                                        <th style={thSub}>Motivo descalificación</th>
                                       </tr>
                                     </thead>
                                     <tbody>
@@ -422,6 +415,7 @@ export function CalendarioGrid({ meses, filas, brandColor, udnId, empresasPico }
                                           <td style={{ padding: '8px 16px', fontSize: 12, fontWeight: 500, color: 'var(--txt-2)' }}>{e.empresa}</td>
                                           <td style={{ padding: '8px 16px', fontSize: 11, color: 'var(--txt-4)' }}>{e.sdr && e.sdr !== 'nan' ? e.sdr : '—'}</td>
                                           <td style={{ padding: '8px 16px' }}><span className="font-mono" style={{ fontSize: 11, color: 'var(--txt-5)' }}>{e.fechaCalificacionMQL || '—'}</span></td>
+                                          <td style={{ padding: '8px 16px', fontSize: 11, color: 'var(--txt-4)' }}>{!e.avanzo && e.motivoPerdida && e.motivoPerdida !== 'nan' ? e.motivoPerdida : '—'}</td>
                                         </tr>
                                       ))}
                                     </tbody>
