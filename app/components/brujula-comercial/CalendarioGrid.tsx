@@ -109,6 +109,8 @@ const UDN_COLORS_CAL: Record<string, string> = {
 export function CalendarioGrid({ meses, filas, brandColor, udnId, empresasPico }: CalendarioGridProps) {
   const [industriasExpandidas, setIndustriasExpandidas] = useState<string[]>([]);
   const [subramasExpandidas, setSubramasExpandidas] = useState<string[]>([]);
+  const [filtroTipo, setFiltroTipo] = useState<'all' | 'objetivo' | 'icp'>('all');
+  const [filtroAvanzo, setFiltroAvanzo] = useState<'all' | 'avanzo' | 'descalifico'>('all');
 
   function toggleIndustria(industria: string) {
     setIndustriasExpandidas(prev =>
@@ -152,6 +154,9 @@ export function CalendarioGrid({ meses, filas, brandColor, udnId, empresasPico }
           </div>
           <div style={{ fontSize: 11, color: 'var(--txt-3)', marginTop: 2 }}>
             ¿En qué industrias deberías prospectar este mes?
+          </div>
+          <div style={{ fontSize: 11, color: 'var(--txt-4)', marginTop: 6, fontStyle: 'italic' }}>
+            ¿El timing del interés (MQL de tipo contacto) coincidió con el pico de dinamismo de esa industria según su temporalidad económica?
           </div>
         </div>
 
@@ -316,7 +321,14 @@ export function CalendarioGrid({ meses, filas, brandColor, udnId, empresasPico }
                   })}
                 </tr>
                 {industriasExpandidas.includes(fila.industria) && (() => {
-                  const empresasIndustria = (empresasPico ?? []).filter(e => e.sector === fila.industria && e.tipoObjeto === 'negocio');
+                  const empresasIndustria = (empresasPico ?? []).filter(e => {
+                    if (e.sector !== fila.industria || e.tipoObjeto !== 'contacto') return false;
+                    if (filtroTipo === 'objetivo') return !!e.es_cuenta_objetivo;
+                    if (filtroTipo === 'icp') return !!e.icp_industria_match && !e.es_cuenta_objetivo;
+                    if (filtroAvanzo === 'avanzo') return !!e.avanzo;
+                    if (filtroAvanzo === 'descalifico') return !e.avanzo;
+                    return true;
+                  });
                   const grupoMap: Record<string, EmpresaPico[]> = {};
                   for (const e of empresasIndustria) {
                     const key = (e.subrama && e.subrama.trim() && e.subrama !== 'None') ? e.subrama.trim() : e.sector || 'Sin clasificar';
@@ -360,38 +372,56 @@ export function CalendarioGrid({ meses, filas, brandColor, udnId, empresasPico }
                                 <td colSpan={mesesFiltrados.length + 1} style={{ padding: 0 }}>
                                   <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 11.5 }}>
                                     <thead>
+                                      <tr>
+                                        <td colSpan={3} style={{ padding: '6px 16px 4px', borderBottom: '1px solid var(--divider)' }}>
+                                          <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 12 }}>
+                                            <div style={{ display: 'flex', gap: 6 }}>
+                                              {(['all','objetivo','icp'] as const).map(f => {
+                                                const labels = { all: 'Todas', objetivo: '⭐ Objetivo', icp: 'ICP ✓' };
+                                                const active = filtroTipo === f;
+                                                return (
+                                                  <button key={f} onClick={() => setFiltroTipo(f)} style={{
+                                                    padding: '3px 10px', borderRadius: 999, fontSize: 11, fontWeight: 600,
+                                                    cursor: 'pointer', border: active ? `1px solid ${brandColor}` : '1px solid var(--divider)',
+                                                    background: active ? brandColor + '18' : 'transparent',
+                                                    color: active ? brandColor : 'var(--txt-4)', transition: 'all 0.15s',
+                                                  }}>
+                                                    {labels[f]}
+                                                  </button>
+                                                );
+                                              })}
+                                            </div>
+                                            <div style={{ display: 'flex', gap: 6 }}>
+                                              {(['all','avanzo','descalifico'] as const).map(f => {
+                                                const labels = { all: 'Todos', avanzo: 'Avanzaron', descalifico: 'Descalificados' };
+                                                const active = filtroAvanzo === f;
+                                                return (
+                                                  <button key={f} onClick={() => setFiltroAvanzo(f)} style={{
+                                                    padding: '3px 10px', borderRadius: 999, fontSize: 11, fontWeight: 600,
+                                                    cursor: 'pointer', border: active ? `1px solid ${brandColor}` : '1px solid var(--divider)',
+                                                    background: active ? brandColor + '18' : 'transparent',
+                                                    color: active ? brandColor : 'var(--txt-4)', transition: 'all 0.15s',
+                                                  }}>
+                                                    {labels[f]}
+                                                  </button>
+                                                );
+                                              })}
+                                            </div>
+                                          </div>
+                                        </td>
+                                      </tr>
                                       <tr style={{ borderBottom: '1px solid var(--divider)', textAlign: 'left' }}>
                                         <th style={thSub}>Empresa</th>
-                                        <th style={thSub}>Propietario del negocio</th>
-                                        <th style={thSub}>Fecha creación</th>
-                                        <th style={thSub}>Motivo pérdida</th>
-                                        <th style={thSub}>Fecha perdido</th>
-                                        <th style={thSub}>Valor</th>
-                                        <th style={thSub}>Link</th>
+                                        <th style={thSub}>SDR</th>
+                                        <th style={thSub}>Fecha calificación MQL</th>
                                       </tr>
                                     </thead>
                                     <tbody>
                                       {emps.map((e, ei) => (
                                         <tr key={ei} style={{ borderBottom: ei < emps.length - 1 ? '1px solid var(--divider)' : 'none', background: 'var(--bg)' }}>
                                           <td style={{ padding: '8px 16px', fontSize: 12, fontWeight: 500, color: 'var(--txt-2)' }}>{e.empresa}</td>
-                                          <td style={{ padding: '8px 16px', fontSize: 11, color: 'var(--txt-4)' }}>{e.generadoPor && e.generadoPor !== 'nan' ? e.generadoPor : '—'}</td>
-                                          <td style={{ padding: '8px 16px' }}><span className="font-mono" style={{ fontSize: 11, color: 'var(--txt-5)' }}>{e.fechaCreacion || '—'}</span></td>
-                                          <td style={{ padding: '8px 16px', fontSize: 11, color: 'var(--txt-4)' }}>{e.motivoPerdida && e.motivoPerdida !== 'nan' ? e.motivoPerdida : '—'}</td>
-                                          <td style={{ padding: '8px 16px' }}><span className="font-mono" style={{ fontSize: 11, color: 'var(--txt-5)' }}>{e.fechaPerdido && e.fechaPerdido !== 'nan' ? e.fechaPerdido : '—'}</span></td>
-                                          <td style={{ padding: '8px 16px' }}><span className="font-mono" style={{ fontSize: 12, fontWeight: 800, color: 'var(--txt-1)' }}>{typeof e.valor === 'number' ? '$' + Number(e.valor).toLocaleString() : (e.valor || '—')}</span></td>
-                                          <td style={{ padding: '8px 16px' }}>
-                                            {e.tipoObjeto === 'negocio' && e.idRegistro ? (
-                                              <a href={'https://app.hubspot.com/contacts/24172997/record/0-3/' + e.idRegistro}
-                                                target="_blank"
-                                                rel="noopener noreferrer"
-                                                style={{ fontSize: 11, fontWeight: 600, color: brandColor, textDecoration: 'none' }}
-                                              >
-                                                Ver en HubSpot
-                                              </a>
-                                            ) : (
-                                              <span style={{ fontSize: 11, color: 'var(--txt-6)' }}>—</span>
-                                            )}
-                                          </td>
+                                          <td style={{ padding: '8px 16px', fontSize: 11, color: 'var(--txt-4)' }}>{e.sdr && e.sdr !== 'nan' ? e.sdr : '—'}</td>
+                                          <td style={{ padding: '8px 16px' }}><span className="font-mono" style={{ fontSize: 11, color: 'var(--txt-5)' }}>{e.fechaCalificacionMQL || '—'}</span></td>
                                         </tr>
                                       ))}
                                     </tbody>
