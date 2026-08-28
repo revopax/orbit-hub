@@ -111,13 +111,26 @@ function ListaCard({ label, items, accent, sub }: { label: string; items: string
 }
 function BuscadorIndustrias() {
   const [q, setQ] = useState('');
+  const [ramas, setRamas] = useState<any[]>([]);
+  const [subsectores, setSubsectores] = useState<any[]>([]);
+  const [subramas, setSubramas] = useState<any[]>([]);
+  const [expandido, setExpandido] = useState<string | null>(null);
+
+  useEffect(() => {
+    fetch('/api/prospeccion?mode=tree')
+      .then(r => r.json())
+      .then(d => { setRamas(d.ramas || []); setSubsectores(d.subsectores || []); setSubramas(d.subramas || []); })
+      .catch(() => {});
+  }, []);
+
   const norm = (s: string) => s.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
   const query = norm(q.trim());
   const nombresMatch = Array.from(new Set(
     Object.entries(ICP_TO_DENUE)
       .filter(([key]) => query && (key === query || key.includes(query) || query.includes(key)))
-      .map(([, nombre]) => nombre)
+      .map(([, nombre]) => norm(nombre))
   ));
+  const ramasMatch = query ? ramas.filter(r => nombresMatch.includes(norm(r.nombre))) : [];
 
   return (
     <div style={{ marginBottom: 24, borderRadius: 16, padding: 2, background: 'linear-gradient(120deg, #E4007C, #8C59FE, #3274FC)' }}>
@@ -132,21 +145,54 @@ function BuscadorIndustrias() {
             style={{ flex: 1, border: 'none', outline: 'none', fontSize: 15, fontWeight: 500, color: '#0f172a', background: 'transparent' }}
           />
         </div>
-        {query && nombresMatch.length === 0 && (
+        {query && ramasMatch.length === 0 && (
           <div style={{ marginTop: 14, paddingTop: 14, borderTop: '1px solid #f1f5f9', fontSize: 13, color: '#94a3b8' }}>
             No se encontró una industria DENUE que coincida con &quot;{q}&quot;.
           </div>
         )}
-        {query && nombresMatch.length > 0 && (
+        {query && ramasMatch.length > 0 && (
           <div style={{ marginTop: 14, paddingTop: 14, borderTop: '1px solid #f1f5f9' }}>
-            <div style={{ fontSize: 11, fontWeight: 700, color: '#94a3b8', textTransform: 'uppercase', marginBottom: 10 }}>
-              &quot;{q}&quot; corresponde a
+            <div style={{ fontSize: 11, fontWeight: 700, color: '#94a3b8', textTransform: 'uppercase', marginBottom: 8 }}>
+              &quot;{q}&quot; corresponde a {ramasMatch.length > 1 ? `${ramasMatch.length} industrias DENUE` : '1 industria DENUE'}
             </div>
-            {nombresMatch.map(n => (
-              <div key={n} style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '4px 2px', fontSize: 14, fontWeight: 700, color: '#8C59FE' }}>
-                {n}
-              </div>
-            ))}
+            {ramasMatch.map(r => {
+              const abierto = expandido === r.codigo;
+              return (
+                <div key={r.codigo} style={{ marginBottom: 2 }}>
+                  <div
+                    onClick={() => setExpandido(abierto ? null : r.codigo)}
+                    style={{ display: 'flex', alignItems: 'center', gap: 8, cursor: 'pointer', padding: '6px 2px', fontSize: 13.5, fontWeight: 700, color: '#0f172a' }}
+                  >
+                    <span style={{
+                      width: 15, height: 15, borderRadius: 4, border: '1px solid #cbd5e1', display: 'flex',
+                      alignItems: 'center', justifyContent: 'center', fontSize: 11, fontWeight: 700, color: '#94a3b8', flexShrink: 0,
+                    }}>{abierto ? '\u2212' : '+'}</span>
+                    <span style={{ fontFamily: 'monospace', fontSize: 11, color: '#94a3b8' }}>({r.codigo})</span>
+                    {r.nombre}
+                  </div>
+                  {abierto && (
+                    <div style={{ marginLeft: 24, borderLeft: '2px solid #e2e8f0', paddingLeft: 10 }}>
+                      {subsectores.filter(s => s.scian2 === r.codigo).map(s => (
+                        <div key={s.codigo} style={{ marginBottom: 1 }}>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '4px 4px', fontSize: 12, color: '#475569' }}>
+                            <span style={{ fontSize: 10.5, color: '#94a3b8', fontFamily: 'monospace' }}>{s.codigo}</span>
+                            {s.nombre}
+                          </div>
+                          <div style={{ marginLeft: 15, borderLeft: '1px solid #f1f5f9', paddingLeft: 10 }}>
+                            {subramas.filter(sr => sr.scian3 === s.codigo).map(sr => (
+                              <div key={sr.codigo} style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '3px 4px', fontSize: 11.5, color: '#64748b' }}>
+                                <span style={{ fontSize: 10, color: '#cbd5e1', fontFamily: 'monospace', minWidth: 32 }}>{sr.codigo}</span>
+                                {sr.nombre}
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              );
+            })}
           </div>
         )}
       </div>
