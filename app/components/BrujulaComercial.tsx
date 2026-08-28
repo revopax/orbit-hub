@@ -154,7 +154,7 @@ export default function BrujulaComercial({ permisos }: { permisos?: Permisos | n
         </div>
       )}
       {sub === 'overview' && perfil?.rol === 'admin' && (
-        <Overview udnNombre={udnActiva.nombre} />
+        <Overview udnNombre={udnActiva.nombre} udnId={udnActiva.id} />
       )}
       {sub === 'comercial' && tienePermiso(permisos, 'brujula', 'comercial') && (
         <InteligenciaComercial udnId={udnActiva.id} brandColor={udnActiva.color} />
