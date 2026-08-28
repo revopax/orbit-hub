@@ -22,29 +22,51 @@ type ScorecardsICPBP = {
   topIndustrias?: string[]; tamanoEmpresa?: string; geografia?: string;
   decisores?: string[]; areasDecisor?: string[]; servicios?: string[];
 };
+function ListaCard({ label, items, accent, sub }: { label: string; items: string[]; accent: string; sub?: string }) {
+  return (
+    <div style={{ background: '#fff', borderRadius: 14, border: '1px solid #eef0f3', boxShadow: '0 1px 3px rgba(16,24,40,0.04)', padding: '16px 18px', borderLeft: `3px solid ${accent}` }}>
+      <div style={{ fontSize: 11, fontWeight: 700, color: '#94a3b8', textTransform: 'uppercase', letterSpacing: '0.04em', marginBottom: 10 }}>{label}</div>
+      {items.length > 0 ? (
+        <ul style={{ margin: 0, padding: 0, listStyle: 'none', display: 'flex', flexDirection: 'column', gap: 6 }}>
+          {items.map((it, i) => (
+            <li key={i} style={{ fontSize: 13.5, fontWeight: 600, color: '#1e293b', display: 'flex', alignItems: 'center', gap: 8 }}>
+              <span style={{ width: 5, height: 5, borderRadius: '50%', background: accent, flexShrink: 0 }} />
+              {it}
+            </li>
+          ))}
+        </ul>
+      ) : (
+        <div style={{ fontSize: 13, color: '#94a3b8' }}>Sin datos</div>
+      )}
+      {sub && <div style={{ fontSize: 11, color: '#94a3b8', marginTop: 10 }}>{sub}</div>}
+    </div>
+  );
+}
 function BloqueScorecards({ udnNombre, data }: { udnNombre: string; data: ScorecardsICPBP | null }) {
   const d = data ?? {};
   return (
-    <div style={cardStyle}>
-      <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 4 }}>
-        <span style={{
-          width: 22, height: 22, borderRadius: '50%', background: '#8C59FE', color: '#fff',
-          fontSize: 12, fontWeight: 700, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0,
-        }}>1</span>
-        <h3 style={{ fontSize: 16, fontWeight: 700, margin: 0, color: '#0f172a' }}>Contexto</h3>
+    <div>
+      <div style={cardStyle}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 4 }}>
+          <span style={{
+            width: 22, height: 22, borderRadius: '50%', background: '#8C59FE', color: '#fff',
+            fontSize: 12, fontWeight: 700, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0,
+          }}>1</span>
+          <h3 style={{ fontSize: 16, fontWeight: 700, margin: 0, color: '#0f172a' }}>Contexto</h3>
+        </div>
+        <p style={{ fontSize: 13, color: '#64748b', margin: '4px 0 0' }}>
+          Tu ICP declarado y tus buyer personas - este es tu punto de partida, {udnNombre}.
+        </p>
       </div>
-      <p style={{ fontSize: 13, color: '#64748b', margin: '4px 0 16px' }}>
-        Tu ICP declarado y tus buyer personas - este es tu punto de partida, {udnNombre}.
-      </p>
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 16, marginBottom: 16 }}>
-        <ScoreCard label="Top 5 industrias (ICP)" value={(d.topIndustrias?.length ?? 0)} sub={(d.topIndustrias ?? []).join(' · ') || 'Sin datos'} accent="#8C59FE" icon="" />
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 16, marginTop: 16, marginBottom: 16 }}>
+        <ListaCard label="Top 5 industrias (ICP)" items={d.topIndustrias ?? []} accent="#8C59FE" />
         <ScoreCard label="Tamano de empresa" value={d.tamanoEmpresa || '—'} sub="Piso minimo de interes" accent="#059669" icon="" />
         <ScoreCard label="Geografia" value={d.geografia || '—'} sub="Donde nos interesan" accent="#d97706" icon="" />
       </div>
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 16 }}>
-        <ScoreCard label="Tomadores de decision" value={(d.decisores?.length ?? 0)} sub={(d.decisores ?? []).slice(0,4).join(' · ') || 'Sin datos'} accent="#8C59FE" icon="" />
+        <ListaCard label="Tomadores de decision" items={d.decisores ?? []} accent="#8C59FE" />
         <ScoreCard label="Area del tomador" value={(d.areasDecisor ?? []).join(' · ') || '—'} sub="Areas mas frecuentes" accent="#059669" icon="" />
-        <ScoreCard label="Servicios (Need)" value={(d.servicios?.length ?? 0)} sub={(d.servicios ?? []).slice(0,4).join(' · ') || 'Sin datos'} accent="#d97706" icon="" />
+        <ListaCard label="Servicios (Need)" items={d.servicios ?? []} accent="#d97706" />
       </div>
     </div>
   );
