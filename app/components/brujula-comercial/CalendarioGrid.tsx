@@ -156,7 +156,7 @@ export function CalendarioGrid({ meses, filas, brandColor, udnId, empresasPico }
             ¿En qué industrias deberías prospectar este mes?
           </div>
           <div style={{ fontSize: 11, color: 'var(--txt-4)', marginTop: 6, fontStyle: 'italic' }}>
-            ¿El timing del interés (MQL de tipo contacto) coincidió con el pico de dinamismo de esa industria según su temporalidad económica?
+            ¿Anticiparte al pico de dinamismo de la industria aumenta tu probabilidad de generar un MQL calificado? Al desplegar una industria verás los MQL (contactos) que avanzaron o se descalificaron: la hipótesis es que llegar antes al pico eleva la probabilidad de un MQL calificado, y llegar tarde eleva el riesgo de descalificación por timing o presupuesto. Se valida con el avance real de la prospección en el tiempo.
           </div>
         </div>
 
@@ -443,47 +443,6 @@ export function CalendarioGrid({ meses, filas, brandColor, udnId, empresasPico }
                     </Fragment>
                   );
                 })()}
-                <tr>
-                  <td style={{ padding: '4px 12px 10px 12px', background: 'var(--bg)', width: 110, maxWidth: 110 }}></td>
-                  <td colSpan={mesesFiltrados.length} style={{ padding: '4px 16px 10px 16px', background: 'var(--bg)', position: 'relative' }}>
-                    <div style={{
-                      position: 'absolute', top: 0, bottom: 0, left: 16, right: 16,
-                      backgroundImage: `repeating-linear-gradient(to right, transparent, transparent calc(${100 / mesesFiltrados.length}% - 1px), var(--divider) calc(${100 / mesesFiltrados.length}% - 1px), var(--divider) calc(${100 / mesesFiltrados.length}%))`,
-                      pointerEvents: 'none', opacity: 0.6,
-                    }} />
-                    {(GANTT_SERVICIOS[fila.industria]?.filter(srv => !udnId || srv.udn === udnId).length ?? 0) > 0 ? (
-                      <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
-                        {GANTT_SERVICIOS[fila.industria].filter(srv => !udnId || srv.udn === udnId).map((srv, si) => {
-                          const color = UDN_COLORS_CAL[srv.udn] || '#888'
-                          const isLight = color === '#DCFF00'
-                          const totalCols = mesesFiltrados.length
-                          const semanasEnMeses = srv.semanas / 4.3
-                          const barCols = Math.max(1, Math.round(semanasEnMeses))
-                          const barPct = Math.min(100, (barCols / totalCols) * 100)
-                          return (
-                            <div key={si} style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                              <span style={{
-                                fontSize: 9, fontWeight: 700, padding: '1px 5px', borderRadius: 3,
-                                background: color + '22', color: isLight ? '#7a6a00' : color,
-                                border: `1px solid ${color}44`, flexShrink: 0, minWidth: 32, textAlign: 'center',
-                              }}>{srv.udn}</span>
-                              <span style={{ fontSize: 10, color: 'var(--txt-4)', flexShrink: 0, minWidth: 140 }}>{srv.servicio}</span>
-                              <div style={{ flex: 1, height: 14, background: 'var(--bar-track)', borderRadius: 5, overflow: 'hidden', minWidth: 80 }}>
-                                <div style={{ width: `${barPct}%`, height: '100%', borderRadius: 5, background: color, opacity: 0.85 }} />
-                              </div>
-                              <span style={{ fontSize: 9, color: 'var(--txt-5)', flexShrink: 0, whiteSpace: 'nowrap' }}>{srv.semanas} sem</span>
-                            </div>
-                          )
-                        })}
-                        <div style={{ fontSize: 9, color: 'var(--txt-5)', marginTop: 2, fontStyle: 'italic' }}>
-                          Ciclo estimado de prospección → cierre · Fuente: HubSpot 2024, 6Sense 2025, datos UIX/MU
-                        </div>
-                      </div>
-                    ) : (
-                      <div style={{ height: 4 }} />
-                    )}
-                  </td>
-                </tr>
               </Fragment>
             ))}
           </tbody>
