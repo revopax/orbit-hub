@@ -70,9 +70,8 @@ export default function BrujulaComercial({ permisos }: { permisos?: Permisos | n
             Brújula <span style={{ color: ACCENT }}>Comercial</span>
           </span>
           <div style={{
-            display: 'flex', alignItems: 'center', gap: 10,
-            border: '1px solid var(--border)', borderRadius: 10,
-            padding: '4px 4px 4px 12px', flex: 1, overflowX: 'auto',
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            flex: 1, overflowX: 'auto',
           }}>
             <div style={{ display: 'flex', gap: 4 }}>
               {(['overview', 'mercado'] as SubTab[]).map(t => {
