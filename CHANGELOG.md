@@ -1,3 +1,19 @@
+## [v2.9.0] - 2026-08-27/28
+### Brújula Comercial: Overview - Calendario, scorecards ICP/BP reales y buscador DENUE
+
+**Backend (BRUJULA-COMERCIAL-UPAX/pipeline/generate_data.py)**
+- Fix: `generar_empresas_pico()` leía `df_maestro.parquet` desactualizado en vez del parámetro `df_hs` (fuente viva Supabase `mbr`). Se agregó merge por `ID de registro` para traer sdr/fecha MQL/motivo de descalificación frescos.
+- Nueva función `generar_scorecards_icp_bp()`: lee pestañas ICPs/BPs/BANT del Google Sheet "Consolidado ICP, BPs, cuentas target y BANT | 2026" (id `1kkvotQvqpyxkXzAstBDVOPJOMpIfSj1TamMu29if9eg`), genera por UDN: top 5 industrias, tamaño mínimo de empresa (piso), decisores, áreas de decisión, servicios (Need).
+- Nueva clave en brujula_data.json: `scorecards_icp_bp`.
+
+**Frontend (ORBIT-HUB)**
+- Fix crítico: `<Overview udnNombre={...} />` nunca recibía `udnId`, por lo que solo UIX (nombre == id) mostraba datos correctos en calendario/scorecards; el resto de UDN caían al nombre completo. Ahora se pasa `udnId={udnActiva.id}`.
+- CalendarioGrid.tsx: filtro cambiado de `tipoObjeto === 'negocio'` a `'contacto'` (MQL); nuevas columnas SDR, fecha calificación MQL, motivo descalificación (condicional a no avanzó), link a HubSpot (object type 0-1 contactos); filtros ICP/Objetivo y Avanzó/Descalificado combinables via `<select>`; se retiró la fila de gantt de servicios (dato de ciclo fiscal, fuera de alcance); nueva leyenda explicando la hipótesis timing-vs-MQL-calificado.
+- Overview.tsx sección 1 ("Contexto"): reemplazado bloque dummy `BloqueContexto`/`CONTEXTO_DUMMY` por `BloqueScorecards` con datos reales de `scorecards_icp_bp`; rediseño visual (header en tarjeta propia, scorecards sueltas sin caja exterior, industrias/decisores/servicios en listas en vez de conteos).
+- Nuevo `BuscadorIndustrias` (arriba de sección 1): input tipo spotlight que traduce términos ICP de cada UDN (ej. "Retail", "Software y Tecnología") a su industria oficial DENUE vía diccionario manual `ICP_TO_DENUE` (60+ términos) + fallback a alias existentes en `SECTORES`; muestra árbol de subsectores/ramas con UDNs asignadas (estilo visual replicado del mapa DENUE), soporta múltiples industrias por término.
+- Sección 4 ("Descubrir nuevas empresas"): migrado `<ProspeccionDenue />` (mapa Universo DENUE) desde el tab Mercado (`InteligenciaMercado.tsx`) a esta sección de Overview.
+- `BloqueDENUE.tsx`: exportados `SECTORES` y tipo `Sector` para reutilizar en Overview; `ScoreCard` exportada desde `InteligenciaMercado.tsx`.
+
 ## [v2.8.0] - 2026-08-26 (madrugada)
 ### Investigación pipeline Brújula: sync_mbr_incremental.py validado
 - Aclaración importante: `BRUJULA-COMERCIAL-UPAX` y `brujula-comercial-upax` son LA MISMA carpeta física (macOS no distingue mayúsculas/minúsculas por defecto). No hay "repo viejo vs nuevo" — es un solo git, un solo estado. Toda la confusión de la sesión sobre esto fue por este detalle del filesystem.
