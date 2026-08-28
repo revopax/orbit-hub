@@ -74,15 +74,8 @@ export default function BrujulaComercial({ permisos }: { permisos?: Permisos | n
             border: '1px solid var(--border)', borderRadius: 10,
             padding: '4px 4px 4px 12px', flex: 1, overflowX: 'auto',
           }}>
-            <span style={{
-              fontSize: 10, fontWeight: 700, color: 'var(--txt-4)',
-              textTransform: 'uppercase', letterSpacing: 0.5, whiteSpace: 'nowrap',
-            }}>
-              Inteligencia
-            </span>
-            <div style={{ width: 1, height: 20, background: 'var(--border)', flexShrink: 0 }} />
             <div style={{ display: 'flex', gap: 4 }}>
-              {(['overview', 'comercial', 'demanda', 'mercado'] as SubTab[]).map(t => {
+              {(['overview', 'mercado'] as SubTab[]).map(t => {
                 const permitido = t === 'overview' ? perfil?.rol === 'admin' : tienePermiso(permisos, 'brujula', t);
                 return (
                 <button
@@ -99,7 +92,7 @@ export default function BrujulaComercial({ permisos }: { permisos?: Permisos | n
                     opacity: permitido ? 1 : 0.6,
                   }}
                 >
-                  {t === 'overview' ? 'Overview' : t === 'comercial' ? 'Comercial' : t === 'demanda' ? 'Demanda' : 'Mercado'}
+                  {t === 'overview' ? 'Panorama' : 'Inteligencia de Mercado'}
                   {!permitido && (
                     <span style={{
                       fontSize: 9, fontWeight: 700, padding: '2px 6px', borderRadius: 5,
@@ -117,9 +110,6 @@ export default function BrujulaComercial({ permisos }: { permisos?: Permisos | n
       </div>
       {sub !== 'mercado' && (
         <>
-          <div style={{ padding: '4px 20px 0', fontSize: 11, fontWeight: 700, color: 'var(--txt-4)', textTransform: 'uppercase', letterSpacing: 0.5 }}>
-            Inteligencia
-          </div>
           <UDNBar
             udns={udnsVisibles}
             udnActiva={udnActiva}
