@@ -50,7 +50,7 @@ function Avatar({ nombre }: { nombre: string }) {
   );
 }
 
-function ScoreCard({ label, value, sub, accent, icon }: { label: string; value: string | number; sub: string; accent: string; icon: string }) {
+export function ScoreCard({ label, value, sub, accent, icon }: { label: string; value: string | number; sub: string; accent: string; icon: string }) {
   return (
     <div style={{ ...cardStyle, position: 'relative', overflow: 'hidden', padding: '18px 22px' }}>
       <div style={{ position: 'absolute', top: 0, left: 0, width: 4, height: '100%', background: accent }} />

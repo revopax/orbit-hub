@@ -1,7 +1,7 @@
 'use client';
 import React, { useEffect, useState } from 'react';
 import { CalendarioGrid } from './CalendarioGrid';
-import { SenalesMercado } from '../hubspot/InteligenciaMercado';
+import { SenalesMercado, ScoreCard } from '../hubspot/InteligenciaMercado';
 import ProspeccionDenue from '../hubspot/ProspeccionDenue';
 
 const cardStyle: React.CSSProperties = { background: '#fff', borderRadius: 14, border: '1px solid #eef0f3', boxShadow: '0 1px 3px rgba(16,24,40,0.04)', padding: '20px 24px' };
@@ -18,45 +18,34 @@ const CONTEXTO_DUMMY = [
   { industria: 'Automotriz', tamano: 'Multi (Más de 1000)', prioridad: 'Eficiencia Operativa', desafio: 'Experiencia de Cliente' },
 ];
 
-function BloqueContexto({ udnNombre }: { udnNombre: string }) {
+type ScorecardsICPBP = {
+  topIndustrias?: string[]; tamanoEmpresa?: string; geografia?: string;
+  decisores?: string[]; areasDecisor?: string[]; servicios?: string[];
+};
+function BloqueScorecards({ udnNombre, data }: { udnNombre: string; data: ScorecardsICPBP | null }) {
+  const d = data ?? {};
   return (
     <div style={cardStyle}>
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 4 }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-          <span style={{
-            width: 22, height: 22, borderRadius: '50%', background: '#8C59FE', color: '#fff',
-            fontSize: 12, fontWeight: 700, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0,
-          }}>1</span>
-          <h3 style={{ fontSize: 16, fontWeight: 700, margin: 0, color: '#0f172a' }}>Contexto</h3>
-        </div>
-        <Badge label="Dummy - pendiente Sheet ICPs" color="#b45309" bg="#fef3c7" />
+      <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 4 }}>
+        <span style={{
+          width: 22, height: 22, borderRadius: '50%', background: '#8C59FE', color: '#fff',
+          fontSize: 12, fontWeight: 700, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0,
+        }}>1</span>
+        <h3 style={{ fontSize: 16, fontWeight: 700, margin: 0, color: '#0f172a' }}>Contexto</h3>
       </div>
       <p style={{ fontSize: 13, color: '#64748b', margin: '4px 0 16px' }}>
-        Tu ICP declarado y a quien le has vendido mas - este es tu punto de partida, {udnNombre}.
+        Tu ICP declarado y tus buyer personas - este es tu punto de partida, {udnNombre}.
       </p>
-      <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13 }}>
-        <thead>
-          <tr style={{ borderBottom: '1px solid #eef0f3' }}>
-            <th style={{ textAlign: 'left', padding: '8px', color: '#94a3b8', fontWeight: 600, fontSize: 11, textTransform: 'uppercase' }}>Industria</th>
-            <th style={{ textAlign: 'left', padding: '8px', color: '#94a3b8', fontWeight: 600, fontSize: 11, textTransform: 'uppercase' }}>Tamano</th>
-            <th style={{ textAlign: 'left', padding: '8px', color: '#94a3b8', fontWeight: 600, fontSize: 11, textTransform: 'uppercase' }}>Prioridad</th>
-            <th style={{ textAlign: 'left', padding: '8px', color: '#94a3b8', fontWeight: 600, fontSize: 11, textTransform: 'uppercase' }}>Desafio</th>
-          </tr>
-        </thead>
-        <tbody>
-          {CONTEXTO_DUMMY.map((row, i) => (
-            <tr key={i} style={{ borderBottom: i < CONTEXTO_DUMMY.length - 1 ? '1px solid #eef0f3' : 'none' }}>
-              <td style={{ padding: '10px 8px', fontWeight: 600, color: '#0f172a' }}>{row.industria}</td>
-              <td style={{ padding: '10px 8px', color: '#475569' }}>{row.tamano}</td>
-              <td style={{ padding: '10px 8px', color: '#475569' }}>{row.prioridad}</td>
-              <td style={{ padding: '10px 8px', color: '#475569' }}>{row.desafio}</td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
-      <p style={{ fontSize: 11, color: '#94a3b8', margin: '12px 0 0' }}>
-        Mostrando top 5 por volumen de ventas historico - proximamente conectado en vivo
-      </p>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 16, marginBottom: 16 }}>
+        <ScoreCard label="Top 5 industrias (ICP)" value={(d.topIndustrias?.length ?? 0)} sub={(d.topIndustrias ?? []).join(' · ') || 'Sin datos'} accent="#8C59FE" icon="" />
+        <ScoreCard label="Tamano de empresa" value={d.tamanoEmpresa || '—'} sub="Piso minimo de interes" accent="#059669" icon="" />
+        <ScoreCard label="Geografia" value={d.geografia || '—'} sub="Donde nos interesan" accent="#d97706" icon="" />
+      </div>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 16 }}>
+        <ScoreCard label="Tomadores de decision" value={(d.decisores?.length ?? 0)} sub={(d.decisores ?? []).slice(0,4).join(' · ') || 'Sin datos'} accent="#8C59FE" icon="" />
+        <ScoreCard label="Area del tomador" value={(d.areasDecisor ?? []).join(' · ') || '—'} sub="Areas mas frecuentes" accent="#059669" icon="" />
+        <ScoreCard label="Servicios (Need)" value={(d.servicios?.length ?? 0)} sub={(d.servicios ?? []).slice(0,4).join(' · ') || 'Sin datos'} accent="#d97706" icon="" />
+      </div>
     </div>
   );
 }
@@ -82,6 +71,7 @@ function BloquePlaceholder({ numero, titulo, subtitulo, fuente }: { numero: numb
 export default function Overview({ udnNombre, udnId, brandColor }: { udnNombre: string; udnId?: string; brandColor?: string }) {
   const [calendarioData, setCalendarioData] = useState<{ meses: string[]; filas: { industria: string; celdas: ('pico' | 'prep' | 'ok' | 'vacio')[] }[] } | null>(null);
   const [empresasPicoData, setEmpresasPicoData] = useState<any[]>([]);
+  const [scorecardsData, setScorecardsData] = useState<ScorecardsICPBP | null>(null);
   const idParaCalendario = udnId ?? udnNombre;
 
   useEffect(() => {
@@ -92,6 +82,7 @@ export default function Overview({ udnNombre, udnId, brandColor }: { udnNombre: 
         if (!cancelled) {
           setCalendarioData(json?.calendario?.[idParaCalendario] ?? null);
           setEmpresasPicoData(json?.empresas_pico?.[idParaCalendario] ?? []);
+          setScorecardsData(json?.scorecards_icp_bp?.[idParaCalendario] ?? null);
         }
       })
       .catch(() => { if (!cancelled) { setCalendarioData(null); setEmpresasPicoData([]); } });
@@ -101,7 +92,7 @@ export default function Overview({ udnNombre, udnId, brandColor }: { udnNombre: 
   return (
     <div style={{ padding: 20 }}>
       <div style={{ maxWidth: 1400, margin: '0 auto', display: 'flex', flexDirection: 'column', gap: 20 }}>
-        <BloqueContexto udnNombre={udnNombre} />
+        <BloqueScorecards udnNombre={udnNombre} data={scorecardsData} />
         <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
           <span style={{
             width: 22, height: 22, borderRadius: '50%', background: '#8C59FE', color: '#fff',
