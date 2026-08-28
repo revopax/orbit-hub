@@ -109,6 +109,52 @@ function ListaCard({ label, items, accent, sub }: { label: string; items: string
     </div>
   );
 }
+function ArbolResultado({ sector }: { sector: any }) {
+  return (
+    <div style={{ marginBottom: 14 }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '4px 2px' }}>
+        <span style={{ width: 9, height: 9, borderRadius: '50%', background: '#8C59FE', flexShrink: 0 }} />
+        <span style={{ fontSize: 11, color: '#94a3b8', fontFamily: 'monospace' }}>({sector.codigo})</span>
+        <span style={{ fontSize: 14, fontWeight: 700, color: '#0f172a' }}>{sector.nombre}</span>
+        {!sector.tieneIGAE && (
+          <span style={{ fontSize: 9, padding: '1px 6px', borderRadius: 4, background: '#fef3c7', color: '#b45309', fontWeight: 600 }}>Sin temporalidad IGAE</span>
+        )}
+      </div>
+      {sector.alias && (
+        <div style={{ marginLeft: 17, fontSize: 11, color: '#94a3b8', marginBottom: 4 }}>
+          También conocido como: {sector.alias.join(' · ')}
+        </div>
+      )}
+      <div style={{ marginLeft: 17, borderLeft: '2px solid #f1f5f9', paddingLeft: 12 }}>
+        {sector.subsectores.map((sub: any) => (
+          <div key={sub.codigo} style={{ marginBottom: 4 }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '3px 0', fontSize: 12.5, color: '#475569' }}>
+              <span style={{ width: 7, height: 7, borderRadius: '50%', background: '#8C59FE', opacity: 0.6, flexShrink: 0 }} />
+              <span style={{ fontSize: 10.5, color: '#cbd5e1', fontFamily: 'monospace' }}>{sub.codigo}</span>
+              <span style={{ fontWeight: 500 }}>{sub.nombre}</span>
+            </div>
+            {sub.ramas?.map((r: any) => (
+              <div key={r.codigo} style={{ marginLeft: 15, display: 'flex', alignItems: 'flex-start', gap: 6, padding: '2px 0', borderLeft: '1px solid #f1f5f9', paddingLeft: 10 }}>
+                <span style={{ fontSize: 10, color: '#cbd5e1', fontFamily: 'monospace', minWidth: 34, marginTop: 1 }}>{r.codigo}</span>
+                <div style={{ flex: 1 }}>
+                  <span style={{ fontSize: 12, color: '#334155' }}>{r.nombre}</span>
+                  {r.nota && <span style={{ fontSize: 11, color: '#94a3b8', marginLeft: 4 }}>— {r.nota}</span>}
+                  {r.udns && r.udns.length > 0 && (
+                    <span style={{ display: 'inline-flex', flexWrap: 'wrap', gap: 3, marginLeft: 6 }}>
+                      {r.udns.map((u: string) => (
+                        <span key={u} style={{ fontSize: 10, fontWeight: 600, padding: '1px 6px', borderRadius: 999, background: '#f8f7ff', border: '1px solid #ece9ff', color: '#5b3fd6' }}>{u}</span>
+                      ))}
+                    </span>
+                  )}
+                </div>
+              </div>
+            ))}
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
 function BuscadorIndustrias() {
   const [q, setQ] = useState('');
   const norm = (s: string) => s.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
@@ -124,41 +170,38 @@ function BuscadorIndustrias() {
   const matches = SECTORES.filter(s => nombresMatch.includes(s.nombre));
 
   return (
-    <div style={{ marginBottom: 24 }}>
-      <div style={{
-        position: 'relative', borderRadius: 16, padding: 2,
-        background: 'linear-gradient(120deg, #E4007C, #8C59FE, #3274FC)',
-      }}>
-        <div style={{ background: '#fff', borderRadius: 14, padding: '18px 22px' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-            <span style={{ fontSize: 18, opacity: 0.5 }}>🔍</span>
-            <input
-              type="text"
-              value={q}
-              onChange={e => setQ(e.target.value)}
-              placeholder="Busca la industria como tú la conoces... (ej: Retail, Agroindustria, Fintech)"
-              style={{ flex: 1, border: 'none', outline: 'none', fontSize: 15, fontWeight: 500, color: '#0f172a', background: 'transparent' }}
-            />
+    <div style={{
+      marginBottom: 24, borderRadius: 16, padding: 2,
+      background: 'linear-gradient(120deg, #E4007C, #8C59FE, #3274FC)',
+    }}>
+      <div style={{ background: '#fff', borderRadius: 14, padding: '18px 22px' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+          <span style={{ fontSize: 18, opacity: 0.5 }}>🔍</span>
+          <input
+            type="text"
+            value={q}
+            onChange={e => setQ(e.target.value)}
+            placeholder="Busca la industria como tú la conoces... (ej: Retail, Agroindustria, Fintech)"
+            style={{ flex: 1, border: 'none', outline: 'none', fontSize: 15, fontWeight: 500, color: '#0f172a', background: 'transparent' }}
+          />
+        </div>
+        {query && matches.length === 0 && (
+          <div style={{ marginTop: 14, paddingTop: 14, borderTop: '1px solid #f1f5f9', fontSize: 13, color: '#94a3b8' }}>
+            No se encontró una industria DENUE que coincida con &quot;{q}&quot;.
           </div>
-          {query && matches.length === 0 && (
-            <div style={{ marginTop: 14, paddingTop: 14, borderTop: '1px solid #f1f5f9', fontSize: 13, color: '#94a3b8' }}>
-              No se encontró una industria DENUE que coincida con &quot;{q}&quot;.
+        )}
+        {query && matches.length > 0 && (
+          <div style={{ marginTop: 14, paddingTop: 14, borderTop: '1px solid #f1f5f9' }}>
+            <div style={{ fontSize: 11, fontWeight: 700, color: '#94a3b8', textTransform: 'uppercase', marginBottom: 10 }}>
+              &quot;{q}&quot; corresponde a {matches.length > 1 ? `${matches.length} industrias DENUE` : '1 industria DENUE'}
             </div>
-          )}
-        </div>
-      </div>
-      {query && matches.length > 0 && (
-        <div style={{ marginTop: 14, borderRadius: 12, border: '1px solid #eef0f3', overflow: 'hidden' }}>
-          <div style={{ padding: '8px 16px', background: '#f8f7ff', fontSize: 12, color: '#5b3fd6', fontWeight: 600 }}>
-            &quot;{q}&quot; corresponde a {matches.length > 1 ? `${matches.length} industrias DENUE` : '1 industria DENUE'}
+            {matches.map(s => <ArbolResultado key={s.codigo} sector={s} />)}
           </div>
-          {matches.map(s => <SectorRow key={s.codigo} sector={s} />)}
-        </div>
-      )}
+        )}
+      </div>
     </div>
   );
 }
-
 function BloqueScorecards({ udnNombre, data }: { udnNombre: string; data: ScorecardsICPBP | null }) {
   const d = data ?? {};
   return (
