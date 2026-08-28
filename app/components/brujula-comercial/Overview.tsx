@@ -3,7 +3,7 @@ import React, { useEffect, useState } from 'react';
 import { CalendarioGrid } from './CalendarioGrid';
 import { SenalesMercado, ScoreCard } from '../hubspot/InteligenciaMercado';
 import ProspeccionDenue from '../hubspot/ProspeccionDenue';
-import { SECTORES } from './BloqueDENUE';
+import { SECTORES, SectorRow } from './BloqueDENUE';
 
 const ICP_TO_DENUE: Record<string, string> = {
   'aerolineas y aviacion': 'Transportes, correos y almacenamiento',
@@ -109,18 +109,20 @@ function ListaCard({ label, items, accent, sub }: { label: string; items: string
     </div>
   );
 }
-function BuscadorIndustrias({ udnId }: { udnId?: string }) {
+function BuscadorIndustrias() {
   const [q, setQ] = useState('');
   const norm = (s: string) => s.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
   const query = norm(q.trim());
-  const dictHit = ICP_TO_DENUE[query];
-  const match = query
-    ? (dictHit ? SECTORES.find(s => s.nombre === dictHit) : null)
-      ?? SECTORES.find(s => norm(s.nombre).includes(query) || s.alias?.some(a => norm(a).includes(query)))
-    : null;
-  const sectoresUDN = SECTORES.filter(s =>
-    s.tieneIGAE && s.subsectores.some(sub => sub.ramas?.some(r => !udnId || r.udns?.includes(udnId)))
-  );
+
+  const dictHits = Object.entries(ICP_TO_DENUE)
+    .filter(([key]) => query && (key === query || key.includes(query) || query.includes(key)))
+    .map(([, nombre]) => nombre);
+  const aliasHits = query
+    ? SECTORES.filter(s => norm(s.nombre).includes(query) || s.alias?.some(a => norm(a).includes(query))).map(s => s.nombre)
+    : [];
+  const nombresMatch = Array.from(new Set([...dictHits, ...aliasHits]));
+  const matches = SECTORES.filter(s => nombresMatch.includes(s.nombre));
+
   return (
     <div style={{ marginBottom: 24 }}>
       <div style={{
@@ -129,7 +131,7 @@ function BuscadorIndustrias({ udnId }: { udnId?: string }) {
       }}>
         <div style={{ background: '#fff', borderRadius: 14, padding: '18px 22px' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-            <span style={{ fontSize: 18, opacity: 0.5 }}>@</span>
+            <span style={{ fontSize: 18, opacity: 0.5 }}>🔍</span>
             <input
               type="text"
               value={q}
@@ -138,40 +140,25 @@ function BuscadorIndustrias({ udnId }: { udnId?: string }) {
               style={{ flex: 1, border: 'none', outline: 'none', fontSize: 15, fontWeight: 500, color: '#0f172a', background: 'transparent' }}
             />
           </div>
-          {query && (
-            match ? (
-              <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginTop: 14, paddingTop: 14, borderTop: '1px solid #f1f5f9' }}>
-                <span style={{ fontSize: 12, fontWeight: 600, color: '#94a3b8', textTransform: 'uppercase' }}>{q}</span>
-                <span style={{ fontSize: 14, color: '#cbd5e1' }}>→</span>
-                <span style={{ fontSize: 14, fontWeight: 700, color: '#8C59FE' }}>{match.nombre}</span>
-                {!match.tieneIGAE && (
-                  <span style={{ fontSize: 10, padding: '2px 7px', borderRadius: 4, background: '#fef3c7', color: '#b45309', fontWeight: 600 }}>Sin temporalidad IGAE</span>
-                )}
-              </div>
-            ) : (
-              <div style={{ marginTop: 14, paddingTop: 14, borderTop: '1px solid #f1f5f9', fontSize: 13, color: '#94a3b8' }}>
-                No se encontró una industria DENUE que coincida con &quot;{q}&quot;.
-              </div>
-            )
+          {query && matches.length === 0 && (
+            <div style={{ marginTop: 14, paddingTop: 14, borderTop: '1px solid #f1f5f9', fontSize: 13, color: '#94a3b8' }}>
+              No se encontró una industria DENUE que coincida con &quot;{q}&quot;.
+            </div>
           )}
         </div>
       </div>
-      {!query && (
-        <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, marginTop: 14 }}>
-          {sectoresUDN.map(s => (
-            <span key={s.codigo} style={{
-              fontSize: 12, fontWeight: 600, padding: '6px 14px', borderRadius: 999,
-              background: '#f8f7ff', border: '1px solid #ece9ff', color: '#5b3fd6',
-            }}>{s.nombre}</span>
-          ))}
-          {sectoresUDN.length === 0 && (
-            <span style={{ fontSize: 12, color: '#94a3b8' }}>Sin industrias asignadas aún para esta UDN.</span>
-          )}
+      {query && matches.length > 0 && (
+        <div style={{ marginTop: 14, borderRadius: 12, border: '1px solid #eef0f3', overflow: 'hidden' }}>
+          <div style={{ padding: '8px 16px', background: '#f8f7ff', fontSize: 12, color: '#5b3fd6', fontWeight: 600 }}>
+            &quot;{q}&quot; corresponde a {matches.length > 1 ? `${matches.length} industrias DENUE` : '1 industria DENUE'}
+          </div>
+          {matches.map(s => <SectorRow key={s.codigo} sector={s} />)}
         </div>
       )}
     </div>
   );
 }
+
 function BloqueScorecards({ udnNombre, data }: { udnNombre: string; data: ScorecardsICPBP | null }) {
   const d = data ?? {};
   return (
@@ -244,7 +231,8 @@ export default function Overview({ udnNombre, udnId, brandColor }: { udnNombre: 
   return (
     <div style={{ padding: 20 }}>
       <div style={{ maxWidth: 1400, margin: '0 auto', display: 'flex', flexDirection: 'column', gap: 20 }}>
-        <BuscadorIndustrias udnId={idParaCalendario} />\n        <BloqueScorecards udnNombre={udnNombre} data={scorecardsData} />
+        <BuscadorIndustrias />
+        <BloqueScorecards udnNombre={udnNombre} data={scorecardsData} />
         <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
           <span style={{
             width: 22, height: 22, borderRadius: '50%', background: '#8C59FE', color: '#fff',

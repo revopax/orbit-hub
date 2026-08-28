@@ -80,7 +80,7 @@ function SubsectorItem({ sub }: { sub: Subsector }) {
   )
 }
 
-function SectorRow({ sector }: { sector: Sector }) {
+export function SectorRow({ sector }: { sector: Sector }) {
   const [open, setOpen] = useState(false)
   const udns = Array.from(new Set(sector.subsectores.flatMap(s => s.ramas?.flatMap(r => r.udns || []) || [])))
   return (
