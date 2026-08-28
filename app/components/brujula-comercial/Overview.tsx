@@ -199,17 +199,24 @@ function BuscadorIndustrias() {
     </div>
   );
 }
-function BloqueScorecards({ udnNombre, data }: { udnNombre: string; data: ScorecardsICPBP | null }) {
+function BloqueScorecards({ udnNombre, data, meta }: { udnNombre: string; data: ScorecardsICPBP | null; meta: any }) {
   const d = data ?? {};
   return (
     <div>
       <div style={cardStyle}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 4 }}>
-          <span style={{
-            width: 22, height: 22, borderRadius: '50%', background: '#8C59FE', color: '#fff',
-            fontSize: 12, fontWeight: 700, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0,
-          }}>1</span>
-          <h3 style={{ fontSize: 16, fontWeight: 700, margin: 0, color: '#0f172a' }}>Contexto</h3>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 4 }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+            <span style={{
+              width: 22, height: 22, borderRadius: '50%', background: '#8C59FE', color: '#fff',
+              fontSize: 12, fontWeight: 700, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0,
+            }}>1</span>
+            <h3 style={{ fontSize: 16, fontWeight: 700, margin: 0, color: '#0f172a' }}>Contexto</h3>
+          </div>
+          {meta?.generado_en && (
+            <span style={{ fontSize: 10.5, color: '#94a3b8' }}>
+              Sincronizado: {new Date(meta.generado_en).toLocaleDateString('es-MX', { day: 'numeric', month: 'long', year: 'numeric' })}
+            </span>
+          )}
         </div>
         <p style={{ fontSize: 13, color: '#64748b', margin: '4px 0 0' }}>
           Tu ICP declarado y tus buyer personas - este es tu punto de partida, {udnNombre}.
@@ -251,6 +258,7 @@ export default function Overview({ udnNombre, udnId, brandColor }: { udnNombre: 
   const [calendarioData, setCalendarioData] = useState<{ meses: string[]; filas: { industria: string; celdas: ('pico' | 'prep' | 'ok' | 'vacio')[] }[] } | null>(null);
   const [empresasPicoData, setEmpresasPicoData] = useState<any[]>([]);
   const [scorecardsData, setScorecardsData] = useState<ScorecardsICPBP | null>(null);
+  const [meta, setMeta] = useState<any>(null);
   const idParaCalendario = udnId ?? udnNombre;
 
   useEffect(() => {
@@ -262,6 +270,7 @@ export default function Overview({ udnNombre, udnId, brandColor }: { udnNombre: 
           setCalendarioData(json?.calendario?.[idParaCalendario] ?? null);
           setEmpresasPicoData(json?.empresas_pico?.[idParaCalendario] ?? []);
           setScorecardsData(json?.scorecards_icp_bp?.[idParaCalendario] ?? null);
+          setMeta(json?.meta ?? null);
         }
       })
       .catch(() => { if (!cancelled) { setCalendarioData(null); setEmpresasPicoData([]); } });
@@ -272,7 +281,7 @@ export default function Overview({ udnNombre, udnId, brandColor }: { udnNombre: 
     <div style={{ padding: 20 }}>
       <div style={{ maxWidth: 1400, margin: '0 auto', display: 'flex', flexDirection: 'column', gap: 20 }}>
         <BuscadorIndustrias />
-        <BloqueScorecards udnNombre={udnNombre} data={scorecardsData} />
+        <BloqueScorecards udnNombre={udnNombre} data={scorecardsData} meta={meta} />
         <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
           <span style={{
             width: 22, height: 22, borderRadius: '50%', background: '#8C59FE', color: '#fff',
@@ -283,11 +292,18 @@ export default function Overview({ udnNombre, udnId, brandColor }: { udnNombre: 
         <SenalesMercado />
         <div style={cardStyle}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 4 }}>
-            <span style={{
-              width: 22, height: 22, borderRadius: '50%', background: '#8C59FE', color: '#fff',
-              fontSize: 12, fontWeight: 700, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0,
-            }}>3</span>
-            <h3 style={{ fontSize: 16, fontWeight: 700, margin: 0, color: '#0f172a' }}>Calendario de prospeccion</h3>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+              <span style={{
+                width: 22, height: 22, borderRadius: '50%', background: '#8C59FE', color: '#fff',
+                fontSize: 12, fontWeight: 700, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0,
+              }}>3</span>
+              <h3 style={{ fontSize: 16, fontWeight: 700, margin: 0, color: '#0f172a' }}>Calendario de prospeccion</h3>
+            </div>
+            {meta?.fecha_actualizacion_inegi && (
+              <span style={{ fontSize: 10.5, color: '#94a3b8' }}>
+                IGAE: {meta.fecha_actualizacion_inegi} · próx. {meta.proxima_actualizacion_inegi}
+              </span>
+            )}
           </div>
           <p style={{ fontSize: 13, color: '#64748b', margin: '4px 0 16px' }}>
             Temporalidad por industria - mejor momento para contactar segun el ciclo economico.
