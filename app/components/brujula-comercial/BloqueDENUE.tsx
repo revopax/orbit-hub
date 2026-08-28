@@ -12,9 +12,9 @@ const UDN_LABELS: Record<string, string> = {
 
 interface Rama { codigo: string; nombre: string; udns?: string[]; nota?: string }
 interface Subsector { codigo: string; nombre: string; ramas?: Rama[] }
-interface Sector { codigo: string; nombre: string; alias?: string[]; tieneIGAE: boolean; notaIGAE?: string; subsectores: Subsector[] }
+export interface Sector { codigo: string; nombre: string; alias?: string[]; tieneIGAE: boolean; notaIGAE?: string; subsectores: Subsector[] }
 
-const SECTORES: Sector[] = [
+export const SECTORES: Sector[] = [
   { codigo: '11', nombre: 'Agricultura, cría y explotación de animales', alias: ['Agroindustria', 'Campo', 'Agro'], tieneIGAE: false, notaIGAE: 'Incluido en Actividades Primarias del índice de actividad económica, sin desglose por subsector disponible', subsectores: [{ codigo: '111', nombre: 'Agricultura' }, { codigo: '112', nombre: 'Cría y explotación de animales' }, { codigo: '113', nombre: 'Aprovechamiento forestal' }, { codigo: '114', nombre: 'Pesca, caza y captura' }, { codigo: '115', nombre: 'Servicios relacionados con actividades agropecuarias' }] },
   { codigo: '21', nombre: 'Minería', alias: ['Minería', 'Extracción'], tieneIGAE: false, notaIGAE: 'Sector con datos agregados en el índice de actividad económica, sin desglose de temporalidad por subsector disponible', subsectores: [{ codigo: '211', nombre: 'Extracción de petróleo y gas' }, { codigo: '212', nombre: 'Minería de minerales metálicos y no metálicos' }] },
   { codigo: '22', nombre: 'Generación y distribución de energía eléctrica', alias: ['Energía', 'Electricidad', 'Utilities'], tieneIGAE: true, subsectores: [{ codigo: '221', nombre: 'Generación, transmisión y distribución de energía eléctrica', ramas: [{ codigo: '2211', nombre: 'Generación y transmisión de energía eléctrica', udns: ['PE'], nota: 'DOOH en instalaciones industriales' }] }] },
