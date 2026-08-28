@@ -3,7 +3,7 @@ import React, { useEffect, useState } from 'react';
 import { CalendarioGrid } from './CalendarioGrid';
 import { SenalesMercado, ScoreCard } from '../hubspot/InteligenciaMercado';
 import ProspeccionDenue from '../hubspot/ProspeccionDenue';
-import { colorRama } from '../hubspot/ProspeccionDenue';
+
 
 const ICP_TO_DENUE: Record<string, string> = {
   'aerolineas y aviacion': 'Transportes, correos y almacenamiento',
@@ -111,27 +111,13 @@ function ListaCard({ label, items, accent, sub }: { label: string; items: string
 }
 function BuscadorIndustrias() {
   const [q, setQ] = useState('');
-  const [ramas, setRamas] = useState<any[]>([]);
-  const [subsectores, setSubsectores] = useState<any[]>([]);
-  const [subramas, setSubramas] = useState<any[]>([]);
-
-  useEffect(() => {
-    fetch('/api/prospeccion?mode=tree')
-      .then(r => r.json())
-      .then(d => { setRamas(d.ramas || []); setSubsectores(d.subsectores || []); setSubramas(d.subramas || []); })
-      .catch(() => {});
-  }, []);
-
   const norm = (s: string) => s.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
   const query = norm(q.trim());
-
-  const nombresDenueMatch = Object.entries(ICP_TO_DENUE)
-    .filter(([key]) => query && (key === query || key.includes(query) || query.includes(key)))
-    .map(([, nombre]) => norm(nombre));
-
-  const ramasMatch = query
-    ? ramas.filter(r => norm(r.nombre).includes(query) || nombresDenueMatch.includes(norm(r.nombre)))
-    : [];
+  const nombresMatch = Array.from(new Set(
+    Object.entries(ICP_TO_DENUE)
+      .filter(([key]) => query && (key === query || key.includes(query) || query.includes(key)))
+      .map(([, nombre]) => nombre)
+  ));
 
   return (
     <div style={{ marginBottom: 24, borderRadius: 16, padding: 2, background: 'linear-gradient(120deg, #E4007C, #8C59FE, #3274FC)' }}>
@@ -146,43 +132,19 @@ function BuscadorIndustrias() {
             style={{ flex: 1, border: 'none', outline: 'none', fontSize: 15, fontWeight: 500, color: '#0f172a', background: 'transparent' }}
           />
         </div>
-        {query && ramasMatch.length === 0 && (
+        {query && nombresMatch.length === 0 && (
           <div style={{ marginTop: 14, paddingTop: 14, borderTop: '1px solid #f1f5f9', fontSize: 13, color: '#94a3b8' }}>
             No se encontró una industria DENUE que coincida con &quot;{q}&quot;.
           </div>
         )}
-        {query && ramasMatch.length > 0 && (
+        {query && nombresMatch.length > 0 && (
           <div style={{ marginTop: 14, paddingTop: 14, borderTop: '1px solid #f1f5f9' }}>
             <div style={{ fontSize: 11, fontWeight: 700, color: '#94a3b8', textTransform: 'uppercase', marginBottom: 10 }}>
-              &quot;{q}&quot; corresponde a {ramasMatch.length > 1 ? `${ramasMatch.length} industrias DENUE` : '1 industria DENUE'}
+              &quot;{q}&quot; corresponde a
             </div>
-            {ramasMatch.map(r => (
-              <div key={r.codigo} style={{ marginBottom: 14 }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '5px 2px', fontSize: 13.5, fontWeight: 700, color: '#0f172a' }}>
-                  <span style={{ width: 9, height: 9, borderRadius: '50%', background: colorRama(r.codigo), flexShrink: 0 }} />
-                  <span style={{ fontFamily: 'monospace', fontSize: 11, color: '#94a3b8' }}>({r.codigo})</span>
-                  {r.nombre}
-                </div>
-                <div style={{ marginLeft: 17, borderLeft: '2px solid #e2e8f0', paddingLeft: 10 }}>
-                  {subsectores.filter(s => s.scian2 === r.codigo).map(s => (
-                    <div key={s.codigo} style={{ marginBottom: 2 }}>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '4px 4px', fontSize: 12, color: '#475569' }}>
-                        <span style={{ width: 7, height: 7, borderRadius: '50%', background: colorRama(r.codigo), opacity: 0.75, flexShrink: 0 }} />
-                        <span style={{ fontSize: 10.5, color: '#94a3b8', fontFamily: 'monospace' }}>{s.codigo}</span>
-                        {s.nombre}
-                      </div>
-                      <div style={{ marginLeft: 15, borderLeft: '1px solid #f1f5f9', paddingLeft: 10 }}>
-                        {subramas.filter(sr => sr.scian3 === s.codigo).map(sr => (
-                          <div key={sr.codigo} style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '3px 4px', fontSize: 11.5, color: '#64748b' }}>
-                            <span style={{ width: 6, height: 6, borderRadius: '50%', background: colorRama(r.codigo), opacity: 0.5, flexShrink: 0 }} />
-                            <span style={{ fontSize: 10, color: '#cbd5e1', fontFamily: 'monospace', minWidth: 32 }}>{sr.codigo}</span>
-                            {sr.nombre}
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-                  ))}
-                </div>
+            {nombresMatch.map(n => (
+              <div key={n} style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '4px 2px', fontSize: 14, fontWeight: 700, color: '#8C59FE' }}>
+                {n}
               </div>
             ))}
           </div>
