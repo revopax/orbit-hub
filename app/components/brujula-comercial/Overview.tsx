@@ -3,7 +3,8 @@ import React, { useEffect, useState } from 'react';
 import { CalendarioGrid } from './CalendarioGrid';
 import { SenalesMercado, ScoreCard } from '../hubspot/InteligenciaMercado';
 import ProspeccionDenue from '../hubspot/ProspeccionDenue';
-import { SECTORES, SectorRow } from './BloqueDENUE';
+import { SECTORES } from './BloqueDENUE';
+import { colorRama } from '../hubspot/ProspeccionDenue';
 
 const ICP_TO_DENUE: Record<string, string> = {
   'aerolineas y aviacion': 'Transportes, correos y almacenamiento',
@@ -111,47 +112,32 @@ function ListaCard({ label, items, accent, sub }: { label: string; items: string
 }
 function ArbolResultado({ sector }: { sector: any }) {
   return (
-    <div style={{ marginBottom: 14 }}>
-      <div style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '4px 2px' }}>
-        <span style={{ width: 9, height: 9, borderRadius: '50%', background: '#8C59FE', flexShrink: 0 }} />
-        <span style={{ fontSize: 11, color: '#94a3b8', fontFamily: 'monospace' }}>({sector.codigo})</span>
-        <span style={{ fontSize: 14, fontWeight: 700, color: '#0f172a' }}>{sector.nombre}</span>
-        {!sector.tieneIGAE && (
-          <span style={{ fontSize: 9, padding: '1px 6px', borderRadius: 4, background: '#fef3c7', color: '#b45309', fontWeight: 600 }}>Sin temporalidad IGAE</span>
-        )}
-      </div>
-      {sector.alias && (
-        <div style={{ marginLeft: 17, fontSize: 11, color: '#94a3b8', marginBottom: 4 }}>
-          También conocido como: {sector.alias.join(' · ')}
-        </div>
-      )}
-      <div style={{ marginLeft: 17, borderLeft: '2px solid #f1f5f9', paddingLeft: 12 }}>
-        {sector.subsectores.map((sub: any) => (
-          <div key={sub.codigo} style={{ marginBottom: 4 }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '3px 0', fontSize: 12.5, color: '#475569' }}>
-              <span style={{ width: 7, height: 7, borderRadius: '50%', background: '#8C59FE', opacity: 0.6, flexShrink: 0 }} />
-              <span style={{ fontSize: 10.5, color: '#cbd5e1', fontFamily: 'monospace' }}>{sub.codigo}</span>
-              <span style={{ fontWeight: 500 }}>{sub.nombre}</span>
-            </div>
+    <div style={{ marginBottom: 6 }}>
+      {sector.subsectores.map((sub: any) => (
+        <div key={sub.codigo} style={{ marginBottom: 2 }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '5px 2px', fontSize: 12.5, color: '#334155' }}>
+            <span style={{
+              width: 15, height: 15, borderRadius: 4, border: '1px solid #cbd5e1', display: 'flex',
+              alignItems: 'center', justifyContent: 'center', fontSize: 11, fontWeight: 700, color: '#94a3b8', flexShrink: 0,
+            }}>{'\u2212'}</span>
+            <span style={{ width: 9, height: 9, borderRadius: '50%', background: colorRama(sub.ramas?.[0]?.codigo || sub.codigo), flexShrink: 0 }} />
+            <span style={{ flex: 1 }}>({sub.codigo}) {sub.nombre}</span>
+          </div>
+          <div style={{ marginLeft: 24, borderLeft: '2px solid #e2e8f0', paddingLeft: 10 }}>
             {sub.ramas?.map((r: any) => (
-              <div key={r.codigo} style={{ marginLeft: 15, display: 'flex', alignItems: 'flex-start', gap: 6, padding: '2px 0', borderLeft: '1px solid #f1f5f9', paddingLeft: 10 }}>
-                <span style={{ fontSize: 10, color: '#cbd5e1', fontFamily: 'monospace', minWidth: 34, marginTop: 1 }}>{r.codigo}</span>
-                <div style={{ flex: 1 }}>
-                  <span style={{ fontSize: 12, color: '#334155' }}>{r.nombre}</span>
-                  {r.nota && <span style={{ fontSize: 11, color: '#94a3b8', marginLeft: 4 }}>— {r.nota}</span>}
-                  {r.udns && r.udns.length > 0 && (
-                    <span style={{ display: 'inline-flex', flexWrap: 'wrap', gap: 3, marginLeft: 6 }}>
-                      {r.udns.map((u: string) => (
-                        <span key={u} style={{ fontSize: 10, fontWeight: 600, padding: '1px 6px', borderRadius: 999, background: '#f8f7ff', border: '1px solid #ece9ff', color: '#5b3fd6' }}>{u}</span>
-                      ))}
-                    </span>
-                  )}
-                </div>
+              <div key={r.codigo} style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '4px 4px', fontSize: 12, color: '#475569' }}>
+                <span style={{
+                  width: 13, height: 13, borderRadius: 3, border: '1px solid #cbd5e1', display: 'flex',
+                  alignItems: 'center', justifyContent: 'center', fontSize: 10, fontWeight: 700, color: '#94a3b8', flexShrink: 0,
+                }}>{'\u2212'}</span>
+                <span style={{ width: 7, height: 7, borderRadius: '50%', background: colorRama(r.codigo), opacity: 0.75, flexShrink: 0 }} />
+                <span style={{ fontSize: 11, color: '#94a3b8', fontFamily: 'monospace', minWidth: 34 }}>{r.codigo}</span>
+                <span>{r.nombre}</span>
               </div>
             ))}
           </div>
-        ))}
-      </div>
+        </div>
+      ))}
     </div>
   );
 }

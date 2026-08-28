@@ -33,7 +33,7 @@ const COLOR_POR_RAMA: Record<string, string> = {
   '56': '#c026d3', '61': '#c026d3', '62': '#c026d3', '71': '#c026d3', '72': '#c026d3', '81': '#c026d3',
   '93': '#dc2626',
 }
-function colorRama(codigo: string) { return COLOR_POR_RAMA[codigo] || '#94a3b8' }
+export function colorRama(codigo: string) { return COLOR_POR_RAMA[codigo] || '#94a3b8' }
 
 const cardStyle: React.CSSProperties = { background: '#fff', border: '1px solid #e2e8f0', borderRadius: 14, padding: 20 }
 type TabFiltro = 'actividad' | 'tamano' | 'geografia' | null
