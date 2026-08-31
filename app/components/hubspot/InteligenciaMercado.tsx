@@ -134,7 +134,7 @@ export function SenalesMercado() {
             const bg = TIPO_BG[m.tipo] || '#f1f5f9';
             const icono = TIPO_ICONO[m.tipo] || '📰';
             return (
-              <div key={i} style={{ display: 'flex', position: 'relative', borderRadius: 10, border: '1px solid #eef0f3', overflow: 'hidden', background: '#fafbfc' }}>
+              <div key={i} style={{ display: 'flex', position: 'relative', borderRadius: 10, border: '1px solid #eef0f3', overflow: 'hidden', background: '#fafbfc', minHeight: 80, flexShrink: 0 }}>
                 <div style={{ width: 4, background: color, flexShrink: 0 }} />
                 <div style={{ padding: '12px 14px', flex: 1, minWidth: 0 }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 6 }}>
