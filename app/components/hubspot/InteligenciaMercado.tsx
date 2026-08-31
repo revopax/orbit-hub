@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 
 type EstadoSenal = 'nueva' | 'asignada' | 'contactada' | 'perdida';
 type TipoSenal = 'Expansión' | 'Inversión' | 'Apertura' | 'Cambio de puesto';
@@ -25,8 +25,9 @@ const SENALES_DUMMY: Senal[] = [
   { fecha: '08 ago', empresa: 'Difrenosa', tipo: 'Cambio de puesto', fuenteSistema: 'Apollo', medio: 'LinkedIn', senalPublica: 'Cambio de puesto: Coordinador → Gerente de Compras.', udn: 'Zeus', estado: 'perdida', dueno: 'Antonio Vargas' },
 ];
 
-const TIPO_COLOR: Record<TipoSenal, string> = { 'Expansión': '#059669', 'Inversión': '#2563eb', 'Apertura': '#7c3aed', 'Cambio de puesto': '#d97706' };
-const TIPO_BG: Record<TipoSenal, string> = { 'Expansión': '#d1fae5', 'Inversión': '#dbeafe', 'Apertura': '#ede9fe', 'Cambio de puesto': '#fef3c7' };
+const TIPO_COLOR: Record<string, string> = { 'Expansión': '#059669', 'Inversión': '#2563eb', 'Apertura': '#7c3aed', 'Cambio de puesto': '#d97706', 'Otro': '#64748b' };
+const TIPO_BG: Record<string, string> = { 'Expansión': '#d1fae5', 'Inversión': '#dbeafe', 'Apertura': '#ede9fe', 'Cambio de puesto': '#fef3c7', 'Otro': '#f1f5f9' };
+const TIPO_ICONO: Record<string, string> = { 'Expansión': '🏬', 'Inversión': '💰', 'Cambio de puesto': '👤', 'Apertura': '🆕', 'Otro': '📰' };
 const ESTADO_COLOR: Record<EstadoSenal, string> = { nueva: '#475569', asignada: '#2563eb', contactada: '#059669', perdida: '#dc2626' };
 const ESTADO_BG: Record<EstadoSenal, string> = { nueva: '#f1f5f9', asignada: '#dbeafe', contactada: '#d1fae5', perdida: '#fee2e2' };
 const SDR_COLOR: Record<string, string> = {
@@ -66,8 +67,46 @@ export function ScoreCard({ label, value, sub, accent, icon }: { label: string; 
 
 // ProspeccionDenue movido a Overview seccion 4
 
+type MencionAPI = {
+  fecha: string;
+  hora: string;
+  titulo: string;
+  contenido: string;
+  fuente: string;
+  sentimiento: number;
+  tipo: string;
+};
+
+function tiempoRelativo(fecha: string, hora: string): string {
+  const fechaHora = new Date(`${fecha}T${hora || '00:00'}:00`);
+  const diffMs = Date.now() - fechaHora.getTime();
+  const diffMin = Math.floor(diffMs / 60000);
+  if (diffMin < 60) return `hace ${Math.max(diffMin, 0)} min`;
+  const diffH = Math.floor(diffMin / 60);
+  if (diffH < 24) return `hace ${diffH} h`;
+  const diffD = Math.floor(diffH / 24);
+  return `hace ${diffD} d`;
+}
+
+function resaltarKeyword(texto: string): string {
+  return texto;
+}
+
 export function SenalesMercado() {
-  const senalesFiltradas = SENALES_DUMMY;
+  const [menciones, setMenciones] = useState<MencionAPI[]>([]);
+  const [cargando, setCargando] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    fetch('/api/brand24-menciones')
+      .then(res => res.json())
+      .then(json => {
+        if (json.error) { setError(json.error); return; }
+        setMenciones(json.data || []);
+      })
+      .catch(e => setError(e.message))
+      .finally(() => setCargando(false));
+  }, []);
 
   return (
     <div style={cardStyle}>
@@ -82,31 +121,37 @@ export function SenalesMercado() {
           EN VIVO
         </span>
       </div>
-      <p style={{ fontSize: 13, color: '#64748b', margin: '4px 0 16px' }}>Detecciones externas de expansión, inversión y cambios de puesto que podrian indicar una nueva oportunidad, en Brand24.</p>
+      <p style={{ fontSize: 13, color: '#64748b', margin: '4px 0 16px' }}>Detecciones externas de expansión, inversión y cambios de puesto que podrían indicar una nueva oportunidad, vía Brand24.</p>
 
-      <table style={{ width: '100%', fontSize: 13, borderCollapse: 'collapse' }}>
-        <thead>
-          <tr style={{ textAlign: 'left' }}>
-            {['Fecha', 'Empresa', 'Tipo', 'Señal pública', 'Fuente'].map(h => (
-              <th key={h} style={{ fontWeight: 500, color: '#94a3b8', fontSize: 11, textTransform: 'uppercase', letterSpacing: 0.4, paddingBottom: 10, paddingRight: 12 }}>{h}</th>
-            ))}
-          </tr>
-        </thead>
-        <tbody>
-          {senalesFiltradas.map((s, i) => (
-            <tr key={i} style={{ borderTop: '1px solid #f1f5f9' }}>
-              <td style={{ padding: '12px 12px 12px 0', color: '#64748b', whiteSpace: 'nowrap' }}>{s.fecha}</td>
-              <td style={{ padding: '12px 12px 12px 0', fontWeight: 600, color: '#0f172a', whiteSpace: 'nowrap' }}>{s.empresa}</td>
-              <td style={{ padding: '12px 12px 12px 0' }}><Badge label={s.tipo} color={TIPO_COLOR[s.tipo]} bg={TIPO_BG[s.tipo]} /></td>
-              <td style={{ padding: '12px 12px 12px 0', color: '#64748b', maxWidth: 320, fontSize: 12.5, lineHeight: 1.4 }}>
-                &ldquo;{s.senalPublica}&rdquo;
-                <div style={{ fontSize: 11, color: '#94a3b8', marginTop: 3 }}>{s.medio}</div>
-              </td>
-              <td style={{ padding: '12px 0', color: '#64748b', whiteSpace: 'nowrap' }}>{s.fuenteSistema}</td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
+      {cargando && <p style={{ fontSize: 13, color: '#94a3b8' }}>Cargando menciones…</p>}
+      {error && <p style={{ fontSize: 13, color: '#dc2626' }}>Error: {error}</p>}
+
+      {!cargando && !error && (
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 10, maxHeight: 520, overflowY: 'auto' }}>
+          {menciones.length === 0 && <p style={{ fontSize: 13, color: '#94a3b8' }}>Sin menciones en los últimos 7 días.</p>}
+          {menciones.map((m, i) => {
+            const color = TIPO_COLOR[m.tipo] || '#64748b';
+            const bg = TIPO_BG[m.tipo] || '#f1f5f9';
+            const icono = TIPO_ICONO[m.tipo] || '📰';
+            return (
+              <div key={i} style={{ display: 'flex', position: 'relative', borderRadius: 10, border: '1px solid #eef0f3', overflow: 'hidden', background: '#fafbfc' }}>
+                <div style={{ width: 4, background: color, flexShrink: 0 }} />
+                <div style={{ padding: '12px 14px', flex: 1, minWidth: 0 }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 6 }}>
+                    <span>{icono}</span>
+                    <Badge label={m.tipo} color={color} bg={bg} />
+                    <span style={{ fontSize: 11, color: '#94a3b8', marginLeft: 'auto', whiteSpace: 'nowrap' }}>{tiempoRelativo(m.fecha, m.hora)}</span>
+                  </div>
+                  <p style={{ fontSize: 13, color: '#334155', margin: 0, lineHeight: 1.45 }}>
+                    {m.titulo || m.contenido?.slice(0, 160) || 'Mención sin texto'}
+                  </p>
+                  <div style={{ fontSize: 11, color: '#94a3b8', marginTop: 6 }}>{m.fuente}</div>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      )}
     </div>
   );
 }
