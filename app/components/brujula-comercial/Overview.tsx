@@ -3,6 +3,7 @@ import React, { useEffect, useState } from 'react';
 import { CalendarioGrid } from './CalendarioGrid';
 import { SenalesMercado, ScoreCard } from '../hubspot/InteligenciaMercado';
 import ProspeccionDenue from '../hubspot/ProspeccionDenue';
+import { getProspeccionTree } from '../../lib/prospeccionTreeCache';
 
 
 const ICP_TO_DENUE: Record<string, string> = {
@@ -117,10 +118,12 @@ function BuscadorIndustrias() {
   const [expandido, setExpandido] = useState<string | null>(null);
 
   useEffect(() => {
-    fetch('/api/prospeccion?mode=tree')
-      .then(r => r.json())
-      .then(d => { setRamas(d.ramas || []); setSubsectores(d.subsectores || []); setSubramas(d.subramas || []); })
-      .catch(() => {});
+    let cancelled = false;
+    getProspeccionTree().then(d => {
+      if (cancelled) return;
+      setRamas(d.ramas); setSubsectores(d.subsectores); setSubramas(d.subramas);
+    });
+    return () => { cancelled = true; };
   }, []);
 
   const norm = (s: string) => s.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');

@@ -1,6 +1,7 @@
 'use client'
 import { useState, useEffect, useMemo, useRef } from 'react'
 import dynamic from 'next/dynamic'
+import { getProspeccionTree } from '../../lib/prospeccionTreeCache'
 
 const MapaProspeccion = dynamic(() => import('./MapaProspeccion'), {
   ssr: false,
@@ -64,11 +65,14 @@ export default function ProspeccionDenue({ onTotalChange }: { onTotalChange?: (t
 
   // Cargar árbol una sola vez (conteos generales, sin filtro de tamaño aplicado en vivo)
   useEffect(() => {
+    let cancelled = false
     setLoadingTree(true)
-    fetch(`/api/prospeccion?mode=tree`)
-      .then(r => r.json())
-      .then(d => { setRamas(d.ramas || []); setSubsectores(d.subsectores || []); setSubramas(d.subramas || []); setTotal(d.total || 0); setLoadingTree(false); if (onTotalChange) onTotalChange(d.total || 0) })
-      .catch(() => setLoadingTree(false))
+    getProspeccionTree().then(d => {
+      if (cancelled) return
+      setRamas(d.ramas); setSubsectores(d.subsectores); setSubramas(d.subramas); setTotal(d.total); setLoadingTree(false)
+      if (onTotalChange) onTotalChange(d.total)
+    })
+    return () => { cancelled = true }
   }, [])
 
   // Cerrar dropdown al hacer clic fuera
