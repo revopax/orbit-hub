@@ -1,4 +1,4 @@
-import { Fragment, useState } from 'react';
+import { Fragment, useState, useEffect } from 'react';
 import type { EmpresaPico } from '../../lib/types';
 
 
@@ -10,6 +10,7 @@ interface CalendarioGridProps {
   brandColor: string;
   udnId?: string;
   empresasPico?: EmpresaPico[];
+  calendarioCompleto?: { meses: string[]; filas: { industria: string; celdas: string[] }[] } | null;
 }
 
 const CELL_CONFIG: Record<Estado, {
@@ -18,7 +19,7 @@ const CELL_CONFIG: Record<Estado, {
 }> = {
   pico: {
     bg: '#1A7A3C', color: '#FFFFFF', border: '#1A7A3C',
-    label: '▲ Vende',
+    label: '▲ Contacta',
     leyenda: 'Pico de actividad · máxima disposición de compra',
     tooltip: 'Momento ideal para cerrar — el sector está en su punto más alto de actividad económica.',
   },
@@ -106,7 +107,52 @@ const UDN_COLORS_CAL: Record<string, string> = {
   NC: '#3E31CC', HOF: '#3274FC', RL: '#770EB7', MEXA: '#FD00C7',
 }
 
-export function CalendarioGrid({ meses, filas, brandColor, udnId, empresasPico }: CalendarioGridProps) {
+export function CalendarioGrid({ meses, filas, brandColor, udnId, empresasPico, calendarioCompleto }: CalendarioGridProps) {
+  const [filasExtra, setFilasExtra] = useState<{ industria: string; celdas: string[] }[]>([]);
+  const [panelAbierto, setPanelAbierto] = useState(false);
+  const [dragCodigo, setDragCodigo] = useState<string | null>(null);
+  const [guardando, setGuardando] = useState(false);
+  const [hayCambiosSinGuardar, setHayCambiosSinGuardar] = useState(false);
+
+  useEffect(() => {
+    if (!udnId) return;
+    fetch(`/api/calendario-extra?udn=${udnId}`)
+      .then(r => r.json())
+      .then(d => {
+        const filas = (d.data ?? []).map((row: any) => ({
+          industria: row.sector_nombre,
+          celdas: [] as string[],
+        }));
+        // Reconstruir celdas desde calendarioCompleto usando el nombre normalizado
+        const normalizar = (s: string) => s.replace(/^[\d-]+\s*/, '').trim().toLowerCase();
+        const conCeldas = filas.map((f: any) => {
+          const match = (calendarioCompleto?.filas ?? []).find(cc => normalizar(cc.industria) === normalizar(f.industria));
+          return { industria: f.industria, celdas: match?.celdas ?? [] };
+        });
+        setFilasExtra(conCeldas);
+      })
+      .catch(() => {});
+  }, [udnId, calendarioCompleto]);
+
+  function quitarFilaExtra(industria: string) {
+    setFilasExtra(prev => prev.filter(f => f.industria !== industria));
+    setHayCambiosSinGuardar(true);
+  }
+
+  function guardarCambios() {
+    if (!udnId) return;
+    setGuardando(true);
+    fetch('/api/calendario-extra', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        udn: udnId,
+        filas: filasExtra.map(f => ({ sector_nombre: f.industria, mes_pico: '' })),
+      }),
+    })
+      .then(() => setHayCambiosSinGuardar(false))
+      .finally(() => setGuardando(false));
+  }
   const [industriasExpandidas, setIndustriasExpandidas] = useState<string[]>([]);
   const [subramasExpandidas, setSubramasExpandidas] = useState<string[]>([]);
   const [filtroTipo, setFiltroTipo] = useState<'all' | 'objetivo' | 'icp'>('all');
@@ -138,10 +184,32 @@ export function CalendarioGrid({ meses, filas, brandColor, udnId, empresasPico }
     ...f,
     celdas: f.celdas.slice(idxReal),
   }));
+  const filasExtraFiltradas = filasExtra.map(f => ({ ...f, celdas: f.celdas.slice(idxReal) }));
+  const normNombre = (s: string) => s.replace(/^[\d-]+\s*/, '').trim().toLowerCase();
+  const nombresActuales = new Set([...filas, ...filasExtra].map(f => normNombre(f.industria)));
+  const candidatas = (calendarioCompleto?.filas ?? [])
+    .filter(f => !nombresActuales.has(normNombre(f.industria)))
+    .filter(f => f.celdas.slice(idxReal).some(c => c === 'pico' || c === 'prep'))
+    .slice(0, 5);
+  function onDropIndustria() {
+    if (!dragCodigo) return;
+    const fila = (calendarioCompleto?.filas ?? []).find(f => f.industria === dragCodigo);
+    if (fila && !filasExtra.some(f => f.industria === fila.industria)) {
+      setFilasExtra(prev => [...prev, fila]);
+      setHayCambiosSinGuardar(true);
+    }
+    setDragCodigo(null);
+  }
 
 
   return (
-    <div className="card" style={{ overflow: 'hidden' }}>
+    <div style={{ display: 'flex', gap: 12, alignItems: 'flex-start' }}>
+    <div
+      className="card"
+      style={{ overflow: 'hidden', flex: 1, minWidth: 0 }}
+      onDragOver={e => e.preventDefault()}
+      onDrop={onDropIndustria}
+    >
       {/* Header */}
       <div style={{ padding: '14px 16px', borderBottom: '1px solid var(--divider)' }}>
         <div>
@@ -153,10 +221,7 @@ export function CalendarioGrid({ meses, filas, brandColor, udnId, empresasPico }
             })()}
           </div>
           <div style={{ fontSize: 11, color: 'var(--txt-3)', marginTop: 2 }}>
-            ¿En qué industrias deberías prospectar este mes?
-          </div>
-          <div style={{ fontSize: 11, color: 'var(--txt-4)', marginTop: 6, fontStyle: 'italic' }}>
-            ¿Anticiparte al pico de dinamismo de la industria aumenta tu probabilidad de generar un MQL calificado? Al desplegar una industria verás los MQL (contactos) que avanzaron o se descalificaron: la hipótesis es que llegar antes al pico eleva la probabilidad de un MQL calificado, y llegar tarde eleva el riesgo de descalificación por timing o presupuesto. Se valida con el avance real de la prospección en el tiempo.
+            ¿En qué industrias deberías prospectar este mes? Llegar antes al pico de dinamismo económico de una industria eleva la probabilidad de un MQL calificado; llegar tarde, el riesgo de descalificación por timing o presupuesto — despliega una industria para ver el avance real.
           </div>
         </div>
 
@@ -277,7 +342,7 @@ export function CalendarioGrid({ meses, filas, brandColor, udnId, empresasPico }
             </tr>
           </thead>
           <tbody>
-            {filasFiltradas.map((fila, i) => (
+            {[...filasFiltradas, ...filasExtraFiltradas].map((fila, i) => (
               <Fragment key={fila.industria}>
                 <tr
                   key={fila.industria}
@@ -285,15 +350,25 @@ export function CalendarioGrid({ meses, filas, brandColor, udnId, empresasPico }
                   style={{ borderBottom: 'none' }}
                 >
                   <td
-                    onClick={() => toggleIndustria(fila.industria)}
-                    style={{ padding: '8px 12px 4px', fontSize: 11, fontWeight: 500, color: 'var(--txt-3)', width: 110, maxWidth: 110, lineHeight: 1.3, whiteSpace: 'normal', wordBreak: 'break-word', cursor: 'pointer', userSelect: 'none' }}
+                    style={{ padding: '8px 12px 4px', fontSize: 11, fontWeight: 500, color: 'var(--txt-3)', width: 110, maxWidth: 110, lineHeight: 1.3, whiteSpace: 'normal', wordBreak: 'break-word', userSelect: 'none' }}
                   >
-                    <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4 }}>
-                      <svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3"
-                        style={{ transform: industriasExpandidas.includes(fila.industria) ? 'rotate(90deg)' : 'rotate(0deg)', transition: 'transform 0.15s', flexShrink: 0 }}>
-                        <polyline points="9 18 15 12 9 6" />
-                      </svg>
-                      {fila.industria}
+                    <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4, width: '100%' }}>
+                      <span onClick={() => toggleIndustria(fila.industria)} style={{ display: 'inline-flex', alignItems: 'center', gap: 4, cursor: 'pointer', flex: 1, minWidth: 0 }}>
+                        <svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3"
+                          style={{ transform: industriasExpandidas.includes(fila.industria) ? 'rotate(90deg)' : 'rotate(0deg)', transition: 'transform 0.15s', flexShrink: 0 }}>
+                          <polyline points="9 18 15 12 9 6" />
+                        </svg>
+                        {fila.industria.replace(/^[\d-]+\s*/, '')}
+                      </span>
+                      {filasExtra.some(f => f.industria === fila.industria) && (
+                        <span
+                          onClick={(e) => { e.stopPropagation(); quitarFilaExtra(fila.industria); }}
+                          style={{ fontSize: 12, color: 'var(--txt-5)', cursor: 'pointer', flexShrink: 0, padding: '0 2px' }}
+                          title="Quitar industria"
+                        >
+                          {'\u2715'}
+                        </span>
+                      )}
                     </span>
                   </td>
                   {fila.celdas.map((estado, j) => {
@@ -448,6 +523,66 @@ export function CalendarioGrid({ meses, filas, brandColor, udnId, empresasPico }
           </tbody>
         </table>
       </div>
+    </div>
+    <div style={{ width: panelAbierto ? 260 : 44, flexShrink: 0, transition: 'width 0.2s' }}>
+      <div className="card" style={{ overflow: 'visible' }}>
+        <div
+          onClick={() => setPanelAbierto(o => !o)}
+          style={{
+            position: 'relative', display: 'flex', alignItems: 'center', justifyContent: 'center',
+            padding: panelAbierto ? '10px 12px' : '14px 6px', gap: 8,
+            cursor: 'pointer', borderBottom: panelAbierto ? '1px solid var(--divider)' : 'none',
+          }}
+        >
+          <span style={{ fontSize: 12 }}>{panelAbierto ? '\u25c0' : '\u25b6'}</span>
+          {panelAbierto && <span style={{ fontSize: 12, fontWeight: 700, color: 'var(--txt-2)' }}>Nuevas Industrias</span>}
+          {!panelAbierto && (
+            <span style={{
+              position: 'absolute', top: 10, right: 'calc(100% + 8px)',
+              fontSize: 11, fontWeight: 700, color: brandColor, background: '#fff',
+              border: `1px solid ${brandColor}33`, borderRadius: 20, padding: '5px 12px',
+              whiteSpace: 'nowrap', boxShadow: `0 2px 8px ${brandColor}22`, zIndex: 5,
+            }}>Nuevas Industrias</span>
+          )}
+        </div>
+        {panelAbierto && (
+          <div style={{ padding: '8px 12px' }}>
+            <p style={{ fontSize: 10.5, color: 'var(--txt-4)', margin: '0 0 10px' }}>
+              Industrias con ventana proxima que aun no le has vendido. Arrastralas a la tabla para sumarlas.
+            </p>
+            {candidatas.length === 0 && (
+              <p style={{ fontSize: 11, color: 'var(--txt-5)' }}>Sin candidatas por ahora.</p>
+            )}
+            {candidatas.map(c => (
+              <div
+                key={c.industria}
+                draggable
+                onDragStart={() => setDragCodigo(c.industria)}
+                style={{
+                  padding: '8px 10px', marginBottom: 6, borderRadius: 8,
+                  border: '1px solid var(--divider)', background: 'var(--bg)',
+                  fontSize: 11, cursor: 'grab',
+                }}
+              >
+                {c.industria.replace(/^[\d-]+\s*/, '')}
+              </div>
+            ))}
+            {hayCambiosSinGuardar && (
+              <button
+                onClick={guardarCambios}
+                disabled={guardando}
+                style={{
+                  width: '100%', marginTop: 8, padding: '7px 0', borderRadius: 8, border: 'none',
+                  background: brandColor, color: '#fff', fontSize: 11, fontWeight: 700, cursor: 'pointer',
+                }}
+              >
+                {guardando ? 'Guardando...' : 'Guardar cambios'}
+              </button>
+            )}
+          </div>
+        )}
+      </div>
+    </div>
     </div>
   );
 }
