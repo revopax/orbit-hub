@@ -316,7 +316,7 @@ export function CalendarioGrid({ meses, filas, brandColor, udnId, empresasPico, 
                   const nombreMes = mes.toLowerCase().split("'")[0].trim();
                   const idx = MESES_ES.indexOf(nombreMes);
                   const q = Math.floor(idx / 3) + 1;
-                  const anio = idx < mesActualIdx ? anioBase + 1 : anioBase;
+                  const anio = anioBase; // idx < mesActualIdx ? anioBase + 1 : anioBase; // TODO: reactivar cuando el calendario vuelva a ser rotativo desde mes actual (no fijo ene-dic 2026)
                   const last = grupos[grupos.length - 1];
                   if (last && last.q === q && last.anio === anio) last.count++;
                   else grupos.push({ q, anio, count: 1 });
