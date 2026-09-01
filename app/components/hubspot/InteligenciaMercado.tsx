@@ -149,26 +149,36 @@ export function SenalesMercado() {
             const bg = TIPO_BG[m.tipo] || '#f1f5f9';
             const icono = TIPO_ICONO[m.tipo] || '📰';
             return (
-              <div key={i} style={{ display: 'flex', position: 'relative', borderRadius: 10, border: '1px solid #eef0f3', overflow: 'hidden', background: '#fafbfc', minHeight: 80, flexShrink: 0, animation: 'fadeInDown 0.5s ease' }}>
+              <div key={i} style={{ display: 'flex', position: 'relative', borderRadius: 12, border: '1px solid #eef0f3', overflow: 'hidden', background: '#fff', minHeight: 90, flexShrink: 0, animation: 'fadeInDown 0.5s ease', boxShadow: '0 1px 2px rgba(16,24,40,0.03)' }}>
                 <div style={{ width: 4, background: color, flexShrink: 0 }} />
-                <div style={{ padding: '12px 14px', flex: 1, minWidth: 0 }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 6 }}>
-                    <span>{icono}</span>
+                <div style={{ padding: '14px 16px', flex: 1, minWidth: 0 }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 8 }}>
+                    <img
+                      src={`https://www.google.com/s2/favicons?domain=${m.fuente}&sz=32`}
+                      alt=""
+                      style={{ width: 16, height: 16, borderRadius: 3, flexShrink: 0 }}
+                      onError={e => { (e.currentTarget as HTMLImageElement).style.display = 'none'; }}
+                    />
+                    <span style={{ fontSize: 12, fontWeight: 600, color: '#64748b' }}>{m.fuente}</span>
                     <Badge label={m.tipo} color={color} bg={bg} />
                     <span style={{ fontSize: 11, color: '#94a3b8', marginLeft: 'auto', whiteSpace: 'nowrap' }}>{tiempoRelativo(m.fecha, m.hora)}</span>
                   </div>
                   {m.url ? (
-                    <a href={m.url} target="_blank" rel="noopener noreferrer" style={{ fontSize: 13, color: '#334155', margin: 0, lineHeight: 1.45, textDecoration: 'none', display: 'block' }}
+                    <a href={m.url} target="_blank" rel="noopener noreferrer" style={{ fontSize: 15, fontWeight: 700, color: '#0f172a', margin: 0, lineHeight: 1.4, textDecoration: 'none', display: 'block' }}
                        onMouseEnter={e => (e.currentTarget.style.textDecoration = 'underline')}
                        onMouseLeave={e => (e.currentTarget.style.textDecoration = 'none')}>
                       {m.titulo || m.contenido?.slice(0, 160) || 'Mención sin texto'}
                     </a>
                   ) : (
-                    <p style={{ fontSize: 13, color: '#334155', margin: 0, lineHeight: 1.45 }}>
+                    <p style={{ fontSize: 15, fontWeight: 700, color: '#0f172a', margin: 0, lineHeight: 1.4 }}>
                       {m.titulo || m.contenido?.slice(0, 160) || 'Mención sin texto'}
                     </p>
                   )}
-                  <div style={{ fontSize: 11, color: '#94a3b8', marginTop: 6 }}>{m.fuente}</div>
+                  {m.contenido && (
+                    <p style={{ fontSize: 12.5, color: '#64748b', margin: '4px 0 0', lineHeight: 1.5, overflow: 'hidden', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical' }}>
+                      {m.contenido}
+                    </p>
+                  )}
                 </div>
               </div>
             );
