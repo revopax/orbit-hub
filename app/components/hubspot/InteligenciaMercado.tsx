@@ -154,9 +154,9 @@ export function SenalesMercado() {
                 <div style={{ padding: '14px 16px', flex: 1, minWidth: 0 }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 8 }}>
                     <img
-                      src={`https://www.google.com/s2/favicons?domain=${m.fuente}&sz=32`}
+                      src={`https://www.google.com/s2/favicons?domain=${m.fuente}&sz=64`}
                       alt=""
-                      style={{ width: 16, height: 16, borderRadius: 3, flexShrink: 0 }}
+                      style={{ width: 22, height: 22, borderRadius: 4, flexShrink: 0, objectFit: 'contain' }}
                       onError={e => { (e.currentTarget as HTMLImageElement).style.display = 'none'; }}
                     />
                     <span style={{ fontSize: 12, fontWeight: 600, color: '#64748b' }}>{m.fuente}</span>
