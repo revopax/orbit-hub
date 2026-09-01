@@ -36,12 +36,14 @@ export async function GET() {
 
     const results = (json.message?.results ?? []).map((m: any) => {
       const textoCompleto = `${m.title || ''} ${m.content || ''}`;
+      const urlNoticia = (m.source && m.source.startsWith('http')) ? m.source : null;
       return {
         fecha: m.date,
         hora: m.time,
         titulo: m.title || m.content?.slice(0, 80) || 'Mención',
         contenido: m.content || '',
         fuente: m.host || m.source || 'Brand24',
+        url: urlNoticia,
         sentimiento: m.sentiment,
         tipo: clasificar(textoCompleto),
       };

@@ -73,6 +73,7 @@ type MencionAPI = {
   titulo: string;
   contenido: string;
   fuente: string;
+  url: string | null;
   sentimiento: number;
   tipo: string;
 };
@@ -110,16 +111,30 @@ export function SenalesMercado() {
 
   return (
     <div style={cardStyle}>
-      <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 4 }}>
-        <span style={{
-          width: 22, height: 22, borderRadius: '50%', background: '#8C59FE', color: '#fff',
-          fontSize: 12, fontWeight: 700, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0,
-        }}>2</span>
-        <h3 style={{ fontSize: 16, fontWeight: 700, margin: 0, color: '#0f172a' }}>Señales de mercado</h3>
-        <span style={{ display: 'flex', alignItems: 'center', gap: 5, fontSize: 11, fontWeight: 700, color: '#059669' }}>
-          <span style={{ width: 7, height: 7, borderRadius: '50%', background: '#059669', display: 'inline-block', animation: 'pulse 1.6s infinite' }} />
-          EN VIVO
-        </span>
+      <div style={{ position: 'relative' }}>
+        {!cargando && !error && (
+          <div style={{ position: 'absolute', top: 0, right: 0, textAlign: 'right' }}>
+            <span style={{
+              display: 'inline-flex', alignItems: 'center', gap: 6,
+              fontSize: 11.5, fontWeight: 700, color: '#5b3fd6',
+              background: '#f8f7ff', border: '1px solid #ece9ff',
+              borderRadius: 999, padding: '4px 12px',
+            }}>
+              <span style={{ width: 6, height: 6, borderRadius: '50%', background: '#22c55e', animation: 'pulse 1.6s infinite' }} />
+              Última actualización: {new Date().toLocaleDateString('es-MX', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' })}
+            </span>
+            <div style={{ fontSize: 10, color: '#94a3b8', marginTop: 3 }}>
+              Próx. actualización: al recargar la página
+            </div>
+          </div>
+        )}
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 4 }}>
+          <span style={{
+            width: 22, height: 22, borderRadius: '50%', background: '#8C59FE', color: '#fff',
+            fontSize: 12, fontWeight: 700, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0,
+          }}>2</span>
+          <h3 style={{ fontSize: 16, fontWeight: 700, margin: 0, color: '#0f172a' }}>Señales de mercado</h3>
+        </div>
       </div>
       <p style={{ fontSize: 13, color: '#64748b', margin: '4px 0 16px' }}>Detecciones externas de expansión, inversión y cambios de puesto que podrían indicar una nueva oportunidad, vía Brand24.</p>
 
@@ -134,7 +149,7 @@ export function SenalesMercado() {
             const bg = TIPO_BG[m.tipo] || '#f1f5f9';
             const icono = TIPO_ICONO[m.tipo] || '📰';
             return (
-              <div key={i} style={{ display: 'flex', position: 'relative', borderRadius: 10, border: '1px solid #eef0f3', overflow: 'hidden', background: '#fafbfc', minHeight: 80, flexShrink: 0 }}>
+              <div key={i} style={{ display: 'flex', position: 'relative', borderRadius: 10, border: '1px solid #eef0f3', overflow: 'hidden', background: '#fafbfc', minHeight: 80, flexShrink: 0, animation: 'fadeInDown 0.5s ease' }}>
                 <div style={{ width: 4, background: color, flexShrink: 0 }} />
                 <div style={{ padding: '12px 14px', flex: 1, minWidth: 0 }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 6 }}>
@@ -142,9 +157,17 @@ export function SenalesMercado() {
                     <Badge label={m.tipo} color={color} bg={bg} />
                     <span style={{ fontSize: 11, color: '#94a3b8', marginLeft: 'auto', whiteSpace: 'nowrap' }}>{tiempoRelativo(m.fecha, m.hora)}</span>
                   </div>
-                  <p style={{ fontSize: 13, color: '#334155', margin: 0, lineHeight: 1.45 }}>
-                    {m.titulo || m.contenido?.slice(0, 160) || 'Mención sin texto'}
-                  </p>
+                  {m.url ? (
+                    <a href={m.url} target="_blank" rel="noopener noreferrer" style={{ fontSize: 13, color: '#334155', margin: 0, lineHeight: 1.45, textDecoration: 'none', display: 'block' }}
+                       onMouseEnter={e => (e.currentTarget.style.textDecoration = 'underline')}
+                       onMouseLeave={e => (e.currentTarget.style.textDecoration = 'none')}>
+                      {m.titulo || m.contenido?.slice(0, 160) || 'Mención sin texto'}
+                    </a>
+                  ) : (
+                    <p style={{ fontSize: 13, color: '#334155', margin: 0, lineHeight: 1.45 }}>
+                      {m.titulo || m.contenido?.slice(0, 160) || 'Mención sin texto'}
+                    </p>
+                  )}
                   <div style={{ fontSize: 11, color: '#94a3b8', marginTop: 6 }}>{m.fuente}</div>
                 </div>
               </div>
@@ -173,7 +196,7 @@ export default function InteligenciaMercado() {
 
       <SenalesMercado />
 
-      <style>{`@keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.3} }`}</style>
+      <style>{`@keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.3} } @keyframes fadeInDown { from { opacity:0; transform: translateY(-8px); } to { opacity:1; transform: translateY(0); } }`}</style>
     </div>
   );
 }
