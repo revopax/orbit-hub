@@ -396,6 +396,7 @@ export function CalendarioGrid({ meses, filas, brandColor, udnId, empresasPico, 
                     );
                   })}
                 </tr>
+                {console.log('DEBUG picoBusquedaMes:', picoBusquedaMes, 'mesesFiltrados:', mesesFiltrados)}
                 {picoBusquedaMes && (() => {
                   const MESES_ES2 = ['ene','feb','mar','abr','may','jun','jul','ago','sep','oct','nov','dic'];
                   const [anioP, mesP] = picoBusquedaMes.split('-');
