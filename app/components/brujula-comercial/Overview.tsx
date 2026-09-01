@@ -3,6 +3,7 @@ import React, { useEffect, useState } from 'react';
 import { CalendarioGrid } from './CalendarioGrid';
 import { SenalesMercado, ScoreCard } from '../hubspot/InteligenciaMercado';
 import ProspeccionDenue from '../hubspot/ProspeccionDenue';
+import { GraficaCruceSenales } from '../GraficaCruceSenales';
 import { getProspeccionTree } from '../../lib/prospeccionTreeCache';
 
 
@@ -299,6 +300,17 @@ export default function Overview({ udnNombre, udnId, brandColor }: { udnNombre: 
         <BuscadorIndustrias />
         <BloqueScorecards udnNombre={udnNombre} data={scorecardsData} meta={meta} />
         <SenalesMercado />
+        <div style={cardStyle}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 4 }}>
+            <span style={{
+              width: 22, height: 22, borderRadius: '50%', background: '#8C59FE', color: '#fff',
+              fontSize: 12, fontWeight: 700, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0,
+            }}>5</span>
+            <h3 style={{ fontSize: 16, fontWeight: 700, margin: 0, color: '#0f172a' }}>Cruce de señales</h3>
+          </div>
+          <p style={{ fontSize: 13, color: '#64748b', margin: '4px 0 16px' }}>Dinamismo económico (IGAE) vs. intención de búsqueda (Google Ads) vs. MQLs generados (HubSpot).</p>
+          <GraficaCruceSenales brandColor={brandColor || '#8C59FE'} isDark={false} udn={udnNombre} desde="2026-01" hasta="2026-08" />
+        </div>
         <div style={{ ...cardStyle, position: 'relative' }}>
           {meta?.fecha_actualizacion_inegi && (
             <div style={{ position: 'absolute', top: 16, right: 20, textAlign: 'right' }}>
