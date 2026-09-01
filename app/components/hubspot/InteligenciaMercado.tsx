@@ -52,6 +52,8 @@ function Avatar({ nombre }: { nombre: string }) {
 }
 
 export function ScoreCard({ label, value, sub, accent, icon }: { label: string; value: string | number; sub: string; accent: string; icon: string }) {
+  const largo = String(value).length;
+  const fontSize = largo > 40 ? 16 : largo > 25 ? 20 : largo > 15 ? 24 : 30;
   return (
     <div style={{ ...cardStyle, position: 'relative', overflow: 'hidden', padding: '18px 22px' }}>
       <div style={{ position: 'absolute', top: 0, left: 0, width: 4, height: '100%', background: accent }} />
@@ -59,7 +61,7 @@ export function ScoreCard({ label, value, sub, accent, icon }: { label: string; 
         <p style={{ fontSize: 12, fontWeight: 600, color: '#64748b', margin: '0 0 8px', textTransform: 'uppercase', letterSpacing: 0.4 }}>{label}</p>
         <span style={{ fontSize: 18 }}>{icon}</span>
       </div>
-      <p style={{ fontSize: 30, fontWeight: 800, margin: 0, color: '#0f172a', letterSpacing: -0.5 }}>{value}</p>
+      <p style={{ fontSize, fontWeight: 800, margin: 0, color: '#0f172a', letterSpacing: -0.5, lineHeight: 1.25 }}>{value}</p>
       <p style={{ fontSize: 12, color: '#94a3b8', margin: '4px 0 0' }}>{sub}</p>
     </div>
   );
