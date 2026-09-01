@@ -413,30 +413,37 @@ export function CalendarioGrid({ meses, filas, brandColor, udnId, empresasPico, 
                   const MESES_ES2 = ['ene','feb','mar','abr','may','jun','jul','ago','sep','oct','nov','dic'];
                   const [anioP, mesP] = picoBusquedaMes.split('-');
                   const idxPico = mesesFiltrados.findIndex(m => MESES_ES2[parseInt(mesP,10)-1] === m.toLowerCase().split("'")[0].trim());
-                  const idxContacta = fila.celdas.findIndex(c => c === 'pico');
-                  if (idxPico < 0) return null;
-                  const meses_diff = idxContacta >= 0 ? idxContacta - idxPico : null;
+                  const idxContacta = fila.celdas.findIndex((c, idx) => c === 'pico' && idx >= idxPico);
+                  if (idxPico < 0 || idxContacta < 0 || idxContacta === idxPico) return null;
+                  const meses_diff = idxContacta - idxPico;
+                  const numCols = mesesFiltrados.length;
+                  const pctInicio = ((idxPico + 0.5) / numCols) * 100;
+                  const pctFin = ((idxContacta + 0.5) / numCols) * 100;
                   return (
                     <tr style={{ borderBottom: '1px solid var(--divider)' }}>
-                      <td style={{ padding: '0 12px 8px', fontSize: 9, color: 'var(--txt-5)' }}>
-                        {meses_diff !== null && meses_diff > 0 && `Anticipación: ${meses_diff} ${meses_diff === 1 ? 'mes' : 'meses'}`}
-                      </td>
-                      {mesesFiltrados.map((_, j) => (
-                        <td key={j} style={{ padding: '0 6px 8px', textAlign: 'center', borderLeft: '1px solid var(--divider)' }}>
-                          {j === idxPico && (
+                      <td colSpan={numCols + 1} style={{ padding: '2px 12px 10px', position: 'relative' }}>
+                        <div style={{ position: 'relative', height: 20 }}>
+                          <div style={{
+                            position: 'absolute', top: 9, height: 1, background: 'var(--border)',
+                            left: `${pctInicio}%`, width: `${pctFin - pctInicio}%`,
+                          }} />
+                          <div style={{ position: 'absolute', top: 2, left: `${pctInicio}%`, transform: 'translateX(-50%)' }}>
                             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#378ADD" strokeWidth="2.5">
                               <circle cx="10" cy="10" r="6" />
                               <line x1="15" y1="15" x2="20" y2="20" />
                             </svg>
-                          )}
-                          {j === idxContacta && idxContacta !== idxPico && (
+                          </div>
+                          <div style={{ position: 'absolute', top: 2, left: `${pctFin}%`, transform: 'translateX(-50%)' }}>
                             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#639922" strokeWidth="2.5">
                               <circle cx="12" cy="12" r="9" />
                               <circle cx="12" cy="12" r="4" />
                             </svg>
-                          )}
-                        </td>
-                      ))}
+                          </div>
+                        </div>
+                        <div style={{ fontSize: 10, color: 'var(--txt-4)', marginTop: 2, textAlign: 'left' }}>
+                          {meses_diff} {meses_diff === 1 ? 'mes' : 'meses'} de anticipación
+                        </div>
+                      </td>
                     </tr>
                   );
                 })()}
@@ -583,7 +590,7 @@ export function CalendarioGrid({ meses, filas, brandColor, udnId, empresasPico, 
           {panelAbierto && <span style={{ fontSize: 12, fontWeight: 700, color: 'var(--txt-2)' }}>Nuevas Industrias</span>}
           {!panelAbierto && (
             <span style={{
-              position: 'absolute', top: 10, right: 'calc(100% + 8px)',
+              position: 'absolute', bottom: 'calc(100% + 8px)', right: 0,
               fontSize: 11, fontWeight: 700, color: brandColor, background: '#fff',
               border: `1px solid ${brandColor}33`, borderRadius: 20, padding: '5px 12px',
               whiteSpace: 'nowrap', boxShadow: `0 2px 8px ${brandColor}22`, zIndex: 5,
