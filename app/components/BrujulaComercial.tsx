@@ -18,6 +18,7 @@ const ACCENT = '#8C59FE';
 
 type Permisos = Record<string, 'all' | string[]>;
 function tienePermiso(permisos: Permisos | null | undefined, modulo: string, tabId: string): boolean {
+  if (tabId === 'overview') return true;
   if (!permisos || Object.keys(permisos).length === 0) return true;
   const val = permisos[modulo];
   if (val === 'all') return true;
