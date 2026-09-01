@@ -110,6 +110,7 @@ const UDN_COLORS_CAL: Record<string, string> = {
 
 export function CalendarioGrid({ meses, filas, brandColor, udnId, empresasPico, calendarioCompleto, picoBusquedaMes }: CalendarioGridProps) {
   const [filasExtra, setFilasExtra] = useState<{ industria: string; celdas: string[] }[]>([]);
+  const [expandido, setExpandido] = useState(false);
   const [panelAbierto, setPanelAbierto] = useState(false);
   const [dragCodigo, setDragCodigo] = useState<string | null>(null);
   const [guardando, setGuardando] = useState(false);
@@ -179,7 +180,7 @@ export function CalendarioGrid({ meses, filas, brandColor, udnId, empresasPico, 
     return idx >= mesActualIdx;
   });
   // Debug: si no encuentra ningún mes futuro, mostrar todos
-  const idxReal = idxFiltrar >= 0 ? idxFiltrar : 0;
+  const idxReal = expandido ? 0 : (idxFiltrar >= 0 ? idxFiltrar : 0);
   const mesesFiltrados = meses.slice(idxReal);
   const filasFiltradas = filas.map(f => ({
     ...f,
@@ -213,17 +214,29 @@ export function CalendarioGrid({ meses, filas, brandColor, udnId, empresasPico, 
     >
       {/* Header */}
       <div style={{ padding: '14px 16px', borderBottom: '1px solid var(--divider)' }}>
-        <div>
-          <div style={{ fontWeight: 700, fontSize: 14, color: 'var(--txt-1)' }}>
-            {(() => {
-              const meses = ['ene','feb','mar','abr','may','jun','jul','ago','sep','oct','nov','dic'];
-              const mesActual = meses[new Date().getMonth()];
-              return `Calendario de prospección · ${mesActual}–dic 2026`;
-            })()}
+        <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 12 }}>
+          <div>
+            <div style={{ fontWeight: 700, fontSize: 14, color: 'var(--txt-1)' }}>
+              {(() => {
+                const meses = ['ene','feb','mar','abr','may','jun','jul','ago','sep','oct','nov','dic'];
+                const mesActual = meses[new Date().getMonth()];
+                return expandido ? 'Calendario de prospección · ene-dic 2026' : `Calendario de prospección · ${mesActual}–dic 2026`;
+              })()}
+            </div>
+            <div style={{ fontSize: 11, color: 'var(--txt-3)', marginTop: 2 }}>
+              ¿En qué industrias deberías prospectar este mes? Llegar antes al pico de dinamismo económico de una industria eleva la probabilidad de un MQL calificado; llegar tarde, el riesgo de descalificación por timing o presupuesto — despliega una industria para ver el avance real.
+            </div>
           </div>
-          <div style={{ fontSize: 11, color: 'var(--txt-3)', marginTop: 2 }}>
-            ¿En qué industrias deberías prospectar este mes? Llegar antes al pico de dinamismo económico de una industria eleva la probabilidad de un MQL calificado; llegar tarde, el riesgo de descalificación por timing o presupuesto — despliega una industria para ver el avance real.
-          </div>
+          <button
+            onClick={() => setExpandido(v => !v)}
+            style={{
+              flexShrink: 0, padding: '6px 12px', borderRadius: 8, border: '1px solid var(--border)',
+              background: expandido ? brandColor + '15' : 'var(--bg)', color: expandido ? brandColor : 'var(--txt-3)',
+              fontSize: 11, fontWeight: 600, cursor: 'pointer', whiteSpace: 'nowrap',
+            }}
+          >
+            {expandido ? 'Ver solo próximos meses' : 'Ver año completo (ene-dic)'}
+          </button>
         </div>
 
         {/* Leyenda horizontal espaciada — 1 fila con descripción inline */}
@@ -331,10 +344,10 @@ export function CalendarioGrid({ meses, filas, brandColor, udnId, empresasPico, 
               </th>
               {mesesFiltrados.map(mes => (
                 <th key={mes} style={{
-                  padding: '8px 12px', textAlign: 'center',
+                  padding: expandido ? '8px 6px' : '8px 12px', textAlign: 'center',
                   fontSize: 10, fontWeight: 600, color: 'var(--txt-5)',
                   textTransform: 'uppercase', letterSpacing: '0.06em',
-                  minWidth: 100, borderBottom: '1px solid var(--divider)',
+                  minWidth: expandido ? 68 : 100, borderBottom: '1px solid var(--divider)',
                   borderLeft: '1px solid var(--divider)',
                 }}>
                   {mes}
@@ -379,7 +392,7 @@ export function CalendarioGrid({ meses, filas, brandColor, udnId, empresasPico, 
                       <td key={j} style={{ padding: '5px 6px 4px', textAlign: 'center', borderLeft: '1px solid var(--divider)' }}>
                         <div style={{
                           display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
-                          minWidth: 88, height: 28, borderRadius: 8,
+                          minWidth: expandido ? 58 : 88, height: 28, borderRadius: 8,
                           backgroundColor: s.bg,
                           border: isEmpty ? '1px solid var(--border)' : `1px solid ${s.border}`,
                           fontSize: 10, fontWeight: 600,
@@ -396,7 +409,6 @@ export function CalendarioGrid({ meses, filas, brandColor, udnId, empresasPico, 
                     );
                   })}
                 </tr>
-                {console.log('DEBUG picoBusquedaMes:', picoBusquedaMes, 'mesesFiltrados:', mesesFiltrados)}
                 {picoBusquedaMes && (() => {
                   const MESES_ES2 = ['ene','feb','mar','abr','may','jun','jul','ago','sep','oct','nov','dic'];
                   const [anioP, mesP] = picoBusquedaMes.split('-');
