@@ -8,6 +8,8 @@ import { getProspeccionTree } from '../../lib/prospeccionTreeCache';
 
 const ICP_TO_DENUE: Record<string, string> = {
   'aerolineas y aviacion': 'Transportes, correos y almacenamiento',
+  'agroindustria': 'Agricultura, cría y explotación de animales, aprovechamiento forestal, pesca y caza',
+  'agropecuario': 'Agricultura, cría y explotación de animales, aprovechamiento forestal, pesca y caza',
   'alimentos y bebidas': 'Industrias manufactureras',
   'armadoras': 'Industrias manufactureras',
   'aseguradoras': 'Servicios financieros y de seguros',
