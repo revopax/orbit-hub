@@ -11,6 +11,7 @@ interface CalendarioGridProps {
   udnId?: string;
   empresasPico?: EmpresaPico[];
   calendarioCompleto?: { meses: string[]; filas: { industria: string; celdas: string[] }[] } | null;
+  picoBusquedaMes?: string | null;
 }
 
 const CELL_CONFIG: Record<Estado, {
@@ -107,7 +108,7 @@ const UDN_COLORS_CAL: Record<string, string> = {
   NC: '#3E31CC', HOF: '#3274FC', RL: '#770EB7', MEXA: '#FD00C7',
 }
 
-export function CalendarioGrid({ meses, filas, brandColor, udnId, empresasPico, calendarioCompleto }: CalendarioGridProps) {
+export function CalendarioGrid({ meses, filas, brandColor, udnId, empresasPico, calendarioCompleto, picoBusquedaMes }: CalendarioGridProps) {
   const [filasExtra, setFilasExtra] = useState<{ industria: string; celdas: string[] }[]>([]);
   const [panelAbierto, setPanelAbierto] = useState(false);
   const [dragCodigo, setDragCodigo] = useState<string | null>(null);
@@ -395,6 +396,37 @@ export function CalendarioGrid({ meses, filas, brandColor, udnId, empresasPico, 
                     );
                   })}
                 </tr>
+                {picoBusquedaMes && (() => {
+                  const MESES_ES2 = ['ene','feb','mar','abr','may','jun','jul','ago','sep','oct','nov','dic'];
+                  const [anioP, mesP] = picoBusquedaMes.split('-');
+                  const idxPico = mesesFiltrados.findIndex(m => MESES_ES2[parseInt(mesP,10)-1] === m.toLowerCase().split("'")[0].trim());
+                  const idxContacta = fila.celdas.findIndex(c => c === 'pico');
+                  if (idxPico < 0) return null;
+                  const meses_diff = idxContacta >= 0 ? idxContacta - idxPico : null;
+                  return (
+                    <tr style={{ borderBottom: '1px solid var(--divider)' }}>
+                      <td style={{ padding: '0 12px 8px', fontSize: 9, color: 'var(--txt-5)' }}>
+                        {meses_diff !== null && meses_diff > 0 && `Anticipación: ${meses_diff} ${meses_diff === 1 ? 'mes' : 'meses'}`}
+                      </td>
+                      {mesesFiltrados.map((_, j) => (
+                        <td key={j} style={{ padding: '0 6px 8px', textAlign: 'center', borderLeft: '1px solid var(--divider)' }}>
+                          {j === idxPico && (
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#378ADD" strokeWidth="2.5">
+                              <circle cx="10" cy="10" r="6" />
+                              <line x1="15" y1="15" x2="20" y2="20" />
+                            </svg>
+                          )}
+                          {j === idxContacta && idxContacta !== idxPico && (
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#639922" strokeWidth="2.5">
+                              <circle cx="12" cy="12" r="9" />
+                              <circle cx="12" cy="12" r="4" />
+                            </svg>
+                          )}
+                        </td>
+                      ))}
+                    </tr>
+                  );
+                })()}
                 {industriasExpandidas.includes(fila.industria) && (() => {
                   const empresasIndustria = (empresasPico ?? []).filter(e => {
                     if (e.sector !== fila.industria || e.tipoObjeto !== 'contacto') return false;

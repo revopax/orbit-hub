@@ -275,6 +275,7 @@ export default function Overview({ udnNombre, udnId, brandColor }: { udnNombre: 
   const [empresasPicoData, setEmpresasPicoData] = useState<any[]>([]);
   const [scorecardsData, setScorecardsData] = useState<ScorecardsICPBP | null>(null);
   const [meta, setMeta] = useState<any>(null);
+  const [picosBusqueda, setPicosBusqueda] = useState<Record<string, string | null>>({});
   const idParaCalendario = udnId ?? udnNombre;
 
   useEffect(() => {
@@ -288,6 +289,7 @@ export default function Overview({ udnNombre, udnId, brandColor }: { udnNombre: 
           setEmpresasPicoData(json?.empresas_pico?.[idParaCalendario] ?? []);
           setScorecardsData(json?.scorecards_icp_bp?.[idParaCalendario] ?? null);
           setMeta(json?.meta ?? null);
+          setPicosBusqueda(json?.picos_busqueda_por_udn ?? {});
         }
       })
       .catch(() => { if (!cancelled) { setCalendarioData(null); setEmpresasPicoData([]); } });
@@ -349,6 +351,7 @@ export default function Overview({ udnNombre, udnId, brandColor }: { udnNombre: 
               udnId={idParaCalendario}
               empresasPico={empresasPicoData}
               calendarioCompleto={calendarioCompleto}
+              picoBusquedaMes={picosBusqueda[udnNombre] ?? null}
             />
           ) : (
             <p style={{ fontSize: 12.5, color: '#94a3b8' }}>Cargando calendario...</p>
