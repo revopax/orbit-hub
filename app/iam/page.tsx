@@ -77,7 +77,12 @@ function PermisosSelector({ value, onChange }: { value: Permisos; onChange: (p: 
               }} style={{ accentColor: C, cursor: 'pointer' }} />
               {m.label}
             </label>
-            {activo && (
+            {activo && m.id === 'brujula' && (
+              <div style={{ marginTop: 8, fontSize: 11.5, color: 'var(--txt-4)' }}>
+                Panorama (acceso automático, sin configuración)
+              </div>
+            )}
+            {activo && m.id !== 'brujula' && (
               <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, marginTop: 8 }}>
                 <button type="button" onClick={() => onChange({ ...value, [m.id]: 'all' })} style={chip(esAll)}>Todas</button>
                 {m.tabs.map(t => {
