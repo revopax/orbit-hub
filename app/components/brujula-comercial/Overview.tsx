@@ -302,6 +302,7 @@ export default function Overview({ udnNombre, udnId, brandColor }: { udnNombre: 
         <BuscadorIndustrias />
         <BloqueScorecards udnNombre={udnNombre} data={scorecardsData} meta={meta} />
         <SenalesMercado />
+        {false && (
         <div style={cardStyle}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 4 }}>
             <span style={{
@@ -313,6 +314,7 @@ export default function Overview({ udnNombre, udnId, brandColor }: { udnNombre: 
           <p style={{ fontSize: 13, color: '#64748b', margin: '4px 0 16px' }}>Dinamismo económico (IGAE) vs. intención de búsqueda (Google Ads) vs. MQLs generados (HubSpot).</p>
           <GraficaCruceSenales brandColor={brandColor || '#8C59FE'} isDark={false} udn={udnNombre} desde="2026-01" hasta="2026-08" />
         </div>
+        )}
         <div style={{ ...cardStyle, position: 'relative' }}>
           {meta?.fecha_actualizacion_inegi && (
             <div style={{ position: 'absolute', top: 16, right: 20, textAlign: 'right' }}>
