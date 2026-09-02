@@ -44,10 +44,10 @@ export default function BrujulaComercial({ permisos }: { permisos?: Permisos | n
 
   const esMkt = perfil?.udn_madre === 'MKT';
   const udnsPropias = UDNS.filter(u => (perfil?.udn || '').split(',').map((s: string) => s.trim()).includes(u.id));
-  const udnsVisiblesComercial = perfil?.rol === 'admin' || esMkt
+  const udnsVisiblesComercial = perfil?.rol?.toLowerCase() === 'admin' || esMkt
     ? UDNS
     : udnsPropias;
-  const udnsVisiblesDemanda = perfil?.rol === 'admin' || esMkt
+  const udnsVisiblesDemanda = perfil?.rol?.toLowerCase() === 'admin' || esMkt
     ? UDNS
     : udnsPropias;
   const udnsVisibles = (sub === 'comercial' ? udnsVisiblesComercial : udnsVisiblesDemanda).filter(u => u.nombre !== 'Zeus');
@@ -76,7 +76,7 @@ export default function BrujulaComercial({ permisos }: { permisos?: Permisos | n
           }}>
             <div style={{ display: 'flex', gap: 4 }}>
               {(['overview'] as SubTab[]).map(t => {
-                const permitido = t === 'overview' ? perfil?.rol === 'admin' : tienePermiso(permisos, 'brujula', t);
+                const permitido = t === 'overview' ? perfil?.rol?.toLowerCase() === 'admin' : tienePermiso(permisos, 'brujula', t);
                 return (
                 <button
                   key={t}
@@ -143,7 +143,7 @@ export default function BrujulaComercial({ permisos }: { permisos?: Permisos | n
           </div>
         </div>
       )}
-      {sub === 'overview' && perfil?.rol === 'admin' && (
+      {sub === 'overview' && perfil?.rol?.toLowerCase() === 'admin' && (
         <Overview udnNombre={udnActiva.nombre} udnId={udnActiva.id} />
       )}
       {sub === 'comercial' && tienePermiso(permisos, 'brujula', 'comercial') && (
