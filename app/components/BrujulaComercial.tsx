@@ -76,7 +76,7 @@ export default function BrujulaComercial({ permisos }: { permisos?: Permisos | n
           }}>
             <div style={{ display: 'flex', gap: 4 }}>
               {(['overview'] as SubTab[]).map(t => {
-                const permitido = t === 'overview' ? perfil?.rol?.toLowerCase() === 'admin' : tienePermiso(permisos, 'brujula', t);
+                const permitido = t === 'overview' ? (perfil?.rol?.toLowerCase() === 'admin' || esMkt) : tienePermiso(permisos, 'brujula', t);
                 return (
                 <button
                   key={t}
@@ -143,7 +143,7 @@ export default function BrujulaComercial({ permisos }: { permisos?: Permisos | n
           </div>
         </div>
       )}
-      {sub === 'overview' && perfil?.rol?.toLowerCase() === 'admin' && (
+      {sub === 'overview' && (perfil?.rol?.toLowerCase() === 'admin' || esMkt) && (
         <Overview udnNombre={udnActiva.nombre} udnId={udnActiva.id} />
       )}
       {sub === 'comercial' && tienePermiso(permisos, 'brujula', 'comercial') && (
