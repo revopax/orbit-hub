@@ -29,9 +29,9 @@ function tienePermiso(permisos: Permisos | null | undefined, modulo: string, tab
 export default function BrujulaComercial({ permisos }: { permisos?: Permisos | null }) {
   const { perfil } = useAuth();
   const [sub, setSub] = useState<SubTab>(() => {
-    if (typeof window === 'undefined') return 'comercial'
+    if (typeof window === 'undefined') return 'overview'
     const saved = window.localStorage.getItem('brujula-comercial-subtab') as SubTab | null
-    return saved || 'comercial'
+    return 'overview'
   });
   useEffect(() => {
     window.localStorage.setItem('brujula-comercial-subtab', sub)
