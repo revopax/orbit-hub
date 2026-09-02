@@ -26,6 +26,25 @@ export function UserMenu({ nombre, rol, udn, acento, onLogout, isMobile }: UserM
 
   const [photoUrl, setPhotoUrl] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const [deferredPrompt, setDeferredPrompt] = useState<any>(null);
+  const [isIOS, setIsIOS] = useState(false);
+  const [isStandalone, setIsStandalone] = useState(false);
+  const [showIOSHintMenu, setShowIOSHintMenu] = useState(false);
+
+  useEffect(() => {
+    setIsStandalone(window.matchMedia('(display-mode: standalone)').matches);
+    setIsIOS(/iphone|ipad|ipod/i.test(navigator.userAgent));
+    const handler = (e) => { e.preventDefault(); setDeferredPrompt(e); };
+    window.addEventListener('beforeinstallprompt', handler);
+    return () => window.removeEventListener('beforeinstallprompt', handler);
+  }, []);
+
+  const handleInstallClick = async () => {
+    if (isIOS) { setShowIOSHintMenu(function(v){ return !v; }); return; }
+    if (!deferredPrompt) return;
+    deferredPrompt.prompt();
+    await deferredPrompt.userChoice;
+  };
 
   useEffect(() => {
     sb.auth.getUser().then(({ data: { user } }) => {
@@ -154,6 +173,20 @@ export function UserMenu({ nombre, rol, udn, acento, onLogout, isMobile }: UserM
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0110 0v4"/></svg>
               Cambiar contraseña
             </button>
+            {!isStandalone && (
+              <button onClick={() => { handleInstallClick(); }} style={menuItemStyle}
+                onMouseEnter={e => (e.currentTarget.style.background = 'rgba(255,255,255,0.05)')}
+                onMouseLeave={e => (e.currentTarget.style.background = 'none')}
+              >
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M12 3v12m0 0l-4-4m4 4l4-4M4 17v2a2 2 0 002 2h12a2 2 0 002-2v-2"/></svg>
+                Instalar app
+              </button>
+            )}
+            {showIOSHintMenu && (
+              <div style={{ padding: '10px 16px', fontSize: 11, color: 'rgba(255,255,255,0.65)', lineHeight: 1.6 }}>
+                En Safari: toca compartir ↑ → "Agregar a pantalla de inicio"
+              </div>
+            )}
             <button onClick={() => { setOpen(false); onLogout?.(); }} style={{ ...menuItemStyle, color: '#F87171', fontWeight: 600 }}
               onMouseEnter={e => (e.currentTarget.style.background = 'rgba(248,113,113,0.08)')}
               onMouseLeave={e => (e.currentTarget.style.background = 'none')}
@@ -198,6 +231,20 @@ export function UserMenu({ nombre, rol, udn, acento, onLogout, isMobile }: UserM
                 Cargar foto de perfil
               </button>
               <input ref={fileInputRef} type="file" accept="image/*" style={{ display: 'none' }} onChange={e => { const f = e.target.files?.[0]; if (f) uploadFoto(f); }} />
+              {!isStandalone && (
+                <button onClick={handleInstallClick} style={{ ...menuItemStyle, fontSize: 12 }}
+                  onMouseEnter={e => (e.currentTarget.style.background = 'rgba(255,255,255,0.05)')}
+                  onMouseLeave={e => (e.currentTarget.style.background = 'none')}
+                >
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M12 3v12m0 0l-4-4m4 4l4-4M4 17v2a2 2 0 002 2h12a2 2 0 002-2v-2"/></svg>
+                  Instalar app
+                </button>
+              )}
+              {showIOSHintMenu && (
+                <div style={{ padding: '10px 16px', fontSize: 11, color: 'var(--txt-5)', lineHeight: 1.6 }}>
+                  En Safari: toca compartir ↑ → "Agregar a pantalla de inicio"
+                </div>
+              )}
             </div>
           </div>
         </>

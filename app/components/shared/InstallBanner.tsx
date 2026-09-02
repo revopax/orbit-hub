@@ -104,7 +104,7 @@ export function InstallBanner() {
               whiteSpace: 'nowrap',
             }}
           >
-            <img src="/logos/orbit-logo.png" alt="ORBIT" style={{ width: 30, height: 30, objectFit: 'contain', borderRadius: '50%' }} />
+            <img src="/orbit-mark.svg" alt="ORBIT" style={{ width: 30, height: 30, objectFit: 'contain', borderRadius: '50%' }} />
             Instalar
           </button>
           <button
