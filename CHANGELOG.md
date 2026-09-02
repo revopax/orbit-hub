@@ -1,3 +1,20 @@
+## [v2.10.0] - 2026-08-31/09-01
+### Brújula Comercial: Señales de mercado rediseñada, Cruce de señales y ventana de anticipación en Calendario
+
+**Backend (BRUJULA-COMERCIAL-UPAX/pipeline/generate_data.py)**
+- Nueva función `generar_picos_busqueda()`: obtiene, por UDN, el mes de mayor interés de búsqueda en Google Ads (vía RPC existente en Supabase), para poder compararlo contra el momento de mejor actividad comercial de cada industria.
+- `generar_calendario()` extendido de "mes actual a diciembre" a año completo (enero-diciembre), permitiendo ver picos de búsqueda que ya ocurrieron antes del mes en curso.
+- Nueva clave en brujula_data.json: `picos_busqueda_por_udn`.
+
+**Frontend (ORBIT-HUB)**
+- `InteligenciaMercado.tsx` (Señales de mercado, sección 2 de Panorama): reemplazada tabla dummy por feed de tarjetas conectado en vivo a Brand24 — favicon del medio, título con link a la noticia original, extracto del contenido, badge de tipo (Expansión/Inversión/Otro) y tiempo relativo; badge "EN VIVO" cambiado por "Última actualización" consistente con el resto del módulo; animación de entrada al cargar nuevas menciones.
+- Endpoint `/api/brand24-menciones`: cacheo de 5 min en éxito para no saturar la API externa; los errores ya no se cachean (antes un fallo temporal quedaba "pegado" hasta que expirara el caché).
+- Nueva sección 5 ("Cruce de señales") en Panorama: gráfico existente de actividad comercial vs. búsquedas vs. contactos generados, migrado desde un tab que ya no estaba en uso.
+- `CalendarioGrid.tsx` (sección 3): nueva fila de "anticipación" debajo de cada industria, mostrando cuántos meses de margen hay entre el pico de búsqueda en Google y el mejor momento comercial de esa industria; toggle para expandir el calendario a año completo o ver solo los próximos meses.
+- Buscador de industrias (spotlight): agregado mapeo de "agroindustria"/"agropecuario".
+- Ocultos temporalmente: UDN "Zeus" (sin actividad reciente) y tab "Inteligencia de Mercado" (contenido absorbido en Panorama).
+- Ajustes visuales: tamaño de letra uniforme en las tarjetas de Contexto, favicon más grande en el feed de señales.
+
 ## [v2.9.0] - 2026-08-27/28
 ### Brújula Comercial: Overview - Calendario, scorecards ICP/BP reales y buscador DENUE
 

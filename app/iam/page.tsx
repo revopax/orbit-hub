@@ -43,9 +43,7 @@ const MAGENTA = '#E8008D';
 type Permisos = Record<string, 'all' | string[]>;
 
 const MODULOS_PERMISOS: { id: string; label: string; tabs: { val: string; label: string }[] }[] = [
-  { id: 'brujula', label: 'Brújula Comercial', tabs: [
-    { val: 'comercial', label: 'Comercial' }, { val: 'demanda', label: 'Demanda' }, { val: 'mercado', label: 'Mercado' },
-  ]},
+  { id: 'brujula', label: 'Brújula Comercial', tabs: [] },
   { id: 'redes', label: 'Redes UPAX', tabs: [
     { val: 'meta-org', label: 'META Orgánico' }, { val: 'meta-ads', label: 'META Ads' }, { val: 'google-ads', label: 'Google Ads' },
     { val: 'ga4', label: 'GA4' }, { val: 'li-org', label: 'LinkedIn Orgánico' }, { val: 'li-ads', label: 'LinkedIn Ads' },
@@ -79,7 +77,12 @@ function PermisosSelector({ value, onChange }: { value: Permisos; onChange: (p: 
               }} style={{ accentColor: C, cursor: 'pointer' }} />
               {m.label}
             </label>
-            {activo && (
+            {activo && m.id === 'brujula' && (
+              <div style={{ marginTop: 8, fontSize: 11.5, color: 'var(--txt-4)' }}>
+                Panorama (acceso automático, sin configuración)
+              </div>
+            )}
+            {activo && m.id !== 'brujula' && (
               <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, marginTop: 8 }}>
                 <button type="button" onClick={() => onChange({ ...value, [m.id]: 'all' })} style={chip(esAll)}>Todas</button>
                 {m.tabs.map(t => {
@@ -583,7 +586,7 @@ export default function IAMPage() {
             </div>
             <div style={{ marginBottom:14 }}>
               <label style={labelStyle}>Módulos y vistas habilitadas</label>
-              <PermisosSelector value={editForm.permisos} onChange={p => setEditForm(f => ({ ...f, permisos: p, vistas: Array.isArray(p.brujula) ? p.brujula : (p.brujula === 'all' ? ['comercial','demanda','mercado'] : []) }))} />
+              <PermisosSelector value={editForm.permisos} onChange={p => setEditForm(f => ({ ...f, permisos: p, vistas: Array.isArray(p.brujula) ? p.brujula : (p.brujula === 'all' ? [] : []) }))} />
               <p style={{ fontSize:10, color:'var(--txt-5)', marginTop:4 }}>Sin módulos seleccionados se usará el comportamiento por defecto según el rol.</p>
             </div>
             <div style={{ marginBottom:14 }}>

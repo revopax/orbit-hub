@@ -18,6 +18,7 @@ const ACCENT = '#8C59FE';
 
 type Permisos = Record<string, 'all' | string[]>;
 function tienePermiso(permisos: Permisos | null | undefined, modulo: string, tabId: string): boolean {
+  if (tabId === 'overview') return true;
   if (!permisos || Object.keys(permisos).length === 0) return true;
   const val = permisos[modulo];
   if (val === 'all') return true;
@@ -49,7 +50,7 @@ export default function BrujulaComercial({ permisos }: { permisos?: Permisos | n
   const udnsVisiblesDemanda = perfil?.rol === 'admin' || esMkt
     ? UDNS
     : udnsPropias;
-  const udnsVisibles = sub === 'comercial' ? udnsVisiblesComercial : udnsVisiblesDemanda;
+  const udnsVisibles = (sub === 'comercial' ? udnsVisiblesComercial : udnsVisiblesDemanda).filter(u => u.nombre !== 'Zeus');
 
   useEffect(() => {
     if (!udnsVisibles.find(u => u.id === udnActiva.id) && udnsVisibles.length > 0) {
@@ -74,7 +75,7 @@ export default function BrujulaComercial({ permisos }: { permisos?: Permisos | n
             flex: 1, overflowX: 'auto',
           }}>
             <div style={{ display: 'flex', gap: 4 }}>
-              {(['overview', 'mercado'] as SubTab[]).map(t => {
+              {(['overview'] as SubTab[]).map(t => {
                 const permitido = t === 'overview' ? perfil?.rol === 'admin' : tienePermiso(permisos, 'brujula', t);
                 return (
                 <button
