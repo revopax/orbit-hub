@@ -80,6 +80,17 @@ const cardStyle: React.CSSProperties = { background: '#fff', borderRadius: 14, b
 function Badge({ label, color, bg }: { label: string; color: string; bg: string }) {
   return <span style={{ fontSize: 11, fontWeight: 600, padding: '3px 9px', borderRadius: 20, background: bg, color, whiteSpace: 'nowrap' }}>{label}</span>;
 }
+function Chevron({ abierto, onClick }: { abierto: boolean; onClick: () => void }) {
+  return (
+    <button onClick={onClick} style={{
+      background: 'transparent', border: '1px solid #e2e8f0', borderRadius: 8,
+      width: 26, height: 26, display: 'flex', alignItems: 'center', justifyContent: 'center',
+      cursor: 'pointer', color: '#64748b', fontSize: 12, flexShrink: 0,
+    }}>
+      {abierto ? '\u25be' : '\u25b8'}
+    </button>
+  );
+}
 
 const CONTEXTO_DUMMY = [
   { industria: 'Alimentos y Bebidas', tamano: 'Corp (501-1000)', prioridad: 'Innovación', desafio: 'Competencia Creciente' },
@@ -205,7 +216,7 @@ function BuscadorIndustrias() {
     </div>
   );
 }
-function BloqueScorecards({ udnNombre, data, meta }: { udnNombre: string; data: ScorecardsICPBP | null; meta: any }) {
+function BloqueScorecards({ udnNombre, data, meta, abierto, onToggle }: { udnNombre: string; data: ScorecardsICPBP | null; meta: any; abierto: boolean; onToggle: () => void }) {
   const d = data ?? {};
   return (
     <div>
@@ -226,27 +237,34 @@ function BloqueScorecards({ udnNombre, data, meta }: { udnNombre: string; data: 
             </div>
           </div>
         )}
-        <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 4 }}>
-          <span style={{
-            width: 22, height: 22, borderRadius: '50%', background: '#8C59FE', color: '#fff',
-            fontSize: 12, fontWeight: 700, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0,
-          }}>1</span>
-          <h3 style={{ fontSize: 16, fontWeight: 700, margin: 0, color: '#0f172a' }}>Contexto</h3>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 4 }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+            <span style={{
+              width: 22, height: 22, borderRadius: '50%', background: '#8C59FE', color: '#fff',
+              fontSize: 12, fontWeight: 700, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0,
+            }}>1</span>
+            <h3 style={{ fontSize: 16, fontWeight: 700, margin: 0, color: '#0f172a' }}>Contexto</h3>
+          </div>
+          <Chevron abierto={abierto} onClick={onToggle} />
         </div>
-        <p style={{ fontSize: 13, color: '#64748b', margin: '4px 0 0' }}>
-          Tu ICP declarado y tus buyer personas - este es tu punto de partida, {udnNombre}.
-        </p>
       </div>
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 16, marginTop: 16, marginBottom: 16 }}>
-        <ListaCard label="Top 5 industrias (ICP)" items={d.topIndustrias ?? []} accent="#8C59FE" />
-        <ScoreCard label="Tamano de empresa" value={d.tamanoEmpresa || '—'} sub="Piso minimo de interes" accent="#059669" icon="" />
-        <ScoreCard label="Geografia" value={d.geografia || '—'} sub="Donde nos interesan" accent="#d97706" icon="" />
-      </div>
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 16 }}>
-        <ListaCard label="Tomadores de decision" items={d.decisores ?? []} accent="#8C59FE" />
-        <ScoreCard label="Area del tomador" value={(d.areasDecisor ?? []).join(' · ') || '—'} sub="Areas mas frecuentes" accent="#059669" icon="" />
-        <ListaCard label="Servicios (Need)" items={d.servicios ?? []} accent="#d97706" />
-      </div>
+      {abierto && (
+        <>
+          <p style={{ fontSize: 13, color: '#64748b', margin: '4px 0 0 24px' }}>
+            Tu ICP declarado y tus buyer personas - este es tu punto de partida, {udnNombre}.
+          </p>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 16, marginTop: 16, marginBottom: 16 }}>
+            <ListaCard label="Top 5 industrias (ICP)" items={d.topIndustrias ?? []} accent="#8C59FE" />
+            <ScoreCard label="Tamano de empresa" value={d.tamanoEmpresa || '—'} sub="Piso minimo de interes" accent="#059669" icon="" />
+            <ScoreCard label="Geografia" value={d.geografia || '—'} sub="Donde nos interesan" accent="#d97706" icon="" />
+          </div>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 16 }}>
+            <ListaCard label="Tomadores de decision" items={d.decisores ?? []} accent="#8C59FE" />
+            <ScoreCard label="Area del tomador" value={(d.areasDecisor ?? []).join(' · ') || '—'} sub="Areas mas frecuentes" accent="#059669" icon="" />
+            <ListaCard label="Servicios (Need)" items={d.servicios ?? []} accent="#d97706" />
+          </div>
+        </>
+      )}
     </div>
   );
 }
