@@ -1,7 +1,7 @@
 'use client';
 import React, { useEffect, useState } from 'react';
 import { CalendarioGrid } from './CalendarioGrid';
-import { SenalesMercado, ScoreCard } from '../hubspot/InteligenciaMercado';
+import { ScoreCard } from '../hubspot/InteligenciaMercado';
 import ProspeccionDenue from '../hubspot/ProspeccionDenue';
 import { GraficaCruceSenales } from '../GraficaCruceSenales';
 import { getProspeccionTree } from '../../lib/prospeccionTreeCache';
@@ -76,6 +76,226 @@ const ICP_TO_DENUE: Record<string, string> = {
 };
 
 const cardStyle: React.CSSProperties = { background: '#fff', borderRadius: 14, border: '1px solid #eef0f3', boxShadow: '0 1px 3px rgba(16,24,40,0.04)', padding: '20px 24px' };
+
+const TIPO_COLOR: Record<string, string> = { 'Expansión': '#059669', 'Inversión': '#2563eb', 'Apertura': '#7c3aed', 'Cambio de puesto': '#d97706', 'Otro': '#64748b' };
+const TIPO_BG: Record<string, string> = { 'Expansión': '#d1fae5', 'Inversión': '#dbeafe', 'Apertura': '#ede9fe', 'Cambio de puesto': '#fef3c7', 'Otro': '#f1f5f9' };
+const TIPO_ICONO: Record<string, string> = { 'Expansión': '🏬', 'Inversión': '💰', 'Cambio de puesto': '👤', 'Apertura': '🆕', 'Otro': '📰' };
+type MencionAPI = {
+  fecha: string;
+  hora: string;
+  titulo: string;
+  contenido: string;
+  fuente: string;
+  url: string | null;
+  sentimiento: number;
+  tipo: string;
+};
+
+function tiempoRelativo(fecha: string, hora: string): string {
+  const fechaHora = new Date(`${fecha}T${hora || '00:00'}:00`);
+  const diffMs = Date.now() - fechaHora.getTime();
+  const diffMin = Math.floor(diffMs / 60000);
+  if (diffMin < 60) return `hace ${Math.max(diffMin, 0)} min`;
+  const diffH = Math.floor(diffMin / 60);
+  if (diffH < 24) return `hace ${diffH} h`;
+  const diffD = Math.floor(diffH / 24);
+  return `hace ${diffD} d`;
+}
+
+function resaltarKeyword(texto: string): string {
+  return texto;
+}
+
+export function SenalesMercado({ abierto = true, onToggle = () => {} }: { abierto?: boolean; onToggle?: () => void }) {
+  const [menciones, setMenciones] = useState<MencionAPI[]>([]);
+  const [cargando, setCargando] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [dias, setDias] = useState(7);
+  const [tiposActivos, setTiposActivos] = useState<string[]>(['Expansión', 'Inversión', 'Cambio de puesto', 'Otro']);
+  const [abiertoPeriodo, setAbiertoPeriodo] = useState(false);
+  const [abiertoTipo, setAbiertoTipo] = useState(false);
+  useEffect(() => {
+    setCargando(true);
+    fetch(`/api/brand24-menciones?dias=${dias}`)
+      .then(res => res.json())
+      .then(json => {
+        if (json.error) { setError(json.error); return; }
+        setMenciones(json.data || []);
+      })
+      .catch(e => setError(e.message))
+      .finally(() => setCargando(false));
+  }, [dias]);
+  const ordenPrioridad: Record<string, number> = { 'Expansión': 0, 'Inversión': 0, 'Cambio de puesto': 0, 'Otro': 1 };
+  const mencionesFiltradas = menciones.filter(m => tiposActivos.includes(m.tipo));
+  const mencionesOrdenadas = [...mencionesFiltradas].sort((a, b) => (ordenPrioridad[a.tipo] ?? 1) - (ordenPrioridad[b.tipo] ?? 1));
+  const toggleTipo = (tipo: string) => {
+    setTiposActivos(prev => prev.includes(tipo) ? prev.filter(t => t !== tipo) : [...prev, tipo]);
+  };
+  return (
+    <div style={cardStyle}>
+      <div style={{ position: 'relative' }}>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 4 }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+            <span style={{
+              width: 22, height: 22, borderRadius: '50%', background: '#8C59FE', color: '#fff',
+              fontSize: 12, fontWeight: 700, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0,
+            }}>2</span>
+            <h3 style={{ fontSize: 16, fontWeight: 700, margin: 0, color: '#0f172a' }}>Señales de mercado</h3>
+          </div>
+          <Chevron abierto={abierto} onClick={onToggle} />
+        </div>
+        <div style={{ position: 'absolute', top: -4, right: 32, textAlign: 'right' }}>
+          <span style={{
+            display: 'inline-flex', alignItems: 'center', gap: 6,
+            fontSize: 11.5, fontWeight: 700, color: '#5b3fd6',
+            background: '#f8f7ff', border: '1px solid #ece9ff',
+            borderRadius: 999, padding: '4px 12px',
+          }}>
+            <span style={{ width: 6, height: 6, borderRadius: '50%', background: '#22c55e', animation: 'pulse 1.6s infinite' }} />
+            Última actualización: {new Date().toLocaleDateString('es-MX', { day: 'numeric', month: 'long', year: 'numeric' })}
+          </span>
+          <div style={{ fontSize: 10, color: '#94a3b8', marginTop: 3 }}>
+            Próx. actualización: al recargar la página
+          </div>
+        </div>
+        {abierto && !cargando && !error && (
+          <>
+            <div style={{ display: 'flex', gap: 8, marginBottom: 10, marginTop: 10 }}>
+              <div style={{ position: 'relative' }}>
+                <button onClick={() => { setAbiertoPeriodo(v => !v); setAbiertoTipo(false); }} style={{
+                  background: 'transparent', border: '1px solid #e2e8f0', borderRadius: 9,
+                  padding: '5px 12px', color: '#64748b', fontSize: 12.5, fontWeight: 500,
+                  cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 6,
+                }}>
+                  Periodo: {dias === 0 ? 'Máx. (31d)' : `${dias} días`}
+                  <span style={{ fontSize: 10 }}>▾</span>
+                </button>
+                {abiertoPeriodo && (
+                  <>
+                    <div onClick={() => setAbiertoPeriodo(false)} style={{ position: 'fixed', inset: 0, zIndex: 40 }} />
+                    <div style={{
+                      position: 'absolute', top: 34, left: 0, zIndex: 50,
+                      background: '#fff', border: '1px solid #e2e8f0', borderRadius: 10,
+                      boxShadow: '0 8px 24px rgba(0,0,0,0.12)', minWidth: 140, overflow: 'hidden',
+                    }}>
+                      {[7, 14, 30, 0].map(d => (
+                        <div key={d} onClick={() => { setDias(d); setAbiertoPeriodo(false); }} style={{
+                          padding: '8px 14px', fontSize: 12.5, cursor: 'pointer',
+                          color: dias === d ? '#8C59FE' : '#334155',
+                          fontWeight: dias === d ? 700 : 500,
+                          background: dias === d ? '#f8f7ff' : 'transparent',
+                        }}>
+                          {d === 0 ? 'Máx. (31d)' : `${d} días`}
+                        </div>
+                      ))}
+                    </div>
+                  </>
+                )}
+              </div>
+
+              <div style={{ position: 'relative' }}>
+                <button onClick={() => { setAbiertoTipo(v => !v); setAbiertoPeriodo(false); }} style={{
+                  background: 'transparent', border: '1px solid #e2e8f0', borderRadius: 9,
+                  padding: '5px 12px', color: '#64748b', fontSize: 12.5, fontWeight: 500,
+                  cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 6,
+                }}>
+                  Tipo {tiposActivos.length < 4 ? `(${tiposActivos.length})` : ''}
+                  <span style={{ fontSize: 10 }}>▾</span>
+                </button>
+                {abiertoTipo && (
+                  <>
+                    <div onClick={() => setAbiertoTipo(false)} style={{ position: 'fixed', inset: 0, zIndex: 40 }} />
+                    <div style={{
+                      position: 'absolute', top: 34, left: 0, zIndex: 50,
+                      background: '#fff', border: '1px solid #e2e8f0', borderRadius: 10,
+                      boxShadow: '0 8px 24px rgba(0,0,0,0.12)', minWidth: 190, overflow: 'hidden', padding: '4px 0',
+                    }}>
+                      {['Expansión', 'Inversión', 'Cambio de puesto', 'Otro'].map(tipo => {
+                        const activo = tiposActivos.includes(tipo);
+                        return (
+                          <label key={tipo} onClick={() => toggleTipo(tipo)} style={{
+                            display: 'flex', alignItems: 'center', gap: 8,
+                            padding: '8px 14px', fontSize: 12.5, cursor: 'pointer', color: '#334155',
+                          }}>
+                            <span style={{
+                              width: 15, height: 15, borderRadius: 4, flexShrink: 0,
+                              border: '1.5px solid ' + (activo ? '#8C59FE' : '#cbd5e1'),
+                              background: activo ? '#8C59FE' : 'transparent',
+                              display: 'flex', alignItems: 'center', justifyContent: 'center',
+                              fontSize: 10, color: '#fff',
+                            }}>
+                              {activo ? '✓' : ''}
+                            </span>
+                            {tipo}
+                          </label>
+                        );
+                      })}
+                    </div>
+                  </>
+                )}
+              </div>
+            </div>
+            
+            
+          </>
+        )}
+      </div>
+      {abierto && (
+        <>
+          <p style={{ fontSize: 13, color: '#64748b', margin: '4px 0 16px' }}>Detecciones externas de expansión, inversión y cambios de puesto que podrían indicar una nueva oportunidad, vía Brand24.</p>
+          {cargando && <p style={{ fontSize: 13, color: '#94a3b8' }}>Cargando menciones…</p>}
+          {error && <p style={{ fontSize: 13, color: '#dc2626' }}>Error: {error}</p>}
+          {!cargando && !error && (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 10, maxHeight: 520, overflowY: 'auto' }}>
+          {mencionesOrdenadas.length === 0 && <p style={{ fontSize: 13, color: '#94a3b8' }}>Sin menciones en el periodo seleccionado.</p>}
+          {mencionesOrdenadas.map((m, i) => {
+            const color = TIPO_COLOR[m.tipo] || '#64748b';
+            const bg = TIPO_BG[m.tipo] || '#f1f5f9';
+            const icono = TIPO_ICONO[m.tipo] || '📰';
+            return (
+              <div key={i} style={{ display: 'flex', position: 'relative', borderRadius: 12, border: '1px solid #eef0f3', overflow: 'hidden', background: '#fff', minHeight: 90, flexShrink: 0, animation: 'fadeInDown 0.5s ease', boxShadow: '0 1px 2px rgba(16,24,40,0.03)' }}>
+                <div style={{ width: 4, background: color, flexShrink: 0 }} />
+                <div style={{ padding: '14px 16px', flex: 1, minWidth: 0 }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 8 }}>
+                    <img
+                      src={`https://www.google.com/s2/favicons?domain=${m.fuente}&sz=64`}
+                      alt=""
+                      style={{ width: 22, height: 22, borderRadius: 4, flexShrink: 0, objectFit: 'contain' }}
+                      onError={e => { (e.currentTarget as HTMLImageElement).style.display = 'none'; }}
+                    />
+                    <span style={{ fontSize: 12, fontWeight: 600, color: '#64748b' }}>{m.fuente}</span>
+                    <Badge label={m.tipo} color={color} bg={bg} />
+                    <span style={{ fontSize: 11, color: '#94a3b8', marginLeft: 'auto', whiteSpace: 'nowrap' }}>{tiempoRelativo(m.fecha, m.hora)}</span>
+                  </div>
+                  {m.url ? (
+                    <a href={m.url} target="_blank" rel="noopener noreferrer" style={{ fontSize: 15, fontWeight: 700, color: '#0f172a', margin: 0, lineHeight: 1.4, textDecoration: 'none', display: 'block' }}
+                       onMouseEnter={e => (e.currentTarget.style.textDecoration = 'underline')}
+                       onMouseLeave={e => (e.currentTarget.style.textDecoration = 'none')}>
+                      {m.titulo || m.contenido?.slice(0, 160) || 'Mención sin texto'}
+                    </a>
+                  ) : (
+                    <p style={{ fontSize: 15, fontWeight: 700, color: '#0f172a', margin: 0, lineHeight: 1.4 }}>
+                      {m.titulo || m.contenido?.slice(0, 160) || 'Mención sin texto'}
+                    </p>
+                  )}
+                  {m.contenido && (
+                    <p style={{ fontSize: 12.5, color: '#64748b', margin: '4px 0 0', lineHeight: 1.5, overflow: 'hidden', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical' }}>
+                      {m.contenido}
+                    </p>
+                  )}
+                </div>
+              </div>
+            );
+          })}
+            </div>
+          )}
+        </>
+      )}
+    </div>
+  );
+}
+
+
 
 function Badge({ label, color, bg }: { label: string; color: string; bg: string }) {
   return <span style={{ fontSize: 11, fontWeight: 600, padding: '3px 9px', borderRadius: 20, background: bg, color, whiteSpace: 'nowrap' }}>{label}</span>;
@@ -222,7 +442,7 @@ function BloqueScorecards({ udnNombre, data, meta, abierto, onToggle }: { udnNom
     <div>
       <div style={{ ...cardStyle, position: 'relative' }}>
         {meta?.generado_en && (
-          <div style={{ position: 'absolute', top: 16, right: 20, textAlign: 'right' }}>
+          <div style={{ position: 'absolute', top: 16, right: 56, textAlign: 'right' }}>
             <span style={{
               display: 'inline-flex', alignItems: 'center', gap: 6,
               fontSize: 11.5, fontWeight: 700, color: '#5b3fd6',
@@ -247,7 +467,6 @@ function BloqueScorecards({ udnNombre, data, meta, abierto, onToggle }: { udnNom
           </div>
           <Chevron abierto={abierto} onClick={onToggle} />
         </div>
-      </div>
       {abierto && (
         <>
           <p style={{ fontSize: 13, color: '#64748b', margin: '4px 0 0 24px' }}>
@@ -265,6 +484,7 @@ function BloqueScorecards({ udnNombre, data, meta, abierto, onToggle }: { udnNom
           </div>
         </>
       )}
+      </div>
     </div>
   );
 }
@@ -295,6 +515,15 @@ export default function Overview({ udnNombre, udnId, brandColor }: { udnNombre: 
   const [meta, setMeta] = useState<any>(null);
   const [picosBusqueda, setPicosBusqueda] = useState<Record<string, string | null>>({});
   const idParaCalendario = udnId ?? udnNombre;
+  const [abierto1, setAbierto1] = useState(true);
+  const [abierto2, setAbierto2] = useState(true);
+  const [abierto3, setAbierto3] = useState(true);
+  const [abierto4, setAbierto4] = useState(true);
+  const todoAbierto = abierto1 && abierto2 && abierto3 && abierto4;
+  const toggleTodo = () => {
+    const nuevo = !todoAbierto;
+    setAbierto1(nuevo); setAbierto2(nuevo); setAbierto3(nuevo); setAbierto4(nuevo);
+  };
 
   useEffect(() => {
     let cancelled = false;
@@ -317,9 +546,17 @@ export default function Overview({ udnNombre, udnId, brandColor }: { udnNombre: 
   return (
     <div style={{ padding: 20 }}>
       <div style={{ maxWidth: 1400, margin: '0 auto', display: 'flex', flexDirection: 'column', gap: 20 }}>
+        <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
+          <button onClick={toggleTodo} style={{
+            background: '#fff', border: '1px solid #e2e8f0', borderRadius: 9,
+            padding: '6px 14px', color: '#64748b', fontSize: 12.5, fontWeight: 600, cursor: 'pointer',
+          }}>
+            {todoAbierto ? 'Colapsar todo' : 'Expandir todo'}
+          </button>
+        </div>
         <BuscadorIndustrias />
-        <BloqueScorecards udnNombre={udnNombre} data={scorecardsData} meta={meta} />
-        <SenalesMercado />
+        <BloqueScorecards udnNombre={udnNombre} data={scorecardsData} meta={meta} abierto={abierto1} onToggle={() => setAbierto1(v => !v)} />
+        <SenalesMercado abierto={abierto2} onToggle={() => setAbierto2(v => !v)} />
         {false && (
         <div style={cardStyle}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 4 }}>
@@ -335,7 +572,7 @@ export default function Overview({ udnNombre, udnId, brandColor }: { udnNombre: 
         )}
         <div style={{ ...cardStyle, position: 'relative' }}>
           {meta?.fecha_actualizacion_inegi && (
-            <div style={{ position: 'absolute', top: 16, right: 20, textAlign: 'right' }}>
+            <div style={{ position: 'absolute', top: 16, right: 56, textAlign: 'right' }}>
               <span style={{
                 display: 'inline-flex', alignItems: 'center', gap: 6,
                 fontSize: 11.5, fontWeight: 700, color: '#5b3fd6',
@@ -350,7 +587,7 @@ export default function Overview({ udnNombre, udnId, brandColor }: { udnNombre: 
               </div>
             </div>
           )}
-          <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 4 }}>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 4 }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
               <span style={{
                 width: 22, height: 22, borderRadius: '50%', background: '#8C59FE', color: '#fff',
@@ -358,37 +595,48 @@ export default function Overview({ udnNombre, udnId, brandColor }: { udnNombre: 
               }}>3</span>
               <h3 style={{ fontSize: 16, fontWeight: 700, margin: 0, color: '#0f172a' }}>Calendario de prospeccion</h3>
             </div>
-
+            <Chevron abierto={abierto3} onClick={() => setAbierto3(v => !v)} />
           </div>
-          <p style={{ fontSize: 13, color: '#64748b', margin: '4px 0 16px' }}>
-            Temporalidad por industria - mejor momento para contactar segun el ciclo economico.
-          </p>
-          {calendarioData ? (
-            <CalendarioGrid
-              meses={calendarioData.meses}
-              filas={calendarioData.filas}
-              brandColor={brandColor ?? '#8C59FE'}
-              udnId={idParaCalendario}
-              empresasPico={empresasPicoData}
-              calendarioCompleto={calendarioCompleto}
-              picoBusquedaMes={picosBusqueda[udnNombre] ?? null}
-            />
-          ) : (
-            <p style={{ fontSize: 12.5, color: '#94a3b8' }}>Cargando calendario...</p>
+          {abierto3 && (
+            <>
+              <p style={{ fontSize: 13, color: '#64748b', margin: '4px 0 16px' }}>
+                Temporalidad por industria - mejor momento para contactar segun el ciclo economico.
+              </p>
+              {calendarioData ? (
+                <CalendarioGrid
+                  meses={calendarioData.meses}
+                  filas={calendarioData.filas}
+                  brandColor={brandColor ?? '#8C59FE'}
+                  udnId={idParaCalendario}
+                  empresasPico={empresasPicoData}
+                  calendarioCompleto={calendarioCompleto}
+                  picoBusquedaMes={picosBusqueda[udnNombre] ?? null}
+                />
+              ) : (
+                <p style={{ fontSize: 12.5, color: '#94a3b8' }}>Cargando calendario...</p>
+              )}
+            </>
           )}
         </div>
         <div style={cardStyle}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 4 }}>
-            <span style={{
-              width: 22, height: 22, borderRadius: '50%', background: '#8C59FE', color: '#fff',
-              fontSize: 12, fontWeight: 700, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0,
-            }}>4</span>
-            <h3 style={{ fontSize: 16, fontWeight: 700, margin: 0, color: '#0f172a' }}>Descubrir nuevas empresas</h3>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 4 }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+              <span style={{
+                width: 22, height: 22, borderRadius: '50%', background: '#8C59FE', color: '#fff',
+                fontSize: 12, fontWeight: 700, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0,
+              }}>4</span>
+              <h3 style={{ fontSize: 16, fontWeight: 700, margin: 0, color: '#0f172a' }}>Descubrir nuevas empresas</h3>
+            </div>
+            <Chevron abierto={abierto4} onClick={() => setAbierto4(v => !v)} />
           </div>
-          <p style={{ fontSize: 13, color: '#64748b', margin: '4px 0 16px' }}>
-            Universo DENUE - empresas que aun no forman parte de tu cartera.
-          </p>
-          <ProspeccionDenue onTotalChange={() => {}} />
+          {abierto4 && (
+            <>
+              <p style={{ fontSize: 13, color: '#64748b', margin: '4px 0 16px' }}>
+                Universo DENUE - empresas que aun no forman parte de tu cartera.
+              </p>
+              <ProspeccionDenue onTotalChange={() => {}} />
+            </>
+          )}
         </div>
       </div>
     </div>
