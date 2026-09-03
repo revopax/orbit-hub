@@ -326,7 +326,7 @@ type ScorecardsICPBP = {
 };
 function ListaCard({ label, items, accent, sub }: { label: string; items: string[]; accent: string; sub?: string }) {
   return (
-    <div style={{ background: '#fff', borderRadius: 14, border: '1px solid #eef0f3', boxShadow: '0 1px 3px rgba(16,24,40,0.04)', padding: '16px 18px', borderLeft: `3px solid ${accent}` }}>
+    <div style={{ background: `${accent}08`, borderRadius: 14, border: `1px solid ${accent}22`, boxShadow: '0 1px 4px rgba(16,24,40,0.05)', padding: '16px 18px', borderLeft: `4px solid ${accent}` }}>
       <div style={{ fontSize: 11, fontWeight: 700, color: '#94a3b8', textTransform: 'uppercase', letterSpacing: '0.04em', marginBottom: 10 }}>{label}</div>
       {items.length > 0 ? (
         <ul style={{ margin: 0, padding: 0, listStyle: 'none', display: 'flex', flexDirection: 'column', gap: 6 }}>
