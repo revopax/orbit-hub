@@ -98,9 +98,13 @@ export function SenalesMercado() {
   const [menciones, setMenciones] = useState<MencionAPI[]>([]);
   const [cargando, setCargando] = useState(true);
   const [error, setError] = useState<string | null>(null);
-
+  const [dias, setDias] = useState(7);
+  const [tiposActivos, setTiposActivos] = useState<string[]>(['Expansión', 'Inversión', 'Cambio de puesto', 'Otro']);
+  const [abiertoPeriodo, setAbiertoPeriodo] = useState(false);
+  const [abiertoTipo, setAbiertoTipo] = useState(false);
   useEffect(() => {
-    fetch('/api/brand24-menciones')
+    setCargando(true);
+    fetch(`/api/brand24-menciones?dias=${dias}`)
       .then(res => res.json())
       .then(json => {
         if (json.error) { setError(json.error); return; }
@@ -108,26 +112,110 @@ export function SenalesMercado() {
       })
       .catch(e => setError(e.message))
       .finally(() => setCargando(false));
-  }, []);
-
+  }, [dias]);
+  const ordenPrioridad: Record<string, number> = { 'Expansión': 0, 'Inversión': 0, 'Cambio de puesto': 0, 'Otro': 1 };
+  const mencionesFiltradas = menciones.filter(m => tiposActivos.includes(m.tipo));
+  const mencionesOrdenadas = [...mencionesFiltradas].sort((a, b) => (ordenPrioridad[a.tipo] ?? 1) - (ordenPrioridad[b.tipo] ?? 1));
+  const toggleTipo = (tipo: string) => {
+    setTiposActivos(prev => prev.includes(tipo) ? prev.filter(t => t !== tipo) : [...prev, tipo]);
+  };
   return (
     <div style={cardStyle}>
       <div style={{ position: 'relative' }}>
         {!cargando && !error && (
-          <div style={{ position: 'absolute', top: 0, right: 0, textAlign: 'right' }}>
-            <span style={{
-              display: 'inline-flex', alignItems: 'center', gap: 6,
-              fontSize: 11.5, fontWeight: 700, color: '#5b3fd6',
-              background: '#f8f7ff', border: '1px solid #ece9ff',
-              borderRadius: 999, padding: '4px 12px',
-            }}>
-              <span style={{ width: 6, height: 6, borderRadius: '50%', background: '#22c55e', animation: 'pulse 1.6s infinite' }} />
-              Última actualización: {new Date().toLocaleDateString('es-MX', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' })}
-            </span>
-            <div style={{ fontSize: 10, color: '#94a3b8', marginTop: 3 }}>
-              Próx. actualización: al recargar la página
+          <>
+            <div style={{ display: 'flex', gap: 8, marginBottom: 10 }}>
+              <div style={{ position: 'relative' }}>
+                <button onClick={() => { setAbiertoPeriodo(v => !v); setAbiertoTipo(false); }} style={{
+                  background: 'transparent', border: '1px solid #e2e8f0', borderRadius: 9,
+                  padding: '5px 12px', color: '#64748b', fontSize: 12.5, fontWeight: 500,
+                  cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 6,
+                }}>
+                  Periodo: {dias === 0 ? 'Máx. (31d)' : `${dias} días`}
+                  <span style={{ fontSize: 10 }}>▾</span>
+                </button>
+                {abiertoPeriodo && (
+                  <>
+                    <div onClick={() => setAbiertoPeriodo(false)} style={{ position: 'fixed', inset: 0, zIndex: 40 }} />
+                    <div style={{
+                      position: 'absolute', top: 34, left: 0, zIndex: 50,
+                      background: '#fff', border: '1px solid #e2e8f0', borderRadius: 10,
+                      boxShadow: '0 8px 24px rgba(0,0,0,0.12)', minWidth: 140, overflow: 'hidden',
+                    }}>
+                      {[7, 14, 30, 0].map(d => (
+                        <div key={d} onClick={() => { setDias(d); setAbiertoPeriodo(false); }} style={{
+                          padding: '8px 14px', fontSize: 12.5, cursor: 'pointer',
+                          color: dias === d ? '#8C59FE' : '#334155',
+                          fontWeight: dias === d ? 700 : 500,
+                          background: dias === d ? '#f8f7ff' : 'transparent',
+                        }}>
+                          {d === 0 ? 'Máx. (31d)' : `${d} días`}
+                        </div>
+                      ))}
+                    </div>
+                  </>
+                )}
+              </div>
+
+              <div style={{ position: 'relative' }}>
+                <button onClick={() => { setAbiertoTipo(v => !v); setAbiertoPeriodo(false); }} style={{
+                  background: 'transparent', border: '1px solid #e2e8f0', borderRadius: 9,
+                  padding: '5px 12px', color: '#64748b', fontSize: 12.5, fontWeight: 500,
+                  cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 6,
+                }}>
+                  Tipo {tiposActivos.length < 4 ? `(${tiposActivos.length})` : ''}
+                  <span style={{ fontSize: 10 }}>▾</span>
+                </button>
+                {abiertoTipo && (
+                  <>
+                    <div onClick={() => setAbiertoTipo(false)} style={{ position: 'fixed', inset: 0, zIndex: 40 }} />
+                    <div style={{
+                      position: 'absolute', top: 34, left: 0, zIndex: 50,
+                      background: '#fff', border: '1px solid #e2e8f0', borderRadius: 10,
+                      boxShadow: '0 8px 24px rgba(0,0,0,0.12)', minWidth: 190, overflow: 'hidden', padding: '4px 0',
+                    }}>
+                      {['Expansión', 'Inversión', 'Cambio de puesto', 'Otro'].map(tipo => {
+                        const activo = tiposActivos.includes(tipo);
+                        return (
+                          <label key={tipo} onClick={() => toggleTipo(tipo)} style={{
+                            display: 'flex', alignItems: 'center', gap: 8,
+                            padding: '8px 14px', fontSize: 12.5, cursor: 'pointer', color: '#334155',
+                          }}>
+                            <span style={{
+                              width: 15, height: 15, borderRadius: 4, flexShrink: 0,
+                              border: '1.5px solid ' + (activo ? '#8C59FE' : '#cbd5e1'),
+                              background: activo ? '#8C59FE' : 'transparent',
+                              display: 'flex', alignItems: 'center', justifyContent: 'center',
+                              fontSize: 10, color: '#fff',
+                            }}>
+                              {activo ? '✓' : ''}
+                            </span>
+                            {tipo}
+                          </label>
+                        );
+                      })}
+                    </div>
+                  </>
+                )}
+              </div>
             </div>
-          </div>
+            
+            
+            <div style={{ position: 'absolute', top: 0, right: 0, textAlign: 'right' }}>
+              <span style={{
+                display: 'inline-flex', alignItems: 'center', gap: 6,
+                fontSize: 11.5, fontWeight: 700, color: '#5b3fd6',
+                background: '#f8f7ff', border: '1px solid #ece9ff',
+                borderRadius: 999, padding: '4px 12px',
+              }}>
+                <span style={{ width: 6, height: 6, borderRadius: '50%', background: '#22c55e', animation: 'pulse 1.6s infinite' }} />
+                Última actualización: {new Date().toLocaleDateString('es-MX', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' })}
+              </span>
+              <div style={{ fontSize: 10, color: '#94a3b8', marginTop: 3 }}>
+                Próx. actualización: al recargar la página
+              </div>
+            </div>
+          </>
         )}
         <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 4 }}>
           <span style={{
@@ -144,8 +232,8 @@ export function SenalesMercado() {
 
       {!cargando && !error && (
         <div style={{ display: 'flex', flexDirection: 'column', gap: 10, maxHeight: 520, overflowY: 'auto' }}>
-          {menciones.length === 0 && <p style={{ fontSize: 13, color: '#94a3b8' }}>Sin menciones en los últimos 7 días.</p>}
-          {menciones.map((m, i) => {
+          {mencionesOrdenadas.length === 0 && <p style={{ fontSize: 13, color: '#94a3b8' }}>Sin menciones en el periodo seleccionado.</p>}
+          {mencionesOrdenadas.map((m, i) => {
             const color = TIPO_COLOR[m.tipo] || '#64748b';
             const bg = TIPO_BG[m.tipo] || '#f1f5f9';
             const icono = TIPO_ICONO[m.tipo] || '📰';

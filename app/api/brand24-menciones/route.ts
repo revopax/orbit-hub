@@ -14,7 +14,10 @@ function clasificar(texto: string): string {
   return 'Otro';
 }
 
-export async function GET() {
+export async function GET(request: Request) {
+  const { searchParams } = new URL(request.url);
+  const diasParam = parseInt(searchParams.get('dias') || '7', 10);
+  const dias = diasParam === 0 ? 31 : Math.min(diasParam || 7, 30);
   const apiKey = process.env.BRAND24_API_KEY;
   const projectId = process.env.BRAND24_PROJECT_ID;
   if (!apiKey || !projectId) {
@@ -22,7 +25,7 @@ export async function GET() {
   }
 
   const hoy = new Date();
-  const hace7dias = new Date(hoy.getTime() - 7 * 24 * 60 * 60 * 1000);
+  const hace7dias = new Date(hoy.getTime() - dias * 24 * 60 * 60 * 1000);
   const fmt = (d: Date) => d.toISOString().slice(0, 10);
 
   try {
@@ -34,7 +37,15 @@ export async function GET() {
       return NextResponse.json({ error: json.message || 'Error de Brand24' }, { status: 502, headers: { 'Cache-Control': 'no-store' } });
     }
 
-    const results = (json.message?.results ?? []).map((m: any) => {
+    const crudos = (json.message?.results ?? []).filter((m: any) => m.content || m.title);
+    const vistos = new Set<string>();
+    const sinDuplicados = crudos.filter((m: any) => {
+      const clave = (m.title || m.content || '').trim().toLowerCase().slice(0, 60);
+      if (!clave || vistos.has(clave)) return false;
+      vistos.add(clave);
+      return true;
+    });
+    const results = sinDuplicados.map((m: any) => {
       const textoCompleto = `${m.title || ''} ${m.content || ''}`;
       const urlNoticia = (m.source && m.source.startsWith('http')) ? m.source : null;
       return {
