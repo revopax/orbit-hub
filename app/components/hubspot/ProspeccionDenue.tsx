@@ -137,11 +137,6 @@ export default function ProspeccionDenue({ onTotalChange }: { onTotalChange?: (t
 
   return (
     <div style={cardStyle}>
-      <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', marginBottom: 4 }}>
-        <h3 style={{ fontSize: 15, fontWeight: 700, margin: 0, color: '#0f172a' }}>Universo de prospección DENUE</h3>
-
-      </div>
-      <p style={{ fontSize: 13, color: '#64748b', margin: '0 0 16px' }}>Establecimientos del DENUE que no han sido tocados aún — filtra por sector, tamaño y ubicación para encontrar prospectos.</p>
 
       {/* Barra de tabs tipo DENUE */}
       <div ref={panelRef} style={{ position: 'relative', marginBottom: 16 }}>

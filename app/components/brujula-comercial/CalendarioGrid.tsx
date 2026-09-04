@@ -1,5 +1,6 @@
 import { Fragment, useState, useEffect } from 'react';
 import type { EmpresaPico } from '../../lib/types';
+import { DENUE_TO_ICP } from '../../lib/icpToDenue';
 
 
 type Estado = 'pico' | 'prep' | 'ok' | 'vacio';
@@ -230,9 +231,10 @@ export function CalendarioGrid({ meses, filas, brandColor, udnId, empresasPico, 
           <button
             onClick={() => setExpandido(v => !v)}
             style={{
-              flexShrink: 0, padding: '6px 12px', borderRadius: 8, border: '1px solid var(--border)',
-              background: expandido ? brandColor + '15' : 'var(--bg)', color: expandido ? brandColor : 'var(--txt-3)',
-              fontSize: 11, fontWeight: 600, cursor: 'pointer', whiteSpace: 'nowrap',
+              flexShrink: 0, padding: '7px 14px', borderRadius: 8, border: expandido ? '1px solid var(--border)' : 'none',
+              background: expandido ? brandColor + '15' : brandColor, color: expandido ? brandColor : '#fff',
+              fontSize: 11, fontWeight: 700, cursor: 'pointer', whiteSpace: 'nowrap',
+              boxShadow: expandido ? 'none' : '0 1px 3px rgba(0,0,0,0.15)',
             }}
           >
             {expandido ? 'Ver solo próximos meses' : 'Ver año completo (ene-dic)'}
@@ -338,7 +340,7 @@ export function CalendarioGrid({ meses, filas, brandColor, udnId, empresasPico, 
                 padding: '2px 12px 8px', textAlign: 'left',
                 fontSize: 10, fontWeight: 600, color: 'var(--txt-5)',
                 textTransform: 'uppercase', letterSpacing: '0.06em',
-                width: 110, maxWidth: 110, borderBottom: '1px solid var(--divider)',
+                width: 220, maxWidth: 220, borderBottom: '1px solid var(--divider)',
               }}>
                 Industria
               </th>
@@ -364,24 +366,31 @@ export function CalendarioGrid({ meses, filas, brandColor, udnId, empresasPico, 
                   style={{ borderBottom: 'none' }}
                 >
                   <td
-                    style={{ padding: '8px 12px 4px', fontSize: 11, fontWeight: 500, color: 'var(--txt-3)', width: 110, maxWidth: 110, lineHeight: 1.3, whiteSpace: 'normal', wordBreak: 'break-word', userSelect: 'none' }}
+                    style={{ padding: '8px 12px 4px', fontSize: 11.5, fontWeight: 600, color: 'var(--txt-2)', width: 220, maxWidth: 220, lineHeight: 1.3, whiteSpace: 'normal', wordBreak: 'break-word', userSelect: 'none' }}
                   >
-                    <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4, width: '100%' }}>
-                      <span onClick={() => toggleIndustria(fila.industria)} style={{ display: 'inline-flex', alignItems: 'center', gap: 4, cursor: 'pointer', flex: 1, minWidth: 0 }}>
-                        <svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3"
-                          style={{ transform: industriasExpandidas.includes(fila.industria) ? 'rotate(90deg)' : 'rotate(0deg)', transition: 'transform 0.15s', flexShrink: 0 }}>
-                          <polyline points="9 18 15 12 9 6" />
-                        </svg>
-                        {fila.industria.replace(/^[\d-]+\s*/, '')}
-                      </span>
-                      {filasExtra.some(f => f.industria === fila.industria) && (
-                        <span
-                          onClick={(e) => { e.stopPropagation(); quitarFilaExtra(fila.industria); }}
-                          style={{ fontSize: 12, color: 'var(--txt-5)', cursor: 'pointer', flexShrink: 0, padding: '0 2px' }}
-                          title="Quitar industria"
-                        >
-                          {'\u2715'}
+                    <span style={{ display: 'flex', flexDirection: 'column', width: '100%' }}>
+                      <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4, width: '100%' }}>
+                        <span onClick={() => toggleIndustria(fila.industria)} style={{ display: 'inline-flex', alignItems: 'center', gap: 4, cursor: 'pointer', flex: 1, minWidth: 0 }}>
+                          <svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3"
+                            style={{ transform: industriasExpandidas.includes(fila.industria) ? 'rotate(90deg)' : 'rotate(0deg)', transition: 'transform 0.15s', flexShrink: 0 }}>
+                            <polyline points="9 18 15 12 9 6" />
+                          </svg>
+                          {fila.industria.replace(/^[\d-]+\s*/, '')}
                         </span>
+                        {filasExtra.some(f => f.industria === fila.industria) && (
+                          <span
+                            onClick={(e) => { e.stopPropagation(); quitarFilaExtra(fila.industria); }}
+                            style={{ fontSize: 12, color: 'var(--txt-5)', cursor: 'pointer', flexShrink: 0, padding: '0 2px' }}
+                            title="Quitar industria"
+                          >
+                            {'\u2715'}
+                          </span>
+                        )}
+                      </span>
+                      {DENUE_TO_ICP[fila.industria] && (
+                        <div style={{ fontSize: 10, color: 'var(--txt-4)', fontWeight: 400, marginTop: 6, lineHeight: 1.35, fontStyle: 'italic' }}>
+                          {'= '}{DENUE_TO_ICP[fila.industria].join(' / ')}
+                        </div>
                       )}
                     </span>
                   </td>
@@ -590,7 +599,7 @@ export function CalendarioGrid({ meses, filas, brandColor, udnId, empresasPico, 
           {panelAbierto && <span style={{ fontSize: 12, fontWeight: 700, color: 'var(--txt-2)' }}>Nuevas Industrias</span>}
           {!panelAbierto && (
             <span style={{
-              position: 'absolute', bottom: 'calc(100% + 8px)', right: 0,
+              position: 'absolute', top: '50%', left: '100%', transform: 'translateY(-50%)', marginLeft: 8,
               fontSize: 11, fontWeight: 700, color: brandColor, background: '#fff',
               border: `1px solid ${brandColor}33`, borderRadius: 20, padding: '5px 12px',
               whiteSpace: 'nowrap', boxShadow: `0 2px 8px ${brandColor}22`, zIndex: 5,

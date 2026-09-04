@@ -5,75 +5,9 @@ import { ScoreCard } from '../hubspot/InteligenciaMercado';
 import ProspeccionDenue from '../hubspot/ProspeccionDenue';
 import { GraficaCruceSenales } from '../GraficaCruceSenales';
 import { getProspeccionTree } from '../../lib/prospeccionTreeCache';
+import { ICP_TO_DENUE } from '../../lib/icpToDenue';
 
 
-const ICP_TO_DENUE: Record<string, string> = {
-  'aerolineas y aviacion': 'Transportes, correos y almacenamiento',
-  'agroindustria': 'Agricultura, cría y explotación de animales, aprovechamiento forestal, pesca y caza',
-  'agropecuario': 'Agricultura, cría y explotación de animales, aprovechamiento forestal, pesca y caza',
-  'alimentos y bebidas': 'Industrias manufactureras',
-  'armadoras': 'Industrias manufactureras',
-  'aseguradoras': 'Servicios financieros y de seguros',
-  'automotriz': 'Industrias manufactureras',
-  'bebidas alcoholicas': 'Industrias manufactureras',
-  'bienes raices': 'Servicios inmobiliarios y de alquiler',
-  'casinos': 'Servicios de esparcimiento culturales y deportivos',
-  'cementeras': 'Industrias manufactureras',
-  'centros comerciales': 'Servicios inmobiliarios y de alquiler',
-  'cines': 'Información en medios masivos',
-  'comercio electronico': 'Comercio al por menor',
-  'construccion': 'Construcción',
-  'consultoria y servicios profesionales': 'Servicios profesionales, científicos y técnicos',
-  'consumo masivo (fmcg)': 'Comercio al por menor',
-  'cuidado personal y belleza': 'Comercio al por menor',
-  'dooh networks': 'Información en medios masivos',
-  'deportes y recreacion': 'Servicios de esparcimiento culturales y deportivos',
-  'e-commerce (gran volumen)': 'Comercio al por menor',
-  'educacion': 'Servicios educativos',
-  'energia y servicios publicos': 'Generación y distribución de energía eléctrica',
-  'energias renovables': 'Generación y distribución de energía eléctrica',
-  'entretenimiento': 'Servicios de esparcimiento culturales y deportivos',
-  'farma y salud': 'Servicios de salud y de asistencia social',
-  'farmaceuticas': 'Industrias manufactureras',
-  'ferreteria': 'Comercio al por menor',
-  'fibras': 'Servicios inmobiliarios y de alquiler',
-  'financiera': 'Servicios financieros y de seguros',
-  'fintech / banca digital': 'Servicios financieros y de seguros',
-  'gobierno': 'Actividades legislativas, gubernamentales y de impartición de justicia',
-  'gobierno y sector publico': 'Actividades legislativas, gubernamentales y de impartición de justicia',
-  'grupos hospitalarios': 'Servicios de salud y de asistencia social',
-  'hotelera y viajes': 'Servicios de alojamiento temporal y preparación de alimentos',
-  'hoteles': 'Servicios de alojamiento temporal y preparación de alimentos',
-  'infraestructura': 'Construcción',
-  'inmobiliarias': 'Servicios inmobiliarios y de alquiler',
-  'laboratorios farmaceuticos': 'Industrias manufactureras',
-  'logistica / scm (b2b critico)': 'Transportes, correos y almacenamiento',
-  'manufactura ligera (turnos fijos)': 'Industrias manufactureras',
-  'medios y entretenimiento': 'Información en medios masivos',
-  'movilidad y transporte': 'Transportes, correos y almacenamiento',
-  'parques de diversiones': 'Servicios de esparcimiento culturales y deportivos',
-  'petroleo y gas': 'Minería',
-  'plataformas de viajes': 'Información en medios masivos',
-  'procesadores de pagos': 'Servicios financieros y de seguros',
-  'restaurantes': 'Servicios de alojamiento temporal y preparación de alimentos',
-  'restaurantes y qrs': 'Servicios de alojamiento temporal y preparación de alimentos',
-  'retail': 'Comercio al por menor',
-  'salud': 'Servicios de salud y de asistencia social',
-  'salud / farmaceutico (gestion)': 'Servicios de salud y de asistencia social',
-  'seguros': 'Servicios financieros y de seguros',
-  'servicios financieros': 'Servicios financieros y de seguros',
-  'servicios de suscripcion (saas b2b)': 'Información en medios masivos',
-  'software y tecnologia': 'Información en medios masivos',
-  'startups': 'Información en medios masivos',
-  'tecnologia': 'Información en medios masivos',
-  'telecomunicaciones': 'Información en medios masivos',
-  'textil': 'Industrias manufactureras',
-  'trade marketing (btl)*': 'Servicios profesionales, científicos y técnicos',
-  'transporte y logistica': 'Transportes, correos y almacenamiento',
-  'turismo y hospitalidad': 'Servicios de alojamiento temporal y preparación de alimentos',
-  'turistica': 'Servicios de alojamiento temporal y preparación de alimentos',
-  'ventas directas (cambaceo)*': 'Comercio al por menor',
-};
 
 const cardStyle: React.CSSProperties = { background: '#fff', borderRadius: 14, border: '1px solid #eef0f3', boxShadow: '0 1px 3px rgba(16,24,40,0.04)', padding: '20px 24px' };
 
@@ -303,9 +237,9 @@ function Badge({ label, color, bg }: { label: string; color: string; bg: string 
 function Chevron({ abierto, onClick }: { abierto: boolean; onClick: () => void }) {
   return (
     <button onClick={onClick} style={{
-      background: 'transparent', border: '1px solid #e2e8f0', borderRadius: 8,
+      background: '#f8f7ff', border: '1px solid #8C59FE55', borderRadius: 8,
       width: 26, height: 26, display: 'flex', alignItems: 'center', justifyContent: 'center',
-      cursor: 'pointer', color: '#64748b', fontSize: 12, flexShrink: 0,
+      cursor: 'pointer', color: '#8C59FE', fontSize: 12, fontWeight: 700, flexShrink: 0,
     }}>
       {abierto ? '\u25be' : '\u25b8'}
     </button>
@@ -327,7 +261,7 @@ type ScorecardsICPBP = {
 function ListaCard({ label, items, accent, sub, influencia, scrollable }: { label: string; items: string[]; accent: string; sub?: string; influencia?: string[]; scrollable?: boolean }) {
   return (
     <div style={{ background: `${accent}08`, borderRadius: 14, border: `1px solid ${accent}22`, boxShadow: '0 1px 4px rgba(16,24,40,0.05)', padding: '16px 18px', borderLeft: `4px solid ${accent}` }}>
-      <div style={{ fontSize: 11, fontWeight: 700, color: '#94a3b8', textTransform: 'uppercase', letterSpacing: '0.04em', marginBottom: 10 }}>{label}</div>
+      <div style={{ fontSize: 12, fontWeight: 700, color: '#475569', textTransform: 'uppercase', letterSpacing: '0.04em', marginBottom: 10 }}>{label}</div>
       {items.length > 0 ? (
         <ul style={{ margin: 0, padding: 0, listStyle: 'none', display: 'flex', flexDirection: 'column', gap: 6, ...(scrollable ? { maxHeight: 140, overflowY: 'auto' as const, paddingRight: 4 } : {}) }}>
           {items.map((it, i) => (
@@ -484,7 +418,7 @@ function BloqueScorecards({ udnNombre, data, meta, abierto, onToggle }: { udnNom
           </div>
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 16 }}>
             <ListaCard label="Tomadores de decision" items={d.decisores ?? []} influencia={d.influenciadores ?? []} accent="#8C59FE" />
-            <ScoreCard label="Area del tomador" value={(d.areasDecisor ?? []).join(' · ') || '—'} sub="Areas mas frecuentes" accent="#059669" icon="" />
+            <ScoreCard label="Area del tomador" value={(d.areasDecisor ?? []).join(' · ') || '—'} sub="Areas mas frecuentes" accent="#059669" icon="" subColor="#475569" />
             <ListaCard label="Servicios (Need)" items={d.servicios ?? []} accent="#d97706" />
           </div>
         </>
@@ -637,7 +571,7 @@ export default function Overview({ udnNombre, udnId, brandColor }: { udnNombre: 
           {abierto4 && (
             <>
               <p style={{ fontSize: 13, color: '#64748b', margin: '4px 0 16px' }}>
-                Universo DENUE - empresas que aun no forman parte de tu cartera.
+                Universo INEGI - Empresas por abordar. Filtra por sector, tamaño y ubicación para encontrar prospectos.
               </p>
               <ProspeccionDenue onTotalChange={() => {}} />
             </>
