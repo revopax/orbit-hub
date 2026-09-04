@@ -321,15 +321,15 @@ const CONTEXTO_DUMMY = [
 ];
 
 type ScorecardsICPBP = {
-  topIndustrias?: string[]; tamanoEmpresa?: string; geografia?: string;
-  decisores?: string[]; areasDecisor?: string[]; servicios?: string[];
+  topIndustrias?: string[]; tamanoEmpresa?: string; facturacionAnual?: string; geografia?: string;
+  decisores?: string[]; influenciadores?: string[]; areasDecisor?: string[]; servicios?: string[];
 };
-function ListaCard({ label, items, accent, sub }: { label: string; items: string[]; accent: string; sub?: string }) {
+function ListaCard({ label, items, accent, sub, influencia, scrollable }: { label: string; items: string[]; accent: string; sub?: string; influencia?: string[]; scrollable?: boolean }) {
   return (
     <div style={{ background: `${accent}08`, borderRadius: 14, border: `1px solid ${accent}22`, boxShadow: '0 1px 4px rgba(16,24,40,0.05)', padding: '16px 18px', borderLeft: `4px solid ${accent}` }}>
       <div style={{ fontSize: 11, fontWeight: 700, color: '#94a3b8', textTransform: 'uppercase', letterSpacing: '0.04em', marginBottom: 10 }}>{label}</div>
       {items.length > 0 ? (
-        <ul style={{ margin: 0, padding: 0, listStyle: 'none', display: 'flex', flexDirection: 'column', gap: 6 }}>
+        <ul style={{ margin: 0, padding: 0, listStyle: 'none', display: 'flex', flexDirection: 'column', gap: 6, ...(scrollable ? { maxHeight: 140, overflowY: 'auto' as const, paddingRight: 4 } : {}) }}>
           {items.map((it, i) => (
             <li key={i} style={{ fontSize: 13.5, fontWeight: 600, color: '#1e293b', display: 'flex', alignItems: 'center', gap: 8 }}>
               <span style={{ width: 5, height: 5, borderRadius: '50%', background: accent, flexShrink: 0 }} />
@@ -339,6 +339,11 @@ function ListaCard({ label, items, accent, sub }: { label: string; items: string
         </ul>
       ) : (
         <div style={{ fontSize: 13, color: '#94a3b8' }}>Sin datos</div>
+      )}
+      {influencia && influencia.length > 0 && (
+        <div style={{ fontSize: 12.5, color: '#475569', marginTop: 10, paddingTop: 8, borderTop: '1px solid #eef0f3', lineHeight: 1.5 }}>
+          <span style={{ fontWeight: 700, color: '#334155' }}>Influye:</span> {influencia.join(', ')}
+        </div>
       )}
       {sub && <div style={{ fontSize: 11, color: '#94a3b8', marginTop: 10 }}>{sub}</div>}
     </div>
@@ -473,12 +478,12 @@ function BloqueScorecards({ udnNombre, data, meta, abierto, onToggle }: { udnNom
             Tu ICP declarado y tus buyer personas - este es tu punto de partida, {udnNombre}.
           </p>
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 16, marginTop: 16, marginBottom: 16 }}>
-            <ListaCard label="Top 5 industrias (ICP)" items={d.topIndustrias ?? []} accent="#8C59FE" />
-            <ScoreCard label="Tamano de empresa" value={d.tamanoEmpresa || '—'} sub="Piso minimo de interes" accent="#059669" icon="" />
-            <ScoreCard label="Geografia" value={d.geografia || '—'} sub="Donde nos interesan" accent="#d97706" icon="" />
+            <ListaCard label="Top industrias (ICP)" items={d.topIndustrias ?? []} accent="#8C59FE" scrollable />
+            <ScoreCard label="Tamano de empresa" value={d.tamanoEmpresa || '—'} sub={d.facturacionAnual ? `Piso minimo de interes · Facturación: ${d.facturacionAnual}` : 'Piso minimo de interes'} accent="#059669" icon="" subColor="#475569" />
+            <ScoreCard label="Geografia" value={d.geografia || '—'} sub="Donde nos interesan" accent="#d97706" icon="" subColor="#475569" />
           </div>
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 16 }}>
-            <ListaCard label="Tomadores de decision" items={d.decisores ?? []} accent="#8C59FE" />
+            <ListaCard label="Tomadores de decision" items={d.decisores ?? []} influencia={d.influenciadores ?? []} accent="#8C59FE" />
             <ScoreCard label="Area del tomador" value={(d.areasDecisor ?? []).join(' · ') || '—'} sub="Areas mas frecuentes" accent="#059669" icon="" />
             <ListaCard label="Servicios (Need)" items={d.servicios ?? []} accent="#d97706" />
           </div>
