@@ -10,6 +10,7 @@ interface SidebarV2Props {
   nombre?: string;
   onLogout?: () => void;
   permisos?: Record<string, 'all' | string[]> | null;
+  rol?: string;
 }
 
 const BRAND = '#7038D8';
@@ -35,7 +36,7 @@ const MODULOS = [
   },
 ];
 
-export function SidebarV2({ acento, moduloActivo, onModuloChange, nombre, onLogout, permisos }: SidebarV2Props) {
+export function SidebarV2({ acento, moduloActivo, onModuloChange, nombre, onLogout, permisos, rol }: SidebarV2Props) {
   const [expanded, setExpanded] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
   const router = useRouter();
@@ -82,6 +83,7 @@ export function SidebarV2({ acento, moduloActivo, onModuloChange, nombre, onLogo
         }}>
           Plataforma
         </span>
+        {rol?.toLowerCase() === 'admin' && (
         <div
           onClick={() => router.push('/iam')}
           style={{
@@ -100,6 +102,7 @@ export function SidebarV2({ acento, moduloActivo, onModuloChange, nombre, onLogo
             IAM · Gestión de usuarios
           </span>
         </div>
+        )}
 
         <span style={{
           fontSize: 10, fontWeight: 700, color: 'rgba(255,255,255,0.35)',
@@ -128,7 +131,7 @@ export function SidebarV2({ acento, moduloActivo, onModuloChange, nombre, onLogo
               style={{
                 display: 'flex', alignItems: 'center', gap: 10,
                 padding: '9px 10px', borderRadius: 8, cursor: 'pointer',
-                color: isActivo ? '#FFFFFF' : 'rgba(255,255,255,0.62)',
+                color: '#FFFFFF',
                 backgroundColor: isActivo ? BRAND : 'transparent',
                 fontSize: 13, fontWeight: isActivo ? 600 : 500,
                 transition: 'background-color 0.15s, color 0.15s',
@@ -138,7 +141,7 @@ export function SidebarV2({ acento, moduloActivo, onModuloChange, nombre, onLogo
               onMouseLeave={(e) => { if (!isActivo) e.currentTarget.style.backgroundColor = 'transparent'; }}
             >
               <span style={{ flexShrink: 0, display: 'flex', width: 22, height: 22 }}>
-                <img src={isActivo && mod.iconImgActivo ? mod.iconImgActivo : mod.iconImg} alt="" style={{ width: 22, height: 22, objectFit: 'contain', borderRadius: 4 }} />
+                <img src={isActivo && mod.iconImgActivo ? mod.iconImgActivo : mod.iconImg} alt="" style={{ width: 22, height: 22, objectFit: 'contain', borderRadius: 4, filter: isActivo ? 'none' : 'brightness(0) invert(1)' }} />
               </span>
               <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', opacity: expanded ? 1 : 0, transition: 'opacity 0.15s' }}>
                 {mod.label}

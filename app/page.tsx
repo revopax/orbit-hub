@@ -70,6 +70,7 @@ export default function Page() {
           nombre={perfil?.nombre}
           onLogout={logout}
           permisos={perfil?.permisos}
+          rol={perfil?.rol}
         />
         <div style={{
           flex: 1, overflowY: 'auto', overflowX: 'auto',

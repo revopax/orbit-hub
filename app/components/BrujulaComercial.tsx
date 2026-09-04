@@ -65,34 +65,30 @@ export default function BrujulaComercial({ permisos }: { permisos?: Permisos | n
         padding: '0 24px', display: 'flex', alignItems: 'center',
         height: 56, position: 'sticky', top: 0, zIndex: 100,
       }}>
-        <div style={{ maxWidth: 1400, margin: '0 auto', width: '100%', display: 'flex', alignItems: 'center', gap: 14 }}>
+        <div style={{ maxWidth: 1400, margin: '0 auto', width: '100%', display: 'flex', alignItems: 'center', gap: 14, position: 'relative' }}>
           <img src="/images/icon-192.png" alt="Brújula Comercial" style={{ width: 32, height: 32, objectFit: 'contain', flexShrink: 0 }} />
           <span style={{ fontWeight: 700, fontSize: 15, color: 'var(--txt-1)' }}>
             Brújula <span style={{ color: ACCENT }}>Comercial</span>
           </span>
           <div style={{
             display: 'flex', alignItems: 'center', justifyContent: 'center',
-            flex: 1, overflowX: 'auto',
+            position: 'absolute', left: '50%', transform: 'translateX(-50%)',
           }}>
             <div style={{ display: 'flex', gap: 4 }}>
               {(['overview'] as SubTab[]).map(t => {
                 const permitido = t === 'overview' ? (perfil?.rol?.toLowerCase() === 'admin' || esMkt) : tienePermiso(permisos, 'brujula', t);
                 return (
-                <button
+                <span
                   key={t}
-                  onClick={() => { if (permitido) setSub(t); }}
                   style={{
-                    padding: '6px 16px', borderRadius: 8, border: 'none',
-                    cursor: permitido ? 'pointer' : 'not-allowed',
-                    fontSize: 13, fontWeight: sub === t ? 700 : 500,
-                    background: sub === t ? ACCENT : 'transparent',
-                    color: !permitido ? 'var(--txt-5)' : (sub === t ? '#fff' : 'var(--txt-2)'),
+                    padding: '6px 16px',
+                    fontSize: 14, fontWeight: 700,
+                    color: 'var(--txt-2)',
                     whiteSpace: 'nowrap',
                     display: 'flex', alignItems: 'center', gap: 6,
-                    opacity: permitido ? 1 : 0.6,
                   }}
                 >
-                  {t === 'overview' ? 'Panorama' : 'Inteligencia de Mercado'}
+                  {t === 'overview' ? 'Inteligencia de Mercado' : 'Inteligencia de Mercado'}
                   {!permitido && (
                     <span style={{
                       fontSize: 9, fontWeight: 700, padding: '2px 6px', borderRadius: 5,
@@ -101,7 +97,7 @@ export default function BrujulaComercial({ permisos }: { permisos?: Permisos | n
                       Sin acceso
                     </span>
                   )}
-                </button>
+                </span>
                 );
               })}
             </div>
