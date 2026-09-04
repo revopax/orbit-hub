@@ -3,14 +3,23 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { getSupabase } from '@/app/lib/supabase';
 
+export type ModuloId = 'brujula' | 'redes' | 'hubspot' | 'boletin';
+
 interface SidebarV2Props {
   acento: string;
-  moduloActivo: 'brujula' | 'redes' | 'hubspot';
-  onModuloChange: (m: 'brujula' | 'redes' | 'hubspot') => void;
+  moduloActivo: ModuloId;
+  onModuloChange: (m: ModuloId) => void;
   nombre?: string;
   onLogout?: () => void;
   permisos?: Record<string, 'all' | string[]> | null;
   rol?: string;
+  udnMadre?: string | null;
+}
+
+/** El boletín es del departamento de Marketing Corporativo: lo ven la entidad MKT del IAM
+ *  y los admin. No se rige por el selector de permisos por módulo. */
+export function puedeVerBoletin(rol?: string, udnMadre?: string | null) {
+  return rol?.toLowerCase() === 'admin' || udnMadre === 'MKT';
 }
 
 const BRAND = '#7038D8';
@@ -34,9 +43,15 @@ const MODULOS = [
     iconImg: '/logos/orbit-analytics-outline.svg',
     iconImgActivo: '/logos/orbit-analytics-selected-white.svg',
   },
+  {
+    id: 'boletin' as const,
+    label: 'Boletín MKT Corp',
+    iconImg: '/logos/orbit-boletin-outline.svg',
+    iconImgActivo: '/logos/orbit-boletin-selected-white.svg',
+  },
 ];
 
-export function SidebarV2({ acento, moduloActivo, onModuloChange, nombre, onLogout, permisos, rol }: SidebarV2Props) {
+export function SidebarV2({ acento, moduloActivo, onModuloChange, nombre, onLogout, permisos, rol, udnMadre }: SidebarV2Props) {
   const [expanded, setExpanded] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
   const router = useRouter();
@@ -112,6 +127,8 @@ export function SidebarV2({ acento, moduloActivo, onModuloChange, nombre, onLogo
           Módulos
         </span>
         {MODULOS.filter((mod) => {
+          // El boletín se decide por la entidad del IAM, antes que por permisos por módulo.
+          if (mod.id === 'boletin') return puedeVerBoletin(rol, udnMadre)
           if (!permisos || Object.keys(permisos).length === 0) return true
           return permisos[mod.id] !== undefined
         }).map((mod) => {

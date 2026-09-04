@@ -137,7 +137,7 @@ export default function IAMPage() {
   const [visitasAbiertas, setVisitasAbiertas] = useState<string|null>(null);
   const [visitasDetalle, setVisitasDetalle] = useState<{modulo:string; clicks:number}[] | null>(null);
   const [visitasCargando, setVisitasCargando] = useState(false);
-  const MODULO_LABEL: Record<string,string> = { brujula: 'Brújula Comercial', redes: 'Redes UPAX', hubspot: 'Data & Analytics' };
+  const MODULO_LABEL: Record<string,string> = { brujula: 'Brújula Comercial', redes: 'Redes UPAX', hubspot: 'Data & Analytics', boletin: 'Boletín MKT Corp' };
   const abrirVisitas = async (perfilId: string) => {
     if (visitasAbiertas === perfilId) { setVisitasAbiertas(null); return; }
     setVisitasAbiertas(perfilId);

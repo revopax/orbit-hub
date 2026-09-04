@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" aria-label="Boletín MKT Corp activo">
+  <path d="M6.4 4.5h9.35a1.6 1.6 0 0 1 1.6 1.6v11.55a1.85 1.85 0 0 0 1.85 1.85H7.1a2.3 2.3 0 0 1-2.3-2.3V6.1a1.6 1.6 0 0 1 1.6-1.6Z" stroke="#fff" stroke-width="1.5" stroke-linejoin="round"/>
+  <path d="M17.35 10.35h1.35a1.6 1.6 0 0 1 1.6 1.6v5.7a1.85 1.85 0 0 1-1.85 1.85" stroke="#fff" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M7.85 8.05h6.45M7.85 11.35h6.45M7.85 14.6h4.1" stroke="#fff" stroke-width="1.5" stroke-linecap="round"/>
+  <circle cx="15.5" cy="14.6" r="1.2" fill="#fff"/>
+</svg>

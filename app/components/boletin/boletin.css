@@ -1,0 +1,100 @@
+/*
+ * Versión B — estilos del boletín portados desde el <style> del index.html original.
+ *
+ * Todo va acotado bajo `.boletin-root`. En el original las variables --uix-* vivían en
+ * :root y la regla de h1/h2/h3 era global; aquí eso pisaría el CSS de Orbit, así que
+ * queda encapsulado en el contenedor del módulo.
+ */
+
+@import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=Fugaz+One&family=DM+Mono:wght@400;500&display=swap');
+
+@font-face {
+  font-family: 'GC Grind';
+  src: url('/boletin/fonts/gc-grind.woff2') format('woff2'),
+       url('/boletin/fonts/gc-grind.woff') format('woff');
+  font-weight: 100 900;
+  font-display: swap;
+}
+
+.boletin-root {
+  --uix-bg: #1e1e1e;
+  --uix-surface: #262933;
+  --uix-lime: #E34714;
+  --uix-purple-deep: #FFFFFF;
+  --uix-on-lime: #FFFFFF;
+  --uix-magenta: #D72A5A;
+  --uix-violet: #AB3C83;
+  --uix-violet-text: #C57FAE;
+  --uix-blue: #5367E1;
+  --uix-cyan: #0079E3;
+  --uix-green: #9BA7D1;
+  --uix-lime-yellow: #E34714;
+  --uix-font-sans: 'Space Grotesk', system-ui, sans-serif;
+  --uix-font-display: 'Space Grotesk', system-ui, sans-serif;
+  --uix-track-eyebrow: 0.16em;
+  --uix-text-muted: rgba(255, 255, 255, 0.6);
+  --uix-grad-brand: linear-gradient(110deg, #E34714, #D72A5A 38%, #AB3C83 60%, #5367E1 100%);
+  --uix-grad-eyebrow: linear-gradient(90deg, #E34714, #D72A5A);
+  --uix-grad-magenta: linear-gradient(90deg, #D72A5A, #AB3C83);
+  --uix-grad-cta-cold: linear-gradient(90deg, #5367E1, #0079E3);
+  --uix-glow-lime: 0 0 40px -8px rgba(227, 71, 20, .45);
+  --uix-glow-violet: 0 0 50px -16px rgba(171, 60, 131, .5);
+  --uix-glow-cyan: 0 0 44px -12px rgba(83, 103, 225, .4);
+  --uix-atmosphere:
+    radial-gradient(900px 520px at 12% -8%, rgba(227, 71, 20, .24), transparent 62%),
+    radial-gradient(760px 480px at 88% 4%, rgba(83, 103, 225, .2), transparent 62%),
+    radial-gradient(900px 520px at 50% 108%, rgba(215, 42, 90, .18), transparent 62%);
+
+  background: #1e1e1e;
+  color: #FFFFFF;
+  font-family: 'Space Grotesk', system-ui, sans-serif;
+  scroll-behavior: smooth;
+}
+
+.boletin-root h1,
+.boletin-root h2,
+.boletin-root h3 {
+  font-family: 'GC Grind', 'Space Grotesk', system-ui, sans-serif;
+  font-weight: 400 !important;
+  text-transform: uppercase;
+  letter-spacing: 0 !important;
+}
+
+.boletin-root a { color: #E34714; text-decoration: none; }
+.boletin-root a:hover { color: #D72A5A; }
+.boletin-root img { max-width: 100%; }
+
+/* --------------------------------------------------------------- keyframes */
+
+@keyframes v3-bounce {
+  0%, 100% { transform: translateY(0) rotate(-4deg) }
+  30% { transform: translateY(-26%) rotate(6deg) }
+  55% { transform: translateY(0) rotate(-2deg) }
+  70% { transform: translateY(-10%) rotate(4deg) }
+}
+@keyframes v3-wiggle {
+  0%, 100% { transform: rotate(-11deg) }
+  50% { transform: rotate(13deg) }
+}
+@keyframes v3-pop {
+  0%, 100% { transform: scale(1) rotate(-3deg) }
+  45% { transform: scale(1.18) rotate(5deg) }
+}
+@keyframes v3-swing {
+  0%, 100% { transform: rotate(-16deg) translateY(0) }
+  50% { transform: rotate(14deg) translateY(-8%) }
+}
+@keyframes v3-marquee {
+  from { transform: translate3d(0, 0, 0) }
+  to { transform: translate3d(-50%, 0, 0) }
+}
+@keyframes v3-glow-a {
+  0% { transform: translate3d(-4%, -3%, 0) scale(1.04) }
+  50% { transform: translate3d(7%, 5%, 0) scale(1.2) }
+  100% { transform: translate3d(-4%, -3%, 0) scale(1.04) }
+}
+@keyframes v3-glow-b {
+  0% { transform: translate3d(5%, 4%, 0) scale(1.16) }
+  50% { transform: translate3d(-7%, -5%, 0) scale(1.02) }
+  100% { transform: translate3d(5%, 4%, 0) scale(1.16) }
+}
